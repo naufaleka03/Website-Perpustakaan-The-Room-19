@@ -14,6 +14,14 @@
   }
 }
 
+@font-face {
+  font-family: 'Avenir';
+  src: url('/fonts/Avenir.woff2') format('woff2'),
+       url('/fonts/Avenir.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
