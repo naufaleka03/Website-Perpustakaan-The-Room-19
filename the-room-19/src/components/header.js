@@ -1,45 +1,40 @@
-import Link from 'next/link'
+import React from 'react';
+import { GoTriangleDown } from 'react-icons/go';
 
 const Header = () => {
   return (
-    <header className="fixed top-0 w-full h-[72px] bg-white shadow-sm z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo/Brand */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-gray-800">
-              The Room 19
-            </Link>
+    <header className="w-full h-[72px] bg-white border-b border-[#666666]/25 fixed top-0 left-0">
+      <div className="max-w-[1512px] h-full mx-auto px-10 flex items-center">
+        {/* Logo/Avatar */}
+        <div className="w-10 h-10 bg-[#c4c4c4] rounded-full" />
+
+        {/* Navigation */}
+        <nav className="flex items-center gap-10 ml-10 mt-7 mb-5">
+          <div className="text-[#111111] text-base font-medium">Home</div>
+          <div className="text-[#666666]/80 text-base">Page</div>
+          <div className="text-[#666666]/80 text-base">Page</div>
+          <div className="text-[#666666]/80 text-base">Page</div>
+        </nav>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4 ml-auto">
+          {/* Language Selector */}
+          <div className="flex items-center gap-0.5 pl-2 cursor-pointer">
+            <div className="text-[#333333] text-base">English (United States)</div>
+            <GoTriangleDown className="text-[#333333] ml-1" size={20} />
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-              Home
-            </Link>
-            <Link href="/about" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-              About
-            </Link>
-            <Link href="/services" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-              Services
-            </Link>
-            <Link href="/contact" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-              Contact
-            </Link>
-          </nav>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
+          {/* Auth Buttons */}
+          <button className="px-6 h-10 rounded-lg border border-[#111111] text-[#111111]">
+            Log in
+          </button>
+          <button className="px-6 h-10 rounded-lg bg-[#111111] text-white border border-[#111111]">
+            Sign up
+          </button>
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
