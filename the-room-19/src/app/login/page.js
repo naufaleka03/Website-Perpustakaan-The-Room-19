@@ -4,9 +4,6 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
 import { IoMdMail } from "react-icons/io";
 
-
-
-
 export default function LogInPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-white py-20">
