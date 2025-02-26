@@ -12,7 +12,7 @@ const links = [
   },
   {
     name: 'Reservation',
-    href: '/staff/dashboard/reservation',
+    href: '/user/dashboard/reservation',
     icon: 'reservation-icon',
     subLinks: [
       { name: 'Reserve a place', href: '/staff/dashboard/reservation/place' },
@@ -21,31 +21,12 @@ const links = [
   },
   {
     name: 'Book Loan',
-    href: '/staff/dashboard/book-loan',
+    href: '/user/dashboard/book-loan',
     icon: 'book-icon',
     subLinks: [
-      { name: 'Loan Management', href: '/staff/dashboard/book-loan/management' }
+      { name: 'Book Catalog', href: '/user/dashboard/book-loan/management' },
+      { name: 'History', href: '/user/dashboard/book-loan/history' }
     ]
-  },
-  {
-    name: 'Attendance',
-    href: '/staff/dashboard/attendance',
-    icon: 'attendance-icon'
-  },
-  {
-    name: 'Membership',
-    href: '/staff/dashboard/membership',
-    icon: 'membership-icon'
-  },
-  {
-    name: 'Inventory',
-    href: '/staff/dashboard/inventory',
-    icon: 'inventory-icon'
-  },
-  {
-    name: 'Settings',
-    href: '/staff/dashboard/settings',
-    icon: 'settings-icon'
   }
 ];
 

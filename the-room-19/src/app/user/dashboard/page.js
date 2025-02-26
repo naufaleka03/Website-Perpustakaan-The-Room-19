@@ -1,3 +1,6 @@
 export default function Page() {
-    return <h1>Hello, Next.js!</h1>
+    return (
+      <div className="w-full h-screen bg-gray-100">
+      </div>
+    )
   }
