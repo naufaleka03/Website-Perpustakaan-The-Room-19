@@ -2,10 +2,10 @@ import NavLinks from './nav-links';
 
 export default function SideNav() {
   return (
-    <nav className="w-[250px] h-[calc(100vh-72px)] bg-white shadow-lg flex flex-col flex-grow">
-      <div className="p-4 flex flex-col h-full">
+    <nav className="w-[250px] h-[calc(100vh-72px)] bg-white shadow-lg flex flex-col flex-grow border-solid border-y-0 border">
+      <div className="px-4 py-2 flex flex-col h-full">
         
-        <div className="flex items-center gap-3 mb-6 mt-2">
+        <div className="flex items-center gap-3 mb-4 mt-2">
           <div className="ml-2 p-7 w-12 h-12 bg-[#d9d9d9] rounded-full"/>
           <div className="flex flex-col">
             <div className="text-[#5d7285] text-sm font-semibold">Wildan Fauzan Ramdana</div>
@@ -17,7 +17,7 @@ export default function SideNav() {
           </div>
         </div>
 
-        <div className="h-px bg-[#767676]/30 mb-3" />
+        <div className="h-px bg-[#767676]/30 mb-2" />
 
         <div className="flex-grow overflow-y-auto text-sm">
           <NavLinks />
