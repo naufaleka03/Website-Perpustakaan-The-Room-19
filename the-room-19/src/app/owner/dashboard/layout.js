@@ -1,7 +1,7 @@
 'use client';
 
-import Header from '@/components/staff/layout/header';
-import SideNav from '@/components/staff/layout/sidenav';
+import Header from '@/components/owner/layout/header';
+import SideNav from '@/components/owner/layout/sidenav';
 import { useState } from 'react';
 
 export default function Layout({ children }) {

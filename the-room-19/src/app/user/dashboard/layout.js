@@ -1,19 +1,24 @@
-import SideNav from '@/components/user/sidenav';
-import Header from '@/components/user/header';
- 
+'use client';
+
+import Header from '@/components/user/layout/header';
+import SideNav from '@/components/user/layout/sidenav';
+import { useState } from 'react';
+
 export default function Layout({ children }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
     <div className="flex flex-col h-screen">
       {/* Fixed header */}
       <div className="flex-none">
-        <Header />
+        <Header isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       </div>
       
       {/* Main content area with fixed sidenav */}
       <div className="flex flex-1 overflow-hidden">
         {/* Fixed sidenav */}
         <div className="flex-none">
-          <SideNav />
+          <SideNav isExpanded={isExpanded} />
         </div>
         
         {/* Scrollable main content */}
