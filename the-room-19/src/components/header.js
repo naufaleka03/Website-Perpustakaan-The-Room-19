@@ -3,7 +3,7 @@ import { GoTriangleDown } from 'react-icons/go';
 
 const Header = () => {
   return (
-    <header className="w-full h-[72px] bg-white border-b border-[#666666]/25 fixed top-0 left-0">
+    <header className="w-full h-[72px] bg-white border-b border-[#666666]/25 fixed top-0 left-0 z-50">
       <div className="max-w-[1512px] h-full mx-auto px-10 flex items-center">
         {/* Logo/Avatar */}
         <div className="w-10 h-10 bg-[#c4c4c4] rounded-full" />
@@ -38,3 +38,4 @@ const Header = () => {
 };
 
 export default Header;
+
