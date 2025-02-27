@@ -1,12 +1,6 @@
 import './globals.css'
 import Header from '@/components/header'
-import { Poppins } from 'next/font/google'
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins',
-})
+import { poppins, manrope } from '@/components/fonts'
 
 export const metadata = {
   title: 'The Room 19',
