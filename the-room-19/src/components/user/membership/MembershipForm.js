@@ -8,7 +8,7 @@ const manrope = Manrope({
 
 export default function MembershipForm() {
   return (
-    <div className="max-w-[1440px] min-h-[850px] mx-auto bg-white px-0 pb-20">
+    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
         <img 
@@ -16,7 +16,7 @@ export default function MembershipForm() {
           src="/your-image.jpg"
           alt="Membership banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full">
+        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
           <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
             MEMBERSHIP
           </h1>
@@ -24,7 +24,7 @@ export default function MembershipForm() {
       </div>
 
       {/* Form Section */}
-      <div className="flex flex-col gap-4 max-w-[1200px] mx-10 px-6">
+      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Personal Information */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -32,7 +32,7 @@ export default function MembershipForm() {
           </label>
           <input 
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
         </div>
@@ -43,7 +43,7 @@ export default function MembershipForm() {
           </label>
           <input 
             type="email"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your email"
           />
         </div>
@@ -54,7 +54,7 @@ export default function MembershipForm() {
           </label>
           <input 
             type="tel"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your phone number"
           />
         </div>
@@ -65,7 +65,7 @@ export default function MembershipForm() {
           </label>
           <input 
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your domicile"
           />
         </div>
@@ -76,7 +76,7 @@ export default function MembershipForm() {
           </label>
           <input 
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your favorite book genre"
           />
         </div>
@@ -88,12 +88,12 @@ export default function MembershipForm() {
           <div className="flex gap-3">
             <input 
               type="text"
-              className="h-[35px] w-1/2 rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              className="h-[35px] w-1/2 rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
               placeholder="Contact name"
             />
             <input 
               type="tel"
-              className="h-[35px] w-1/2 rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              className="h-[35px] w-1/2 rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
               placeholder="Contact number"
             />
           </div>
@@ -103,7 +103,7 @@ export default function MembershipForm() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Upload ID Card
           </label>
-          <div className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 flex items-center text-sm text-[#666666]/80">
+          <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center text-sm text-[#666666]/80">
             <span>Choose file or drop here</span>
             <input type="file" className="hidden" />
           </div>
@@ -117,7 +117,7 @@ export default function MembershipForm() {
         </div>
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-2xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
           SUBMIT
         </button>
       </div>

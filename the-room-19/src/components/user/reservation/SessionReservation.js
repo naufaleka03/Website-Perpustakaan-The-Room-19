@@ -41,7 +41,7 @@ export default function SessionReservation() {
   };
 
   return (
-     <div className="max-w-[1440px] min-h-[750px] mx-auto bg-white px-0 pb-20">
+     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
         <img 
@@ -49,7 +49,7 @@ export default function SessionReservation() {
           src="https://via.placeholder.com/1402x272" 
           alt="Reservation banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full">
+        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
           <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
             RESERVE <br/>A PLACE
           </h1>
@@ -60,30 +60,30 @@ export default function SessionReservation() {
       <div className="flex justify-center gap-4 max-w-[1200px] mx-auto mb-4">
         <button
           onClick={() => setReservationType('individual')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'individual' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUser size={20} />
+          <FaUser size={14} />
           <span>Individual</span>
         </button>
         <button
           onClick={() => setReservationType('group')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'group' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUsers size={20} />
+          <FaUsers size={14} />
           <span>Group</span>
         </button>
       </div>
 
       {/* Form Section */}
-      <div className="flex flex-col gap-4 max-w-[1200px] mx-10 px-6">
+      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Category Field */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -91,7 +91,7 @@ export default function SessionReservation() {
           </label>
           <div className="relative">
             <select 
-              className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+              className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
             >
               <option value="" className="text-[#666666]/40">Choose your category</option>
               <option value="category1" className="text-[#666666]">Category 1</option>
@@ -113,7 +113,7 @@ export default function SessionReservation() {
               onChange={handleDateChange}
               className="absolute opacity-0 w-full h-full cursor-pointer"
             />
-            <div className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 flex items-center">
+            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
               <span className={`text-sm font-normal font-['Poppins'] ${date ? 'text-[#666666]' : 'text-[#A9A9A9]'}`}>
                 {date || 'Choose your arrival date'}
               </span>
@@ -129,7 +129,7 @@ export default function SessionReservation() {
           </label>
           <div className="relative">
             <select 
-              className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+              className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
             >
               <option value="" className="text-[#666666]/40">Choose your shift</option>
               <option value="shift1" className="text-[#666666]">Shift 1</option>
@@ -147,7 +147,7 @@ export default function SessionReservation() {
           </label>
           <input 
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
         </div>
@@ -165,7 +165,7 @@ export default function SessionReservation() {
                     type="text"
                     value={member}
                     onChange={(e) => handleMemberChange(index, e.target.value)}
-                    className="h-[35px] flex-1 rounded-2xl border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
+                    className="h-[35px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
                     placeholder={`Member ${index + 1} name`}
                   />
                   {index > 0 && (
@@ -192,7 +192,7 @@ export default function SessionReservation() {
         )}
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-2xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
           SUBMIT
         </button>
       </div>
