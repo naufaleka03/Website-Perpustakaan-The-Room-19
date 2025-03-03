@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { Manrope } from 'next/font/google';
 import { FaSearch, FaPlus } from 'react-icons/fa';
+import { membershipData } from './data/membershipData';
+import { sessionData } from './data/sessionData';
+import { eventData } from './data/eventData';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -10,31 +13,68 @@ const manrope = Manrope({
 
 export default function DataCollection() {
   const [activeTab, setActiveTab] = useState('session');
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sessionCurrentPage, setSessionCurrentPage] = useState(1);
+  const [eventCurrentPage, setEventCurrentPage] = useState(1);
 
-  // Dummy data untuk contoh
-  const sessionData = [
-    { id: 1, name: "John Doe", date: "2024-03-20", shift: "Morning", category: "Individual", status: "Approved" },
-    { id: 2, name: "Jane Smith", date: "2024-03-21", shift: "Afternoon", category: "Group", status: "Pending" },
-    { id: 3, name: "Mike Johnson", date: "2024-03-22", shift: "Evening", category: "Individual", status: "Approved" },
-    { id: 4, name: "Sarah Williams", date: "2024-03-23", shift: "Morning", category: "Group", status: "Cancelled" },
-    { id: 5, name: "David Brown", date: "2024-03-24", shift: "Afternoon", category: "Individual", status: "Pending" }
-  ];
+  // Fungsi pagination untuk setiap tabel
+  const getTableData = (data, page) => {
+    const startIndex = (page - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    return data.slice(startIndex, endIndex);
+  };
 
-  const eventData = [
-    { id: 1, name: "John Doe", date: "2024-03-25", shift: "Morning", event: "Puppet Workshop", status: "Approved" },
-    { id: 2, name: "Jane Smith", date: "2024-03-26", shift: "Afternoon", event: "Board Game Night", status: "Pending" },
-    { id: 3, name: "Mike Johnson", date: "2024-03-27", shift: "Evening", event: "Art Exhibition", status: "Approved" },
-    { id: 4, name: "Sarah Williams", date: "2024-03-28", shift: "Morning", event: "Book Club", status: "Cancelled" },
-    { id: 5, name: "David Brown", date: "2024-03-29", shift: "Afternoon", event: "Movie Screening", status: "Pending" }
-  ];
+  const getTotalPages = (data) => Math.ceil(data.length / entriesPerPage);
 
-  const membershipData = [
-    { id: 1, name: "John Doe", type: "Student", startDate: "2024-03-01", endDate: "2024-09-01", status: "Active" },
-    { id: 2, name: "Jane Smith", type: "Regular", startDate: "2024-03-15", endDate: "2024-09-15", status: "Active" },
-    { id: 3, name: "Mike Johnson", type: "Premium", startDate: "2024-03-10", endDate: "2024-09-10", status: "Inactive" },
-    { id: 4, name: "Sarah Williams", type: "Student", startDate: "2024-03-05", endDate: "2024-09-05", status: "Active" },
-    { id: 5, name: "David Brown", type: "Regular", startDate: "2024-03-20", endDate: "2024-09-20", status: "Pending" }
-  ];
+  // Render pagination controls
+  const PaginationControls = ({ currentPage, setCurrentPage, totalPages }) => (
+    <div className="flex justify-between items-center mt-4 text-xs text-[#666666] font-['Poppins']">
+      <div className="flex items-center gap-2">
+        Show
+        <select 
+          value={entriesPerPage}
+          onChange={(e) => {
+            setEntriesPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="border border-[#666666]/30 rounded px-2 py-1 text-xs"
+        >
+          <option value={10}>10</option>
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+        entries
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <button 
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className={`px-2 py-1 rounded text-xs ${
+            currentPage === 1 
+              ? 'bg-gray-100 text-gray-400' 
+              : 'bg-white text-[#666666] border border-[#666666]/30'
+          }`}
+        >
+          Previous
+        </button>
+        <span className="px-2 py-1 bg-[#111010] text-white rounded text-xs">{currentPage}</span>
+        <button 
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className={`px-2 py-1 rounded text-xs ${
+            currentPage === totalPages 
+              ? 'bg-gray-100 text-gray-400' 
+              : 'bg-white text-[#666666] border border-[#666666]/30'
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
 
   // Tambahkan state untuk mengelola status
   const [statuses, setStatuses] = useState(
@@ -46,6 +86,38 @@ export default function DataCollection() {
 
   const handleStatusChange = (id, newStatus) => {
     setStatuses(prevStatuses => 
+      prevStatuses.map(status => 
+        status.id === id ? { ...status, status: newStatus } : status
+      )
+    );
+  };
+
+  // Tambahkan state untuk event status
+  const [eventStatuses, setEventStatuses] = useState(
+    eventData.map(item => ({
+      id: item.id,
+      status: 'not attend'
+    }))
+  );
+
+  const handleEventStatusChange = (id, newStatus) => {
+    setEventStatuses(prevStatuses => 
+      prevStatuses.map(status => 
+        status.id === id ? { ...status, status: newStatus } : status
+      )
+    );
+  };
+
+  // Tambahkan state untuk membership status
+  const [membershipStatuses, setMembershipStatuses] = useState(
+    membershipData.map(item => ({
+      id: item.id,
+      status: 'request'
+    }))
+  );
+
+  const handleMembershipStatusChange = (id, newStatus) => {
+    setMembershipStatuses(prevStatuses => 
       prevStatuses.map(status => 
         status.id === id ? { ...status, status: newStatus } : status
       )
@@ -110,11 +182,11 @@ export default function DataCollection() {
                   <input
                     type="text"
                     placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
                   <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-sm font-['Poppins']">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
                   Create
                 </button>
@@ -122,17 +194,17 @@ export default function DataCollection() {
               <div className="min-w-[768px] overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr>
-                      <th className="first:rounded-tl-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">No</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">Name</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">Date</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">Shift</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">Category</th>
-                      <th className="rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap bg-[#eaeaea]">Status</th>
+                    <tr className="bg-[#eaeaea]">
+                      <th className="first:rounded-tl-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Category</th>
+                      <th className="first:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sessionData.map((item) => (
+                    {getTableData(sessionData, sessionCurrentPage).map((item) => (
                       <tr key={item.id} className="border-b border-[#666666]/10">
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
@@ -145,12 +217,12 @@ export default function DataCollection() {
                             onChange={(e) => handleStatusChange(item.id, e.target.value)}
                             className={`px-2 py-1 rounded-lg text-xs ${
                               statuses.find(status => status.id === item.id)?.status === 'attend'
-                                ? 'text-green-700 bg-green-50' 
-                                : 'text-red-700 bg-red-50'
+                                ? 'text-green-800 bg-green-100' 
+                                : 'text-red-800 bg-red-100'
                             }`}
                           >
-                            <option value="not attend" className="text-red-700 bg-white">Not Attend</option>
-                            <option value="attend" className="text-green-700 bg-white">Attend</option>
+                            <option value="not attend" className="text-red-800 bg-white">Not Attend</option>
+                            <option value="attend" className="text-green-800 bg-white">Attend</option>
                           </select>
                         </td>
                       </tr>
@@ -158,6 +230,11 @@ export default function DataCollection() {
                   </tbody>
                 </table>
               </div>
+              <PaginationControls 
+                currentPage={sessionCurrentPage}
+                setCurrentPage={setSessionCurrentPage}
+                totalPages={getTotalPages(sessionData)}
+              />
             </>
           )}
           
@@ -168,11 +245,11 @@ export default function DataCollection() {
                   <input
                     type="text"
                     placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
                   <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-sm font-['Poppins']">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
                   Create
                 </button>
@@ -181,43 +258,78 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="first:rounded-tl-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
                       <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Event</th>
                       <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
                       <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Event</th>
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {eventData.map((item) => (
+                    {getTableData(eventData, eventCurrentPage).map((item) => (
                       <tr key={item.id} className="border-b border-[#666666]/10">
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.id}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.name}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.event}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.date}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.shift}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.status}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.event}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.date}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
+                        <td className="py-3 px-4 text-xs font-['Poppins']">
+                          <select
+                            value={eventStatuses.find(status => status.id === item.id)?.status || 'not attend'}
+                            onChange={(e) => handleEventStatusChange(item.id, e.target.value)}
+                            className={`px-2 py-1 rounded-lg text-xs ${
+                              eventStatuses.find(status => status.id === item.id)?.status === 'attend'
+                                ? 'text-green-800 bg-green-100' 
+                                : 'text-red-800 bg-red-100'
+                            }`}
+                          >
+                            <option value="not attend" className="text-red-800 bg-white">Not Attend</option>
+                            <option value="attend" className="text-green-800 bg-white">Attend</option>
+                          </select>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <PaginationControls 
+                currentPage={eventCurrentPage}
+                setCurrentPage={setEventCurrentPage}
+                totalPages={getTotalPages(eventData)}
+              />
             </>
           )}
           
           {activeTab === 'membership' && (
             <>
+              {/* Statistics Cards */}
+              <div className="flex justify-center gap-4 mb-6">
+                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Member</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">100</p>
+                </div>
+                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Request</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">20</p>
+                </div>
+                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Revision</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">10</p>
+                </div>
+              </div>
+
+              {/* Search and Create Section */}
               <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <div className="relative w-full md:w-[300px]">
                   <input
                     type="text"
                     placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
                   <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-sm font-['Poppins']">
+                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
                   Create
                 </button>
@@ -235,19 +347,36 @@ export default function DataCollection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {membershipData.map((item) => (
+                    {getTableData(membershipData, currentPage).map((item) => (
                       <tr key={item.id} className="border-b border-[#666666]/10">
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.id}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.name}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.type}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.startDate}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.endDate}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] whitespace-nowrap">{item.status}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.dateJoined}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
+                        <td className="py-3 px-4 text-xs font-['Poppins']">
+                          <select
+                            value={membershipStatuses.find(status => status.id === item.id)?.status || 'request'}
+                            onChange={(e) => handleMembershipStatusChange(item.id, e.target.value)}
+                            className={`px-2 py-1 rounded-lg text-xs ${
+                              membershipStatuses.find(status => status.id === item.id)?.status === 'verified'
+                                ? 'text-green-800 bg-green-100'
+                                : membershipStatuses.find(status => status.id === item.id)?.status === 'request'
+                                ? 'text-yellow-800 bg-yellow-100'
+                                : 'text-red-800 bg-red-100'
+                            }`}
+                          >
+                            <option value="request" className="text-yellow-800 bg-white">Request</option>
+                            <option value="verified" className="text-green-800 bg-white">Verified</option>
+                            <option value="revision" className="text-red-800 bg-white">Revision</option>
+                          </select>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <PaginationControls currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={getTotalPages(membershipData)} />
             </>
           )}
         </div>
