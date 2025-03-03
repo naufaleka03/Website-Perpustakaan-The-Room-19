@@ -1,5 +1,6 @@
- "use client"
+"use client"
 import { Manrope } from 'next/font/google';
+import { useState } from 'react';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -7,6 +8,8 @@ const manrope = Manrope({
 });
 
 export default function MembershipForm() {
+  const [file, setFile] = useState(null);
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
@@ -103,9 +106,23 @@ export default function MembershipForm() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Upload ID Card
           </label>
-          <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center text-sm text-[#666666]/80">
-            <span>Choose file or drop here</span>
-            <input type="file" className="hidden" />
+          <div className="relative">
+            <input 
+              type="file"
+              id="idCardUpload"
+              className="absolute opacity-0 w-full h-full cursor-pointer"
+              onChange={(e) => {
+                const selectedFile = e.target.files[0];
+                if (selectedFile) {
+                  setFile(selectedFile);
+                }
+              }}
+            />
+            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+              <span className={`text-sm font-normal font-['Poppins'] ${file ? 'text-[#666666]' : 'text-[#A9A9A9]'}`}>
+                {file ? file.name : 'Choose file or drop here'}
+              </span>
+            </div>
           </div>
         </div>
 

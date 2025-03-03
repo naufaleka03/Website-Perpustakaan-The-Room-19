@@ -4,6 +4,7 @@ import { FaWhatsapp, FaEnvelope, FaChevronLeft, FaChevronRight } from 'react-ico
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
+import { FaPencil, FaTrash } from 'react-icons/fa6';
 
 
 const manrope = Manrope({
@@ -11,7 +12,7 @@ const manrope = Manrope({
   weight: ['400', '500', '600'],
 });
 
-export default function ListEvent() {
+export default function EventListStaff() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -67,12 +68,21 @@ export default function ListEvent() {
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-aut pt-10">
+        <div className="flex justify-start items-center mb-6 mx-11">
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-[#2e3105] text-white rounded-lg text-sm hover:bg-[#2e3105] transition-colors"
+            onClick={() => router.push('/staff/dashboard/resevation/event-list/create-event')}
+          >
+            <FaPlus size={14} />
+            Create Event
+          </button>
+        </div>
           {/* Events Grid */}
-          <div className="grid grid-cols-3 gap-6 max-w-[1200px] mx-5 px-6 mb-12">
+          <div className="grid grid-cols-3 gap-10 max-w-[1200px] mx-5 px-6 mb-12">
             {events.map((event) => (
               <div 
                 key={event.id} 
-                className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px]"
+                className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] relative"
                 onClick={() => router.push(`/user/dashboard/reservation/event-reservation`)}
               >
                 <img 
@@ -94,69 +104,31 @@ export default function ListEvent() {
                     {event.price}
                   </p>
                 </div>
+                <div className="absolute bottom-2 right-2 flex gap-2">
+                  <button 
+                    className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-200 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle edit
+                    }}
+                  >
+                    <FaPencil size={14} className="text-[#666666]" />
+                  </button>
+                  <button 
+                    className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-700 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle delete
+                    }}
+                  >
+                    <FaTrash size={14} className="text-red-600 hover:text-white" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Bottom Section */}
-          <div className="max-w-[1200px] mx-2 grid grid-cols-2 gap-8 px-1">
-            {/* Carousel Section */}
-            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-md">
-              <img 
-                src={carouselImages[currentSlide]}
-                alt="Carousel"
-                className="w-full h-full object-cover"
-              />
-              {/* Arrow Navigation */}
-              <button 
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
-              >
-                <FaChevronLeft className="text-[#111010] text-xl" />
-              </button>
-              <button 
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
-              >
-                <FaChevronRight className="text-[#111010] text-xl" />
-              </button>
-              {/* Dots Navigation */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {carouselImages.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${
-                      currentSlide === index ? 'bg-white' : 'bg-white/50'
-                    }`}
-                    onClick={() => setCurrentSlide(index)}
-                  />
-                ))}
-              </div>
-            </div>
 
-            {/* Collaboration Program Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-md">
-              <div className="space-y-3">
-                <h2 className="text-[#111010] text-sm font-medium font-['Poppins']">
-                  Collaboration Program
-                </h2>
-                <p className="text-[#666666] text-xs font-['Poppins']">
-                  Let's collaborate! We welcome external partners to create impactful events and meaningful programs. Please fill out the form accordingly. For any questions, feel free to contact us through the available channels.
-                </p>
-                <div className="flex gap-2 mt-12">
-                  <button className="px-6 py-2 bg-[#111010] text-white rounded-2xl text-xs font-['Poppins'] w-[100px]">
-                    Form
-                  </button>
-                  <button className="p-2 bg-[#ffffff] text-black border border-black rounded-2xl text-xs font-['Poppins'] flex items-center justify-center w-[40px] h-[36px]">
-                    <FaWhatsapp size={14} />
-                  </button>
-                  <button className="p-2 bg-[#ffffff] text-black border border-black rounded-2xl text-xs font-['Poppins'] flex items-center justify-center w-[40px] h-[36px]">
-                    <FaEnvelope size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
       </div>
     </div>
   );
