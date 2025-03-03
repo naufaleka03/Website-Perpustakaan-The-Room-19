@@ -60,9 +60,9 @@ const booksData = [
 const BookCard = ({ title, author, imageUrl }) => {
   return (
     <div className="relative">
-      <div className="w-full aspect-[200/280] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd]">
+      <div className="w-full aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
         <img
-          className="w-[95%] h-[98%] mx-auto rounded-2xl shadow-md object-cover"
+          className="w-full h-full object-cover"
           src={imageUrl}
           alt={`${title} Cover`}
         />
@@ -84,10 +84,10 @@ const CatalogPage = () => {
         <div className="w-full mx-auto px-6 py-8">
           {/* Search Bar and Cart Container */}
           <div className="flex justify-center items-center mb-6">
-            <div className="w-[600px] flex items-center gap-3"> {/* Container dengan fixed width */}
+            <div className="w-[600px] flex items-center gap-3"> 
               {/* Search Bar */}
               <div className="flex-1">
-                <div className="w-full h-[40px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center px-4">
+                <div className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] flex items-center px-5">
                   <BiSearch className="text-gray-400" size={18} />
                   <input
                     type="text"
@@ -129,7 +129,7 @@ const CatalogPage = () => {
                     <input
                       type="text"
                       placeholder="Search"
-                      className="w-full h-[33px] bg-neutral-50 rounded-[8px] border border-[#cdcdcd] pl-10 text-xs font-manrope"
+                      className="w-full h-[33px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-xs font-manrope"
                     />
                     <BiSearch
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -150,7 +150,7 @@ const CatalogPage = () => {
                     <div key={genre} className="flex items-center gap-3 mb-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-[8px] border border-[#cdcdcd]"
+                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
                       />
                       <span className="text-black text-xs font-medium font-['Manrope']">
                         {genre}
@@ -170,7 +170,7 @@ const CatalogPage = () => {
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      className="w-[19px] h-[19px] rounded-[8px] border border-[#cdcdcd]"
+                      className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
                     />
                     <div className="flex items-center gap-1">
                       <AiFillStar className="text-[#ECB43C]" />
@@ -188,7 +188,7 @@ const CatalogPage = () => {
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-[8px] border border-[#cdcdcd]"
+                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
                       />
                       <span className="text-black text-xs font-medium font-['Manrope']">
                         Local Books
@@ -197,7 +197,7 @@ const CatalogPage = () => {
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-[8px] border border-[#cdcdcd]"
+                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
                       />
                       <span className="text-black text-xs font-medium font-['Manrope']">
                         International Books
@@ -208,10 +208,10 @@ const CatalogPage = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-6">
-                  <button className="w-[90px] h-[30px] border border-[#2e3105] text-[#111111] text-xs rounded-[8px]">
+                  <button className="w-[90px] h-[30px] border border-[#2e3105] text-[#111111] text-xs rounded-2xl">
                     Clear
                   </button>
-                  <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-[8px]">
+                  <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
                     Apply
                   </button>
                 </div>
@@ -222,18 +222,18 @@ const CatalogPage = () => {
           {/* Pagination - centered */}
           <div className="flex justify-center mt-8">
             <div className="flex items-center gap-2">
-              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[8px] border border-[#cdcdcd] flex items-center justify-center">
+              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center">
                 <IoChevronBackOutline size={16} />
               </button>
               {[1, 2, 3].map((num) => (
                 <button
                   key={num}
-                  className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[8px] border border-[#cdcdcd] flex items-center justify-center text-xs"
+                  className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center text-xs"
                 >
                   {num}
                 </button>
               ))}
-              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[8px] border border-[#cdcdcd] flex items-center justify-center">
+              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center">
                 <IoChevronForwardOutline size={16} />
               </button>
             </div>
