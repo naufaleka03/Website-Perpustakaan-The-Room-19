@@ -1,10 +1,11 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Manrope } from 'next/font/google';
-import { FaSearch, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
 import { membershipData } from './data/membershipData';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
+import CancelConfirmationModal from './CancelConfirmationModal';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -17,6 +18,10 @@ export default function DataCollection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sessionCurrentPage, setSessionCurrentPage] = useState(1);
   const [eventCurrentPage, setEventCurrentPage] = useState(1);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
 
   // Fungsi pagination untuk setiap tabel
   const getTableData = (data, page) => {
@@ -76,11 +81,12 @@ export default function DataCollection() {
     </div>
   );
 
-  // Tambahkan state untuk mengelola status
+  // Update state untuk session
   const [statuses, setStatuses] = useState(
     sessionData.map(item => ({
       id: item.id,
-      status: 'not attend'
+      status: 'not attend',
+      isCanceled: false
     }))
   );
 
@@ -92,11 +98,12 @@ export default function DataCollection() {
     );
   };
 
-  // Tambahkan state untuk event status
+  // Update state untuk event
   const [eventStatuses, setEventStatuses] = useState(
     eventData.map(item => ({
       id: item.id,
-      status: 'not attend'
+      status: 'not attend',
+      isCanceled: false
     }))
   );
 
@@ -123,6 +130,48 @@ export default function DataCollection() {
       )
     );
   };
+
+  const handleCancelClick = (id) => {
+    setSelectedBookingId(id);
+    setIsModalOpen(true);
+    setActiveDropdown(null);
+  };
+
+  const handleConfirmCancel = () => {
+    if (activeTab === 'session') {
+      setStatuses(prevStatuses =>
+        prevStatuses.map(status =>
+          status.id === selectedBookingId
+            ? { ...status, status: 'canceled', isCanceled: true }
+            : status
+        )
+      );
+    } else if (activeTab === 'event') {
+      setEventStatuses(prevStatuses =>
+        prevStatuses.map(status =>
+          status.id === selectedBookingId
+            ? { ...status, status: 'canceled', isCanceled: true }
+            : status
+        )
+      );
+    }
+    setIsModalOpen(false);
+    setSelectedBookingId(null);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdownButton = event.target.closest('button');
+      const dropdownMenu = event.target.closest('.dropdown-menu');
+      
+      if (!dropdownButton?.classList.contains('dropdown-trigger') && !dropdownMenu) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -195,35 +244,82 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Category</th>
-                      <th className="first:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Category</th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getTableData(sessionData, sessionCurrentPage).map((item) => (
-                      <tr key={item.id} className="border-b border-[#666666]/10">
+                      <tr 
+                        key={item.id} 
+                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                        onClick={() => setSelectedRow(item.id)}
+                        onMouseLeave={() => setSelectedRow(null)}
+                      >
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.date}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.category}</td>
-                        <td className="py-3 px-4 text-xs font-['Poppins']">
-                          <select
-                            value={statuses.find(status => status.id === item.id)?.status || 'not attend'}
-                            onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                            className={`px-2 py-1 rounded-lg text-xs ${
-                              statuses.find(status => status.id === item.id)?.status === 'attend'
-                                ? 'text-green-800 bg-green-100' 
-                                : 'text-red-800 bg-red-100'
-                            }`}
+                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
+                          {statuses.find(status => status.id === item.id)?.isCanceled ? (
+                            <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
+                              Canceled
+                            </span>
+                          ) : (
+                            <select
+                              value={statuses.find(status => status.id === item.id)?.status || 'not attend'}
+                              onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                              className={`px-2 py-1 rounded-lg text-xs ${
+                                statuses.find(status => status.id === item.id)?.status === 'attend'
+                                  ? 'text-green-800 bg-green-100'
+                                  : 'text-yellow-800 bg-yellow-100'
+                              }`}
+                            >
+                              <option value="not attend" className="text-yellow-800 bg-white">Not Attend</option>
+                              <option value="attend" className="text-green-800 bg-white">Attend</option>
+                            </select>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                            }}
+                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
                           >
-                            <option value="not attend" className="text-red-800 bg-white">Not Attend</option>
-                            <option value="attend" className="text-green-800 bg-white">Attend</option>
-                          </select>
+                            <FaEllipsisV size={14} />
+                          </button>
+                          
+                          {activeDropdown === item.id && (
+                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle detail
+                                  setActiveDropdown(null);
+                                }}
+                              >
+                                Detail
+                              </button>
+                              <button 
+                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-b-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancelClick(item.id);
+                                }}
+                              >
+                                Cancel Booking
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -258,35 +354,82 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Event</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
-                      <th className="first:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Event</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getTableData(eventData, eventCurrentPage).map((item) => (
-                      <tr key={item.id} className="border-b border-[#666666]/10">
+                      <tr 
+                        key={item.id} 
+                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                        onClick={() => setSelectedRow(item.id)}
+                        onMouseLeave={() => setSelectedRow(null)}
+                      >
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.event}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.date}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
-                        <td className="py-3 px-4 text-xs font-['Poppins']">
-                          <select
-                            value={eventStatuses.find(status => status.id === item.id)?.status || 'not attend'}
-                            onChange={(e) => handleEventStatusChange(item.id, e.target.value)}
-                            className={`px-2 py-1 rounded-lg text-xs ${
-                              eventStatuses.find(status => status.id === item.id)?.status === 'attend'
-                                ? 'text-green-800 bg-green-100' 
-                                : 'text-red-800 bg-red-100'
-                            }`}
+                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
+                          {eventStatuses.find(status => status.id === item.id)?.isCanceled ? (
+                            <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
+                              Canceled
+                            </span>
+                          ) : (
+                            <select
+                              value={eventStatuses.find(status => status.id === item.id)?.status || 'not attend'}
+                              onChange={(e) => handleEventStatusChange(item.id, e.target.value)}
+                              className={`px-2 py-1 rounded-lg text-xs ${
+                                eventStatuses.find(status => status.id === item.id)?.status === 'attend'
+                                  ? 'text-green-800 bg-green-100'
+                                  : 'text-yellow-800 bg-yellow-100'
+                              }`}
+                            >
+                              <option value="not attend" className="text-yellow-800 bg-white">Not Attend</option>
+                              <option value="attend" className="text-green-800 bg-white">Attend</option>
+                            </select>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                            }}
+                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
                           >
-                            <option value="not attend" className="text-red-800 bg-white">Not Attend</option>
-                            <option value="attend" className="text-green-800 bg-white">Attend</option>
-                          </select>
+                            <FaEllipsisV size={14} />
+                          </button>
+                          
+                          {activeDropdown === item.id && (
+                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle detail
+                                  setActiveDropdown(null);
+                                }}
+                              >
+                                Detail
+                              </button>
+                              <button 
+                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-b-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancelClick(item.id);
+                                }}
+                              >
+                                Cancel Booking
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -338,23 +481,29 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date Join</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone</th>
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date Join</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone</th>
+                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getTableData(membershipData, currentPage).map((item) => (
-                      <tr key={item.id} className="border-b border-[#666666]/10">
+                      <tr 
+                        key={item.id} 
+                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                        onClick={() => setSelectedRow(item.id)}
+                        onMouseLeave={() => setSelectedRow(null)}
+                      >
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.dateJoined}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
-                        <td className="py-3 px-4 text-xs font-['Poppins']">
+                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
                           <select
                             value={membershipStatuses.find(status => status.id === item.id)?.status || 'request'}
                             onChange={(e) => handleMembershipStatusChange(item.id, e.target.value)}
@@ -371,6 +520,32 @@ export default function DataCollection() {
                             <option value="revision" className="text-red-800 bg-white">Revision</option>
                           </select>
                         </td>
+                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                            }}
+                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                          >
+                            <FaEllipsisV size={14} />
+                          </button>
+                          
+                          {activeDropdown === item.id && (
+                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                              <button 
+                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle detail
+                                  setActiveDropdown(null);
+                                }}
+                              >
+                                Detail
+                              </button>
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -381,6 +556,11 @@ export default function DataCollection() {
           )}
         </div>
       </div>
+      <CancelConfirmationModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }
