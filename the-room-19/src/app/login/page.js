@@ -1,5 +1,11 @@
 import LogIn from "@/components/auth/login";
+import LandingHeader from "@/components/layout/landing-header";
 
 export default function Page() {
-    return <LogIn />;
+    return (
+        <div className="">
+            <LandingHeader />
+            <LogIn />
+        </div>
+    );
 }

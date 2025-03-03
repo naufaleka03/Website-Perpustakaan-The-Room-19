@@ -8,10 +8,10 @@ async function seedVisitors(tx) {
     await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
     await sql`
         CREATE TABLE IF NOT EXISTS visitors (
-            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
             email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
+            phone_number VARCHAR(20)
         )`;
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { IoMenu, IoNotificationsOutline, IoMoonOutline, IoStarOutline } from 'react-icons/io5';
+import { IoMenu, IoNotificationsOutline, IoMoonOutline} from 'react-icons/io5';
 import Image from 'next/image';
 
 
