@@ -81,7 +81,7 @@ const CatalogPage = () => {
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white">
-        <div className="w-full mx-auto px-6 py-8">
+        <div className="w-full mx-auto px-12 py-8">
           {/* Search Bar and Cart Container */}
           <div className="flex justify-center items-center mb-6">
             <div className="w-[600px] flex items-center gap-3"> 

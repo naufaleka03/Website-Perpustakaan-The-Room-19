@@ -6,9 +6,7 @@ import { useState } from 'react';
 const DetailPage = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const description = `This book is a memoir by Baek Sehee, a young South Korean woman who struggles with depression and anxiety. Through a series of conversations with her therapist, she shares her thoughts and feelings about low self-esteem, societal expectations, and how she tries to navigate life despite feeling inadequate.
-
-Its unique title reflects her emotional duality—the desire to disappear but also the longing for small joys, like enjoying tteokbokki (a popular Korean dish). This book offers an honest and relatable perspective on mental health, especially for those who have ever felt trapped in similar emotions.`;
+  const description = "This book is a memoir by Baek Sehee, a young South Korean woman who struggles with depression and anxiety. Through a series of conversations with her therapist, she shares her thoughts and feelings about low self-esteem, societal expectations, and how she tries to navigate life despite feeling inadequate. Its unique title reflects her emotional duality—the desire to disappear but also the longing for small joys, like enjoying tteokbokki (a popular Korean dish). This book offers an honest and relatable perspective on mental health, especially for those who have ever felt trapped in similar emotions.";
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -20,7 +18,7 @@ Its unique title reflects her emotional duality—the desire to disappear but al
       </div> */}
 
       <div className="w-full h-full relative bg-white">
-        <div className="w-full mx-auto px-6 py-8">
+        <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
             {/* Book Cover */}
             <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
