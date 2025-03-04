@@ -168,12 +168,19 @@ export default function CreateEvent() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Upload Activity Poster
           </label>
-          <input
-            type="file"
-            onChange={handlePosterUpload}
-            className="w-full text-sm font-normal font-['Poppins'] text-[#666666]"
-            accept="image/*"
-          />
+          <div className="relative">
+            <input
+              type="file"
+              onChange={handlePosterUpload}
+              className="absolute opacity-0 w-full h-full cursor-pointer"
+              accept="image/*"
+            />
+            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+              <span className={`text-sm font-normal font-['Poppins'] ${poster ? 'text-[#666666]' : 'text-[#A9A9A9]'}`}>
+                {poster ? poster.name : 'Choose file or drop here'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}

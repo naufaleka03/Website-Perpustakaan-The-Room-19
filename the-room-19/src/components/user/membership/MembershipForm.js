@@ -1,6 +1,7 @@
 "use client"
 import { Manrope } from 'next/font/google';
 import { useState } from 'react';
+import TermsPopup from './TermsPopup';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -8,6 +9,7 @@ const manrope = Manrope({
 });
 
 export default function MembershipForm() {
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [file, setFile] = useState(null);
 
   return (
@@ -110,6 +112,7 @@ export default function MembershipForm() {
             <input 
               type="file"
               id="idCardUpload"
+              accept="image/*"
               className="absolute opacity-0 w-full h-full cursor-pointer"
               onChange={(e) => {
                 const selectedFile = e.target.files[0];
@@ -129,7 +132,14 @@ export default function MembershipForm() {
         <div className="flex items-center gap-2 mt-2">
           <input type="checkbox" className="rounded" />
           <span className="text-sm text-[#666666]">
-            I have read and <span className="font-medium">agree</span> to the terms and conditions.
+            I have{' '}
+            <button 
+              onClick={() => setIsTermsOpen(true)}
+              className="font-medium text-[#111010] hover:underline"
+            >
+              read
+            </button>
+            {' '}and <span className="font-medium">agree</span> to the terms and conditions.
           </span>
         </div>
 
@@ -138,6 +148,11 @@ export default function MembershipForm() {
           SUBMIT
         </button>
       </div>
+
+      <TermsPopup 
+        isOpen={isTermsOpen} 
+        onClose={() => setIsTermsOpen(false)} 
+      />
     </div>
   );
 }

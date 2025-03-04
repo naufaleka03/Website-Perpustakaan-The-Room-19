@@ -298,12 +298,18 @@ export default function DataCollection() {
                           </button>
                           
                           {activeDropdown === item.id && (
-                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                            <div 
+                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
+                              style={{
+                                top: selectedRow === item.id ? 'auto' : '100%',
+                                bottom: selectedRow === item.id ? '100%' : 'auto',
+                                transform: selectedRow === item.id ? 'translateY(0)' : 'translateY(-100%)'
+                              }}
+                            >
                               <button 
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Handle detail
                                   setActiveDropdown(null);
                                 }}
                               >
@@ -408,12 +414,18 @@ export default function DataCollection() {
                           </button>
                           
                           {activeDropdown === item.id && (
-                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                            <div 
+                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
+                              style={{
+                                top: selectedRow === item.id ? 'auto' : '100%',
+                                bottom: selectedRow === item.id ? '100%' : 'auto',
+                                transform: selectedRow === item.id ? 'translateY(0)' : 'translateY(-100%)'
+                              }}
+                            >
                               <button 
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Handle detail
                                   setActiveDropdown(null);
                                 }}
                               >
@@ -532,12 +544,18 @@ export default function DataCollection() {
                           </button>
                           
                           {activeDropdown === item.id && (
-                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                            <div 
+                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
+                              style={{
+                                top: selectedRow === item.id ? 'auto' : '100%',
+                                bottom: selectedRow === item.id ? '100%' : 'auto',
+                                transform: selectedRow === item.id ? 'translateY(0)' : 'translateY(-100%)'
+                              }}
+                            >
                               <button 
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Handle detail
                                   setActiveDropdown(null);
                                 }}
                               >
