@@ -33,10 +33,10 @@ Its unique title reflects her emotional duality—the desire to disappear but al
 
             {/* Book Details */}
             <div className="flex-1">
-              <h1 className="text-lg font-extrabold font-['Manrope'] mb-2">
+              <h1 className="text-black text-lg font-extrabold font-['Manrope'] mb-2">
                 I Want To Die But I Want To Eat Tteokpokki
               </h1>
-              <h2 className="text-base font-medium text-gray-800 font-['Manrope'] mb-4">
+              <h2 className="text-black text-base font-medium font-['Manrope'] mb-4">
                 Baek Se Hee
               </h2>
 
@@ -85,13 +85,13 @@ Its unique title reflects her emotional duality—the desire to disappear but al
 
                 <div className="py-6">
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="font-medium">Author</span></div>
+                    <div><span className="text-black font-medium">Author</span></div>
                     <div className="text-black">Baek Se Hee</div>
-                    <div><span className="font-medium">Publisher</span></div>
+                    <div><span className="text-black font-medium">Publisher</span></div>
                     <div className="text-black">Haru</div>
-                    <div><span className="font-medium">Published Year</span></div>
+                    <div><span className="text-black font-medium">Published Year</span></div>
                     <div className="text-black">2019</div>
-                    <div><span className="font-medium">Category</span></div>
+                    <div><span className="text-black font-medium">Category</span></div>
                     <div className="text-black">xxxx</div>
                   </div>
                 </div>
@@ -100,13 +100,13 @@ Its unique title reflects her emotional duality—the desire to disappear but al
 
             {/* Book Status Card */}
             <div className="w-[280px] h-fit bg-white rounded-2xl border border-[#cdcdcd] p-6">
-              <h3 className="text-base font-semibold text-center mb-4">Book Status</h3>
+              <h3 className="text-black text-base font-semibold text-center mb-4">Book Status</h3>
               <hr className="border-[#767676]/40 mb-4" />
               
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-[#c3efc3] rounded-full" />
-                <span className="text-xs font-normal">Available now</span>
-                <span className="text-xs font-normal ml-auto">
+                <span className="text-black text-xs font-normal">Available now</span>
+                <span className="text-black text-xs font-normal ml-auto">
                   Total stock: <span className="text-[#ecb43c] font-normal">5 left</span>
                 </span>
               </div>
@@ -122,8 +122,8 @@ Its unique title reflects her emotional duality—the desire to disappear but al
 
               <hr className="border-[#767676]/40 my-6" />
               
-              <h3 className="text-base font-semibold text-center mb-2">Return Policy</h3>
-              <p className="text-xs text-justify font-medium font-['Manrope'] leading-relaxed">
+              <h3 className="text-black text-base font-semibold text-center mb-2">Return Policy</h3>
+              <p className="text-black text-xs text-justify font-medium font-['Manrope'] leading-relaxed">
                 Book returns are automatic 7 days after borrowing. You can extend the loan period by following certain terms and conditions.
               </p>
             </div>

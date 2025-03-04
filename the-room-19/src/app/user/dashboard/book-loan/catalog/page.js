@@ -123,7 +123,7 @@ const CatalogPage = () => {
               {/* Categories sections - with white wrapper */}
               <div className="space-y-4 bg-white rounded-2xl border border-[#cdcdcd] p-6">
                 <div className="mb-4">
-                  <h2 className="text-md font-medium mb-4">Categories</h2>
+                  <h2 className="text-black text-md font-medium mb-4">Categories</h2>
                   {/* Search in categories */}
                   <div className="relative mb-4">
                     <input
@@ -139,7 +139,7 @@ const CatalogPage = () => {
                 </div>
 
                 <section>
-                  <h3 className="text-sm font-medium mb-4">Genres</h3>
+                  <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
                   {/* Genre checkboxes */}
                   {[
                     "Arts & Architecture",
@@ -157,7 +157,7 @@ const CatalogPage = () => {
                       </span>
                     </div>
                   ))}
-                  <button className="flex items-center text-[#b5b3b3] text-xs font-medium">
+                  <button className="flex items-center text-black text-xs font-medium">
                     Load More
                     <IoIosArrowDown className="ml-1" />
                   </button>
@@ -165,7 +165,7 @@ const CatalogPage = () => {
 
                 {/* Ratings Section */}
                 <section>
-                  <h3 className="text-sm font-medium mb-4">Ratings</h3>
+                  <h3 className="text-black text-sm font-medium mb-4">Ratings</h3>
                   <div className="space-y-3"></div>
                   <div className="flex items-center gap-2">
                     <input
@@ -183,7 +183,7 @@ const CatalogPage = () => {
 
                 {/* Type of Books Section */}
                 <section>
-                  <h3 className="text-sm font-medium mb-4">Type of Books</h3>
+                  <h3 className="text-black text-sm font-medium mb-4">Type of Books</h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <input
@@ -222,18 +222,18 @@ const CatalogPage = () => {
           {/* Pagination - centered */}
           <div className="flex justify-center mt-8">
             <div className="flex items-center gap-2">
-              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center">
+              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center text-black">
                 <IoChevronBackOutline size={16} />
               </button>
               {[1, 2, 3].map((num) => (
                 <button
                   key={num}
-                  className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center text-xs"
+                  className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center text-xs text-black"
                 >
                   {num}
                 </button>
               ))}
-              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center">
+              <button className="w-[35px] h-[30px] bg-[#f2f2f2] rounded-[10px] border border-[#cdcdcd] flex items-center justify-center text-black">
                 <IoChevronForwardOutline size={16} />
               </button>
             </div>
