@@ -55,7 +55,7 @@ export default function EventListStaff() {
         </div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-3 gap-6 max-w-[1200px] mx-5 px-6 mb-2 min-h-[400px]">
+        <div className="grid grid-cols-3 gap-6 max-w-[1200px] mx-5 px-6 mb-1 min-h-[400px]">
           {events.length === 0 ? (
             <div className="col-span-3 flex flex-col items-center justify-center space-y-4">
               <p className="text-[#666666] text-sm font-['Poppins']">
@@ -93,7 +93,7 @@ export default function EventListStaff() {
                     </p>
                   </div>
                 </div>
-                <div className="absolute bottom-2 right-2 flex gap-2">
+                <div className="absolute bottom-4 right-2 flex gap-2">
                   <button 
                     className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-200 transition-colors"
                     onClick={(e) => {
@@ -119,7 +119,7 @@ export default function EventListStaff() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 mt-6">
+        <div className="flex justify-center items-center gap-4 mt-2">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
