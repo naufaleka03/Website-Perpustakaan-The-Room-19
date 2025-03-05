@@ -20,8 +20,22 @@ export default function LogIn() {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await logInWithEmail(email, password);
-            router.push('/user/dashboard');
+            const { user, userType, userData } = await logInWithEmail(email, password);
+            
+            // Redirect based on user type
+            switch (userType) {
+                case 'visitor':
+                    router.push('/user/dashboard');
+                    break;
+                case 'staff':
+                    router.push('/staff/dashboard');
+                    break;
+                case 'owner':
+                    router.push('/owner/dashboard');
+                    break;
+                default:
+                    throw new Error('Invalid user type');
+            }
         } catch (error) {
             setError(error.message);
         } finally {

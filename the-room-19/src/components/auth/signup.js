@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
-import { signUpWithEmail } from '@/app/lib/auth';
+import { signUpVisitor } from '@/app/lib/auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -32,7 +32,12 @@ export default function SignUp() {
     }
     setIsLoading(true);
     try {
-      await signUpWithEmail(formData.email, formData.password, formData.fullName);
+      await signUpVisitor(
+        formData.email, 
+        formData.password, 
+        formData.fullName,
+        formData.phoneNumber
+      );
       router.push('/login');
     } catch (error) {
       setError(error.message);
