@@ -4,6 +4,8 @@ import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { Manrope } from 'next/font/google';
+import { submitSessionReservation } from '@/app/lib/actions';
+import { useRouter } from 'next/navigation';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -11,15 +13,21 @@ const manrope = Manrope({
 });
 
 export default function SessionReservation() {
+  const router = useRouter();
   const [date, setDate] = useState('');
   const [reservationType, setReservationType] = useState('individual');
   const [members, setMembers] = useState(['']);
+  const [category, setCategory] = useState('');
+  const [shiftName, setShiftName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
       const [year, month, day] = inputDate.split('-');
-      setDate(`${day}/${month}/${year}`);
+      setDate(`${year}-${month}-${day}`);
     } else {
       setDate('');
     }
@@ -40,8 +48,41 @@ export default function SessionReservation() {
     setMembers(newMembers);
   };
 
+  const handleReservationTypeChange = (type) => {
+    setReservationType(type);
+    setMembers(['']); // Reset members when switching types
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const formData = {
+        category,
+        arrivalDate: date,
+        shiftName,
+        fullName,
+        members: reservationType === 'group' ? members.filter(m => m.trim()) : []
+      };
+
+      const result = await submitSessionReservation(formData);
+
+      if (result.success) {
+        router.push('/user/dashboard/reservation/success');
+      } else {
+        setError(result.error || 'Failed to submit reservation');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
+    <form onSubmit={handleSubmit} className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
         <img 
@@ -59,26 +100,28 @@ export default function SessionReservation() {
       {/* Reservation Type Selector */}
       <div className="flex justify-center gap-4 max-w-[1200px] mx-auto mb-4">
         <button
-          onClick={() => setReservationType('individual')}
+          type="button"
+          onClick={() => handleReservationTypeChange('individual')}
           className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'individual' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUser size={14} />
-          <span>Individual</span>
+          <FaUser />
+          Individual
         </button>
         <button
-          onClick={() => setReservationType('group')}
+          type="button"
+          onClick={() => handleReservationTypeChange('group')}
           className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'group' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUsers size={14} />
-          <span>Group</span>
+          <FaUsers />
+          Group
         </button>
       </div>
 
@@ -86,20 +129,20 @@ export default function SessionReservation() {
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Category Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="category" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Category
           </label>
-          <div className="relative">
-            <select 
-              className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
-            >
-              <option value="" className="text-[#666666]/40">Choose your category</option>
-              <option value="category1" className="text-[#666666]">Category 1</option>
-              <option value="category2" className="text-[#666666]">Category 2</option>
-              <option value="category3" className="text-[#666666]">Category 3</option>
-            </select>
-            <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
-          </div>
+          <select 
+            id="category"
+            name="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+          >
+            <option value="" className="text-[#666666]/40">Choose your category</option>
+            <option value="Reguler">Reguler</option>
+            <option value="Student">Student</option>
+          </select>
         </div>
 
         {/* Arrival Date Field */}
@@ -124,17 +167,21 @@ export default function SessionReservation() {
 
         {/* Shift Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="shiftName" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Shift
           </label>
           <div className="relative">
-            <select 
+            <select
+              id="shiftName"
+              name="shiftName"
+              value={shiftName}
+              onChange={(e) => setShiftName(e.target.value)}
               className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
             >
               <option value="" className="text-[#666666]/40">Choose your shift</option>
-              <option value="shift1" className="text-[#666666]">Shift 1</option>
-              <option value="shift2" className="text-[#666666]">Shift 2</option>
-              <option value="shift3" className="text-[#666666]">Shift 3</option>
+              <option value="Shift A">Shift A (10:00 - 14:00)</option>
+              <option value="Shift B">Shift B (14:00 - 18:00)</option>
+              <option value="Shift C">Shift C (18:00 - 22:00)</option>
             </select>
             <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
           </div>
@@ -142,11 +189,15 @@ export default function SessionReservation() {
 
         {/* Full Name Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="fullName" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Full Name
           </label>
           <input 
+            id="fullName"
+            name="fullName"
             type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
@@ -191,11 +242,22 @@ export default function SessionReservation() {
           </div>
         )}
 
-        {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
-          SUBMIT
+        {error && (
+          <div className="text-red-500 text-sm text-center mb-4">
+            {error}
+          </div>
+        )}
+
+        <button 
+          type="submit"
+          disabled={isSubmitting}
+          className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          } ${manrope.className}`}
+        >
+          {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
         </button>
       </div>
-    </div>
+    </form>
   );
 } 
