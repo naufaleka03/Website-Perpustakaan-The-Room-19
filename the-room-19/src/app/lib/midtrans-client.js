@@ -1,20 +1,55 @@
 import midtransClient from 'midtrans-client';
 
-export const createMidtransClient = () => {
+const createMidtransClient = () => {
   return new midtransClient.CoreApi({
-    isProduction: false,
-    serverKey: process.env.NEXT_PUBLIC_MIDTRANS_SERVER_KEY,
-    clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
+    isProduction: process.env.NODE_ENV === 'production',
+    serverKey: process.env.MIDTRANS_SERVER_KEY,
+    clientKey: process.env.MIDTRANS_CLIENT_KEY
   });
 };
 
-// Helper function to generate transaction token
-export async function generateTransactionToken(transactionDetails) {
+export async function createTransaction(params) {
+  const client = createMidtransClient();
+  
   try {
-    const response = await coreApi.charge(transactionDetails);
-    return response;
+    const transactionDetails = {
+      payment_type: params.paymentType,
+      transaction_details: {
+        order_id: `ORDER-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        gross_amount: params.amount
+      },
+      customer_details: {
+        first_name: params.customerName,
+        email: params.customerEmail,
+        phone: params.customerPhone
+      },
+      item_details: params.items,
+      // Add specific payment details based on payment type
+      ...(params.paymentType === 'credit_card' && {
+        credit_card: {
+          secure: true
+        }
+      }),
+      ...(params.paymentType === 'bank_transfer' && {
+        bank_transfer: {
+          bank: params.bank
+        }
+      })
+    };
+
+    const response = await client.charge(transactionDetails);
+    return {
+      success: true,
+      data: response
+    };
   } catch (error) {
-    console.error('Error generating transaction token:', error);
-    throw error;
+    console.error('Midtrans transaction error:', error);
+    return {
+      success: false,
+      error: {
+        message: error.message,
+        code: error.httpStatusCode
+      }
+    };
   }
 }

@@ -48,16 +48,9 @@ async function seedShifts(tx) {
         CREATE TABLE IF NOT EXISTS shifts (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             shift_name VARCHAR(255) NOT NULL,
-            shift_start TIMESTAMP NOT NULL,
-            shift_end TIMESTAMP NOT NULL,
-            shift_date DATE NOT NULL,
-            vacancy_status BOOLEAN NOT NULL DEFAULT true,
-            vacancy_number INT NOT NULL DEFAULT 1 CHECK (vacancy_number BETWEEN 1 AND 20),
-            CONSTRAINT check_vacancy_status 
-                CHECK (
-                    (vacancy_number < 20 AND vacancy_status = true) OR 
-                    (vacancy_number = 20 AND vacancy_status = false)
-                )
+            shift_start TIME NOT NULL,
+            shift_end TIME NOT NULL,
+            UNIQUE(shift_name, shift_start, shift_end)
         )`;
 }
 
@@ -68,10 +61,18 @@ async function seedSession(tx) {
         CREATE TABLE IF NOT EXISTS sessions (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             category VARCHAR(255) NOT NULL,
-            arrival_date TIMESTAMP NOT NULL,
-            shift UUID REFERENCES shifts(id),
+            arrival_date DATE NOT NULL,
+            shift_name VARCHAR(255) NOT NULL,
+            shift_start TIME NOT NULL,
+            shift_end TIME NOT NULL,
             full_name VARCHAR(255) NOT NULL,
-            group_member BOOLEAN NOT NULL
+            group_member1 VARCHAR(255),
+            group_member2 VARCHAR(255),
+            group_member3 VARCHAR(255),
+            group_member4 VARCHAR(255),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            FOREIGN KEY (shift_name, shift_start, shift_end) 
+                REFERENCES shifts(shift_name, shift_start, shift_end)
         )`;
 }
 
@@ -80,6 +81,7 @@ export async function GET() {
         await sql.begin(async (tx) => {
             await seedUsers(tx);
             await seedShifts(tx);
+            await seedSession(tx);
         });
 
         return Response.json({ 
