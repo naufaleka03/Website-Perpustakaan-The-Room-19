@@ -6,6 +6,8 @@ import { membershipData } from './data/membershipData';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
 import CancelConfirmationModal from './CancelConfirmationModal';
+import { useRouter } from 'next/navigation';
+import DetailSessionModal from './DetailSessionModal';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -13,12 +15,19 @@ const manrope = Manrope({
 });
 
 const formatDate = (dateString) => {
+  if (!dateString) return ''; // Handle empty date
   const date = new Date(dateString);
-  return date.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    console.error('Invalid date:', dateString);
+    return '';
+  }
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
 };
 
 export default function DataCollection() {
@@ -43,6 +52,9 @@ export default function DataCollection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [eventSearchQuery, setEventSearchQuery] = useState('');
   const [membershipSearchQuery, setMembershipSearchQuery] = useState('');
+  const router = useRouter();
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
@@ -262,6 +274,12 @@ export default function DataCollection() {
     setCurrentPage(1); // Reset halaman ke 1 ketika melakukan pencarian
   };
 
+  const handleDetail = (sessionId) => {
+    setSelectedSessionId(sessionId);
+    setIsDetailModalOpen(true);
+    setActiveDropdown(null);
+  };
+
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
@@ -405,7 +423,7 @@ export default function DataCollection() {
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setActiveDropdown(null);
+                                  handleDetail(session.id);
                                 }}
                               >
                                 Detail
@@ -481,7 +499,7 @@ export default function DataCollection() {
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.event}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {formatDate(item.date)}
+                          {formatDate(item.arrival_date)}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
@@ -528,7 +546,7 @@ export default function DataCollection() {
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setActiveDropdown(null);
+                                  handleDetail(item.id);
                                 }}
                               >
                                 Detail
@@ -663,7 +681,7 @@ export default function DataCollection() {
                                 className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setActiveDropdown(null);
+                                  handleDetail(item.id);
                                 }}
                               >
                                 Detail
@@ -686,6 +704,11 @@ export default function DataCollection() {
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleCancelConfirm}
         selectedBookingId={selectedBookingId}
+      />
+      <DetailSessionModal 
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        sessionId={selectedSessionId}
       />
     </div>
   );
