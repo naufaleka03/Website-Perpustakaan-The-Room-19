@@ -1,3 +1,5 @@
+import EventReservation from '@/components/user/reservation/EventReservation';
+
 export default function Page() {
-    return <h1>Hello, Next.js!</h1>
-  }
+  return <EventReservation />;
+}

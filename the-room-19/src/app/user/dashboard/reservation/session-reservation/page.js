@@ -1,3 +1,5 @@
+import SessionReservation from '@/components/user/reservation/SessionReservation';
+
 export default function Page() {
-    return <h1>Hello, Next.js!</h1>
-  }
+  return <SessionReservation />;
+}
