@@ -12,6 +12,15 @@ const manrope = Manrope({
   weight: ['400', '500', '600'],
 });
 
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
 export default function DataCollection() {
   const [activeTab, setActiveTab] = useState('session');
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -22,87 +31,143 @@ export default function DataCollection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-
-  // Fungsi pagination untuk setiap tabel
-  const getTableData = (data, page) => {
-    const startIndex = (page - 1) * entriesPerPage;
-    const endIndex = startIndex + entriesPerPage;
-    return data.slice(startIndex, endIndex);
-  };
-
-  const getTotalPages = (data) => Math.ceil(data.length / entriesPerPage);
-
-  // Render pagination controls
-  const PaginationControls = ({ currentPage, setCurrentPage, totalPages }) => (
-    <div className="flex justify-between items-center mt-4 text-xs text-[#666666] font-['Poppins']">
-      <div className="flex items-center gap-2">
-        Show
-        <select 
-          value={entriesPerPage}
-          onChange={(e) => {
-            setEntriesPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="border border-[#666666]/30 rounded px-2 py-1 text-xs"
-        >
-          <option value={10}>10</option>
-          <option value={25}>25</option>
-          <option value={50}>50</option>
-          <option value={100}>100</option>
-        </select>
-        entries
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <button 
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className={`px-2 py-1 rounded text-xs ${
-            currentPage === 1 
-              ? 'bg-gray-100 text-gray-400' 
-              : 'bg-white text-[#666666] border border-[#666666]/30'
-          }`}
-        >
-          Previous
-        </button>
-        <span className="px-2 py-1 bg-[#111010] text-white rounded text-xs">{currentPage}</span>
-        <button 
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className={`px-2 py-1 rounded text-xs ${
-            currentPage === totalPages 
-              ? 'bg-gray-100 text-gray-400' 
-              : 'bg-white text-[#666666] border border-[#666666]/30'
-          }`}
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
-
-  // Update state untuk session
-  const [statuses, setStatuses] = useState(
+  const [sessionData, setSessionData] = useState([]);
+  const [sessionStatuses, setSessionStatuses] = useState(
     sessionData.map(item => ({
       id: item.id,
-      status: 'not attend',
+      status: 'not attended',
       isCanceled: false
     }))
   );
+  const [sessionStatus, setSessionStatus] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [eventSearchQuery, setEventSearchQuery] = useState('');
+  const [membershipSearchQuery, setMembershipSearchQuery] = useState('');
 
-  const handleStatusChange = (id, newStatus) => {
-    setStatuses(prevStatuses => 
-      prevStatuses.map(status => 
-        status.id === id ? { ...status, status: newStatus } : status
-      )
+  // Fungsi untuk mendapatkan data yang ditampilkan
+  const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
+    let filteredData = filterDataByName(data, searchQuery);
+    
+    // Jika data adalah session data, pastikan tetap terurut berdasarkan id terbaru
+    if (data === sessionData) {
+      filteredData = [...filteredData].sort((a, b) => b.id - a.id);
+    }
+    
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredData.slice(startIndex, endIndex);
+  };
+
+  // Fungsi untuk mendapatkan total halaman
+  const getTotalPages = (data, itemsPerPage) => Math.ceil(data.length / itemsPerPage);
+
+  // Render pagination controls
+  const PaginationControls = ({ currentPage, setCurrentPage, data, itemsPerPage }) => {
+    const totalPages = getTotalPages(data, itemsPerPage);
+
+    return (
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-[#666666] font-['Poppins']">Show</span>
+          <select 
+            value={itemsPerPage}
+            onChange={(e) => {
+              setEntriesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border border-[#666666]/30 rounded px-2 py-1 text-xs text-[#666666]"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-xs text-[#666666] font-['Poppins']">entries</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded text-xs ${
+              currentPage === 1 
+                ? 'bg-gray-100 text-[#666666]/50 cursor-not-allowed' 
+                : 'bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50'
+            }`}
+          >
+            Previous
+          </button>
+          <span className="px-2 py-1 bg-[#111010] text-white rounded text-xs">
+            {currentPage}
+          </span>
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded text-xs ${
+              currentPage === totalPages 
+                ? 'bg-gray-100 text-[#666666]/50 cursor-not-allowed' 
+                : 'bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     );
+  };
+
+  // Tambahkan useEffect untuk menginisialisasi sessionStatuses setelah data diambil
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const response = await fetch('/api/sessions');
+        const data = await response.json();
+        setSessionData(data);
+        setSessionStatuses(
+          data.map(item => ({
+            id: item.id,
+            status: item.status || 'not attended',
+            isCanceled: item.status === 'canceled'
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+      }
+    };
+    
+    fetchSessions();
+  }, [isModalOpen]);
+
+  // Update handler untuk mengubah status session
+  const handleSessionStatusChange = async (sessionId, newStatus) => {
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        setSessionStatuses(prevStatuses =>
+          prevStatuses.map(status =>
+            status.id === sessionId
+              ? { ...status, status: newStatus }
+              : status
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   // Update state untuk event
   const [eventStatuses, setEventStatuses] = useState(
     eventData.map(item => ({
       id: item.id,
-      status: 'not attend',
+      status: 'not attended',
       isCanceled: false
     }))
   );
@@ -131,32 +196,35 @@ export default function DataCollection() {
     );
   };
 
-  const handleCancelClick = (id) => {
-    setSelectedBookingId(id);
+  // Pisahkan fungsi untuk menangani klik cancel booking dan konfirmasi cancel
+  const handleCancelClick = (sessionId) => {
+    setSelectedBookingId(sessionId);
     setIsModalOpen(true);
     setActiveDropdown(null);
   };
 
-  const handleConfirmCancel = () => {
-    if (activeTab === 'session') {
-      setStatuses(prevStatuses =>
-        prevStatuses.map(status =>
-          status.id === selectedBookingId
-            ? { ...status, status: 'canceled', isCanceled: true }
-            : status
-        )
-      );
-    } else if (activeTab === 'event') {
-      setEventStatuses(prevStatuses =>
-        prevStatuses.map(status =>
-          status.id === selectedBookingId
-            ? { ...status, status: 'canceled', isCanceled: true }
-            : status
-        )
-      );
+  const handleCancelConfirm = async (sessionId) => {
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        setSessionStatuses(prevStatuses =>
+          prevStatuses.map(status =>
+            status.id === sessionId
+              ? { ...status, status: 'canceled', isCanceled: true }
+              : status
+          )
+        );
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error canceling booking:', error);
     }
-    setIsModalOpen(false);
-    setSelectedBookingId(null);
   };
 
   useEffect(() => {
@@ -172,6 +240,27 @@ export default function DataCollection() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fungsi untuk mendapatkan data sesuai halaman
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    return sessionData.slice(startIndex, endIndex);
+  };
+
+  // Fungsi untuk memfilter data berdasarkan nama
+  const filterDataByName = (data, query) => {
+    return data.filter(item => 
+      item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
+      item.name?.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  // Update event handler untuk search input
+  const handleSearch = (e, setSearchFn) => {
+    setSearchFn(e.target.value);
+    setCurrentPage(1); // Reset halaman ke 1 ketika melakukan pencarian
+  };
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -227,13 +316,15 @@ export default function DataCollection() {
           {activeTab === 'session' && (
             <>
               <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative w-full md:w-[300px]">
+                <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    placeholder="Search by name"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e, setSearchQuery)}
+                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
-                  <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
@@ -254,56 +345,60 @@ export default function DataCollection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getTableData(sessionData, sessionCurrentPage).map((item) => (
+                    {getTableData(sessionData, sessionCurrentPage, entriesPerPage, searchQuery).map((session, index) => (
                       <tr 
-                        key={item.id} 
+                        key={session.id} 
                         className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
-                        onClick={() => setSelectedRow(item.id)}
+                        onClick={() => setSelectedRow(session.id)}
                         onMouseLeave={() => setSelectedRow(null)}
                       >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.date}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.category}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                          {(sessionCurrentPage - 1) * entriesPerPage + index + 1}
+                        </td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{session.full_name}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                          {formatDate(session.arrival_date)}
+                        </td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{session.shift_name}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{session.category}</td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          {statuses.find(status => status.id === item.id)?.isCanceled ? (
+                          {sessionStatuses.find(status => status.id === session.id)?.status === 'canceled' ? (
                             <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
                               Canceled
                             </span>
                           ) : (
                             <select
-                              value={statuses.find(status => status.id === item.id)?.status || 'not attend'}
-                              onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                              value={sessionStatuses.find(status => status.id === session.id)?.status || 'not attended'}
+                              onChange={(e) => handleSessionStatusChange(session.id, e.target.value)}
                               className={`px-2 py-1 rounded-lg text-xs ${
-                                statuses.find(status => status.id === item.id)?.status === 'attend'
+                                sessionStatuses.find(status => status.id === session.id)?.status === 'attended'
                                   ? 'text-green-800 bg-green-100'
                                   : 'text-yellow-800 bg-yellow-100'
                               }`}
                             >
-                              <option value="not attend" className="text-yellow-800 bg-white">Not Attend</option>
-                              <option value="attend" className="text-green-800 bg-white">Attend</option>
+                              <option value="not attended" className="text-yellow-800 bg-white">Not Attended</option>
+                              <option value="attended" className="text-green-800 bg-white">Attended</option>
                             </select>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                              setActiveDropdown(activeDropdown === session.id ? null : session.id);
                             }}
-                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                            className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
                           >
-                            <FaEllipsisV size={14} />
+                            <FaEllipsisV className="text-[#666666]" />
                           </button>
                           
-                          {activeDropdown === item.id && (
+                          {activeDropdown === session.id && (
                             <div 
                               className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
                               style={{
-                                top: selectedRow === item.id ? 'auto' : '100%',
-                                bottom: selectedRow === item.id ? '100%' : 'auto',
-                                transform: selectedRow === item.id ? 'translateY(0)' : 'translateY(-100%)'
+                                top: selectedRow === session.id ? 'auto' : '100%',
+                                bottom: selectedRow === session.id ? '100%' : 'auto',
+                                transform: selectedRow === session.id ? 'translateY(0)' : 'translateY(-100%)'
                               }}
                             >
                               <button 
@@ -316,10 +411,10 @@ export default function DataCollection() {
                                 Detail
                               </button>
                               <button 
-                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-b-lg"
+                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCancelClick(item.id);
+                                  handleCancelClick(session.id);
                                 }}
                               >
                                 Cancel Booking
@@ -335,7 +430,8 @@ export default function DataCollection() {
               <PaginationControls 
                 currentPage={sessionCurrentPage}
                 setCurrentPage={setSessionCurrentPage}
-                totalPages={getTotalPages(sessionData)}
+                data={sessionData}
+                itemsPerPage={entriesPerPage}
               />
             </>
           )}
@@ -343,13 +439,15 @@ export default function DataCollection() {
           {activeTab === 'event' && (
             <>
               <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative w-full md:w-[300px]">
+                <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    placeholder="Search by name"
+                    value={eventSearchQuery}
+                    onChange={(e) => handleSearch(e, setEventSearchQuery)}
+                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
-                  <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
@@ -370,17 +468,21 @@ export default function DataCollection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getTableData(eventData, eventCurrentPage).map((item) => (
+                    {getTableData(eventData, eventCurrentPage, entriesPerPage, eventSearchQuery).map((item, index) => (
                       <tr 
                         key={item.id} 
                         className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
                         onClick={() => setSelectedRow(item.id)}
                         onMouseLeave={() => setSelectedRow(null)}
                       >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                          {(eventCurrentPage - 1) * entriesPerPage + index + 1}
+                        </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.event}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.date}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                          {formatDate(item.date)}
+                        </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.shift}</td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
                           {eventStatuses.find(status => status.id === item.id)?.isCanceled ? (
@@ -389,16 +491,16 @@ export default function DataCollection() {
                             </span>
                           ) : (
                             <select
-                              value={eventStatuses.find(status => status.id === item.id)?.status || 'not attend'}
+                              value={eventStatuses.find(status => status.id === item.id)?.status || 'not attended'}
                               onChange={(e) => handleEventStatusChange(item.id, e.target.value)}
                               className={`px-2 py-1 rounded-lg text-xs ${
-                                eventStatuses.find(status => status.id === item.id)?.status === 'attend'
+                                eventStatuses.find(status => status.id === item.id)?.status === 'attended'
                                   ? 'text-green-800 bg-green-100'
                                   : 'text-yellow-800 bg-yellow-100'
                               }`}
                             >
-                              <option value="not attend" className="text-yellow-800 bg-white">Not Attend</option>
-                              <option value="attend" className="text-green-800 bg-white">Attend</option>
+                              <option value="not attended" className="text-yellow-800 bg-white">Not Attended</option>
+                              <option value="attended" className="text-green-800 bg-white">Attended</option>
                             </select>
                           )}
                         </td>
@@ -432,7 +534,7 @@ export default function DataCollection() {
                                 Detail
                               </button>
                               <button 
-                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-b-lg"
+                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCancelClick(item.id);
@@ -451,7 +553,8 @@ export default function DataCollection() {
               <PaginationControls 
                 currentPage={eventCurrentPage}
                 setCurrentPage={setEventCurrentPage}
-                totalPages={getTotalPages(eventData)}
+                data={eventData}
+                itemsPerPage={entriesPerPage}
               />
             </>
           )}
@@ -476,13 +579,15 @@ export default function DataCollection() {
 
               {/* Search and Create Section */}
               <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative w-full md:w-[300px]">
+                <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search"
-                    className="h-[35px] w-full rounded-2xl border border-[#666666]/30 pl-10 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    placeholder="Search by name"
+                    value={membershipSearchQuery}
+                    onChange={(e) => handleSearch(e, setMembershipSearchQuery)}
+                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                   />
-                  <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666]" size={14} />
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
                   <FaPlus size={12} />
@@ -503,14 +608,16 @@ export default function DataCollection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getTableData(membershipData, currentPage).map((item) => (
+                    {getTableData(membershipData, currentPage, entriesPerPage, membershipSearchQuery).map((item, index) => (
                       <tr 
                         key={item.id} 
                         className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
                         onClick={() => setSelectedRow(item.id)}
                         onMouseLeave={() => setSelectedRow(null)}
                       >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.id}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                          {(currentPage - 1) * entriesPerPage + index + 1}
+                        </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.dateJoined}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
@@ -569,7 +676,7 @@ export default function DataCollection() {
                   </tbody>
                 </table>
               </div>
-              <PaginationControls currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={getTotalPages(membershipData)} />
+              <PaginationControls currentPage={currentPage} setCurrentPage={setCurrentPage} data={membershipData} itemsPerPage={entriesPerPage} />
             </>
           )}
         </div>
@@ -577,7 +684,8 @@ export default function DataCollection() {
       <CancelConfirmationModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConfirm={handleConfirmCancel}
+        onConfirm={handleCancelConfirm}
+        selectedBookingId={selectedBookingId}
       />
     </div>
   );
