@@ -70,6 +70,11 @@ async function seedSession(tx) {
             group_member2 VARCHAR(255),
             group_member3 VARCHAR(255),
             group_member4 VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'not_attended' NOT NULL,
+            payment_id VARCHAR(255),
+            payment_status VARCHAR(50),
+            payment_method VARCHAR(50),
+            amount INTEGER,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
             FOREIGN KEY (shift_name, shift_start, shift_end) 
                 REFERENCES shifts(shift_name, shift_start, shift_end)
