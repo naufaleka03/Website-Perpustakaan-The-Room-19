@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { BiSearch } from "react-icons/bi";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
@@ -62,6 +63,47 @@ const checkboxStyle = {
   cursor: 'pointer'
 };
 
+const allGenres = [
+  "Arts & Architecture",
+  "Business",
+  "CCI",
+  "Children's Books",
+  "Chinese Literature",
+  "Climate Change",
+  "Colonialism",
+  "Colonialism, Race, Class (Fict.)",
+  "Crime & Mystery",
+  "Dystopian & Post-Apocalyptic",
+  "Education",
+  "Family",
+  "Fantasy & Sci-Fi",
+  "Feminism",
+  "Historical Fiction",
+  "History",
+  "Indonesian Literature",
+  "Japanese Literature",
+  "Korean Literature",
+  "Magazine & Zine",
+  "Memoirs & Biography",
+  "Natural Science",
+  "On Womanhood",
+  "Other People's Book",
+  "Pets!",
+  "Philosophy",
+  "Poetry & Literary Criticism",
+  "Politics & Sociology",
+  "Psychology & Self Help",
+  "Religions",
+  "Romance",
+  "Russian Literature",
+  "Science",
+  "Self Discovery",
+  "Travel",
+  "Western Classics",
+  "Western Contemporary Lit.",
+  "World Literature"
+];
+
 // Komponen Card Buku
 const BookCard = ({ title, author, imageUrl }) => {
   return (
@@ -84,14 +126,16 @@ const BookCard = ({ title, author, imageUrl }) => {
 };
 
 const CatalogPage = () => {
+  const [showAllGenres, setShowAllGenres] = useState(false);
+  const initialGenresCount = 4;
+  
+  const displayedGenres = showAllGenres ? allGenres : allGenres.slice(0, initialGenresCount);
+
   return (
-    <div 
-      className="flex-1 min-h-[calc(100vh-72px)] bg-white font-poppins"
-      suppressHydrationWarning
-    >
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
-          {/* Search Bar and Add Book Button Container */}
+          {/* Search Bar and Cart Container */}
           <div className="flex justify-center items-center mb-6">
             <div className="w-[600px] flex items-center gap-3"> 
               {/* Search Bar */}
@@ -101,11 +145,11 @@ const CatalogPage = () => {
                   <input
                     type="text"
                     placeholder="Search"
-                    className="ml-2 bg-transparent text-gray-400 outline-none w-full text-xs"
+                    className="ml-2 bg-transparent text-gray-400 outline-none w-full font-manrope text-xs"
                   />
                 </div>
               </div>
-              
+
               {/* Add Book Button */}
               <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
                 Add Book
@@ -149,27 +193,34 @@ const CatalogPage = () => {
 
                 <section>
                   <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
-                  {/* Genre checkboxes */}
-                  {[
-                    "Arts & Architecture",
-                    "Business",
-                    "CCI",
-                    "Children's Books",
-                  ].map((genre) => (
-                    <div key={genre} className="flex items-center gap-3 mb-3">
-                      <input
-                        type="checkbox"
-                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
-                        style={checkboxStyle}
-                      />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
-                        {genre}
-                      </span>
+                  {/* Genre checkboxes container dengan fixed height dan scroll */}
+                  <div className="mb-3">
+                    <div className={`${showAllGenres ? 'max-h-[210px] overflow-y-auto pr-2' : ''}`}>
+                      {displayedGenres.map((genre) => (
+                        <div key={genre} className="flex items-center gap-3 mb-3">
+                          <input
+                            type="checkbox"
+                            className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                            style={checkboxStyle}
+
+                          />
+                          <span className="text-black text-xs font-medium font-['Manrope']">
+                            {genre}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                  <button className="flex items-center text-black text-xs font-medium">
-                    Load More
-                    <IoIosArrowDown className="ml-1" />
+                  </div>
+                  <button 
+                    className="flex items-center text-black text-xs font-medium"
+                    onClick={() => setShowAllGenres(!showAllGenres)}
+                  >
+                    {showAllGenres ? 'Show Less' : 'Load More'}
+                    <IoIosArrowDown 
+                      className={`ml-1 transition-transform duration-200 ${
+                        showAllGenres ? 'rotate-180' : ''
+                      }`} 
+                    />
                   </button>
                 </section>
 

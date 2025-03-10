@@ -58,6 +58,11 @@ const booksData = [
   },
 ];
 
+const checkboxStyle = {
+  accentColor: '#2e3105',
+  cursor: 'pointer'
+};
+
 const allGenres = [
   "Arts & Architecture",
   "Business",
@@ -196,6 +201,8 @@ const CatalogPage = () => {
                           <input
                             type="checkbox"
                             className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                            style={checkboxStyle}
+
                           />
                           <span className="text-black text-xs font-medium font-['Manrope']">
                             {genre}
