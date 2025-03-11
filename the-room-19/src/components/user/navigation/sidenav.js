@@ -3,8 +3,30 @@
 import NavLinks from './nav-links';
 import { IoLogOut } from "react-icons/io5";
 import { clsx } from 'clsx';
+import { createClient } from '@/app/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function SideNav({ isExpanded }) {
+  const router = useRouter();
+  const supabase = createClient();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Redirect to login page
+      router.replace('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <nav className={clsx(
       'h-[calc(100vh-72px)] bg-white shadow-lg flex flex-col flex-grow border-solid border-y-0 border transition-all duration-300',
@@ -39,8 +61,10 @@ export default function SideNav({ isExpanded }) {
         <div className="mt-auto pt-2 border-t border-[#767676]/30">
           <NavItem 
             icon={<IoLogOut size={20} />} 
-            label="Logout" 
+            label={isLoggingOut ? "Logging out..." : "Logout"}
             collapsed={!isExpanded}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
           />
         </div>
       </div>
@@ -48,20 +72,26 @@ export default function SideNav({ isExpanded }) {
   )
 }
 
-function NavItem({ icon, label, isActive = false, collapsed = false }) {
+function NavItem({ icon, label, isActive = false, collapsed = false, onClick, disabled = false }) {
   return (
-    <div className={clsx(
-      'flex items-center gap-3 px-3 py-2 rounded cursor-pointer hover:bg-gray-100',
-      {
-        'bg-[#eff0c3] text-[#52570d]': isActive,
-        'text-[#5d7285]': !isActive,
-        'justify-center': collapsed
-      }
-    )}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={clsx(
+        'w-full flex items-center gap-3 px-3 py-2 rounded cursor-pointer hover:bg-gray-100 transition-colors',
+        {
+          'bg-[#eff0c3] text-[#52570d]': isActive,
+          'text-[#5d7285]': !isActive,
+          'justify-center': collapsed,
+          'opacity-50 cursor-not-allowed': disabled,
+          'hover:bg-gray-100': !disabled
+        }
+      )}
+    >
       {icon}
       {!collapsed && <span className="font-medium">{label}</span>}
-    </div>
-  )
+    </button>
+  );
 }
 
 function SubNavItem({ label }) {
