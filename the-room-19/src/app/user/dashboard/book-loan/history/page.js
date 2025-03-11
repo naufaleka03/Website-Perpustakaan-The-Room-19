@@ -10,7 +10,7 @@ const HistoryPage = () => {
 
   const handleSelectOption = (option) => {
     setSelectedOption(option);
-    setIsDropdownOpen(false); // Tutup dropdown setelah memilih opsi
+    setIsDropdownOpen(false); 
   };
 
   return (
@@ -18,7 +18,7 @@ const HistoryPage = () => {
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           {/* Header */}
-          <h1 className="text-black text-lg font-bold font-['Manrope'] mb-6">History</h1>
+          <h1 className="text-black text-lg font-bold font-manrope mb-6">History</h1>
 
           {/* Main Content Container */}
           <div className="w-full bg-white rounded-2xl border border-[#cdcdcd] p-6">
@@ -30,7 +30,7 @@ const HistoryPage = () => {
                 <input
                   type="text"
                   placeholder="Search"
-                  className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666]/50 text-xs font-normal font-['Manrope']"
+                  className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666]/50 text-xs font-normal font-manrope"
                 />
               </div>
 
@@ -40,7 +40,7 @@ const HistoryPage = () => {
                   className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] px-4 flex items-center justify-between cursor-pointer"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  <span className="text-black text-xs font-normal font-['Poppins']">{selectedOption}</span>
+                  <span className="text-black text-xs font-normal font-manrope">{selectedOption}</span>
                   <IoIosArrowDown className="text-gray-400" size={18} />
                 </div>
                 {/* Dropdown Menu */}
@@ -84,17 +84,17 @@ const HistoryPage = () => {
                 </div>
                 
                 <div className="flex-1 ml-6">
-                  <h3 className="text-black text-sm font-semibold font-['Manrope']">I Want To Die But I Want To Eat Tteokpokki</h3>
+                  <h3 className="text-black text-sm font-semibold font-manrope">I Want To Die But I Want To Eat Tteokpokki</h3>
                   <div className="flex items-center mb-16">
-                    <p className="text-[#666666] text-[11px] font-medium font-['Manrope']">1 other book</p>
+                    <p className="text-[#666666] text-[11px] font-medium font-manrope">1 other book</p>
                     <IoIosArrowDown className="text-[#666666] ml-1" size={10} />
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end">
                   <div className="text-right mb-6 pt-[15px]">
-                    <p className="text-[#666666] text-xs font-semibold font-['Manrope']">Total Cost</p>
-                    <p className="text-black text-sm font-semibold font-['Manrope']">Rp40.000</p>
+                    <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
+                    <p className="text-black text-sm font-semibold font-manrope">Rp40.000</p>
                   </div>
                   <div className="flex gap-3 mt-6">
                     <button className="w-[138px] h-[34px] bg-white rounded-lg border border-[#2e3105] text-[#2e3105] text-xs font-medium">
@@ -118,15 +118,15 @@ const HistoryPage = () => {
                 </div>
                 
                 <div className="flex-1 ml-6">
-                  <h3 className="text-black text-sm font-semibold font-['Manrope']">Siapa Yang Memasak Makan Malam Adam Smith?</h3>
+                  <h3 className="text-black text-sm font-semibold font-manrope">Siapa Yang Memasak Makan Malam Adam Smith?</h3>
                   <div className="flex items-center mb-16"> </div>
 
                 </div>
 
                 <div className="flex flex-col items-end">
                   <div className="text-right mb-6 pt-[15px]">
-                    <p className="text-[#666666] text-xs font-semibold font-['Manrope']">Total Cost</p>
-                    <p className="text-black text-sm font-semibold font-['Manrope']">Rp10.000</p>
+                    <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
+                    <p className="text-black text-sm font-semibold font-manrope">Rp10.000</p>
                   </div>
                   <div className="flex gap-3 mt-6">
                     <button className="w-[138px] h-[34px] bg-white rounded-lg border border-[#2e3105] text-[#2e3105] text-xs font-medium">
@@ -150,14 +150,14 @@ const HistoryPage = () => {
                 </div>
                 
                 <div className="flex-1 ml-6">
-                  <h3 className="text-black text-sm font-semibold font-['Manrope']">Laut Bercerita</h3>
+                  <h3 className="text-black text-sm font-semibold font-manrope">Laut Bercerita</h3>
                   <div className="flex items-center mb-16"> </div>
                 </div>
 
                 <div className="flex flex-col items-end">
                   <div className="text-right mb-6 pt-[15px]">
-                    <p className="text-[#666666] text-xs font-semibold font-['Manrope']">Total Cost</p>
-                    <p className="text-black text-sm font-semibold font-['Manrope']">Rp10.000</p>
+                    <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
+                    <p className="text-black text-sm font-semibold font-manrope">Rp10.000</p>
                   </div>
                   <div className="flex gap-3 mt-6">
                     <button className="w-[138px] h-[34px] bg-white rounded-lg border border-[#2e3105] text-[#2e3105] text-xs font-medium">

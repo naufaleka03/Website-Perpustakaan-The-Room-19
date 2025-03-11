@@ -31,10 +31,10 @@ const DetailPage = () => {
 
             {/* Book Details */}
             <div className="flex-1">
-              <h1 className="text-black text-lg font-extrabold font-['Manrope'] mb-2">
+              <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
                 I Want To Die But I Want To Eat Tteokpokki
               </h1>
-              <h2 className="text-black text-base font-medium font-['Manrope'] mb-4">
+              <h2 className="text-black text-base font-medium font-manrope mb-4">
                 Baek Se Hee
               </h2>
 
@@ -59,7 +59,7 @@ const DetailPage = () => {
               </div>
 
               {/* Description */}
-              <div className="py-6 text-sm font-xs font-['Manrope'] leading-relaxed">
+              <div className="py-6 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal">
                   {isExpanded ? description : description.slice(0, 200) + '...'}
                 </p>
@@ -82,7 +82,7 @@ const DetailPage = () => {
                 </div>
 
                 <div className="py-6">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div><span className="text-black font-medium">Author</span></div>
                     <div className="text-black">Baek Se Hee</div>
                     <div><span className="text-black font-medium">Publisher</span></div>
@@ -121,7 +121,7 @@ const DetailPage = () => {
               <hr className="border-[#767676]/40 my-6" />
               
               <h3 className="text-black text-base font-semibold text-center mb-2">Return Policy</h3>
-              <p className="text-black text-xs text-justify font-medium font-['Manrope'] leading-relaxed">
+              <p className="text-black text-xs text-justify font-medium font-manrope leading-relaxed">
                 Book returns are automatic 7 days after borrowing. You can extend the loan period by following certain terms and conditions.
               </p>
             </div>

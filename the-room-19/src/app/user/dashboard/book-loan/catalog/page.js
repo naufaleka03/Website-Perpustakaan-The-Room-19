@@ -1,5 +1,5 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 import { BiSearch } from "react-icons/bi";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
@@ -59,8 +59,8 @@ const booksData = [
 ];
 
 const checkboxStyle = {
-  accentColor: '#2e3105',
-  cursor: 'pointer'
+  accentColor: "#2e3105",
+  cursor: "pointer",
 };
 
 const allGenres = [
@@ -101,7 +101,7 @@ const allGenres = [
   "Travel",
   "Western Classics",
   "Western Contemporary Lit.",
-  "World Literature"
+  "World Literature",
 ];
 
 // Komponen Card Buku
@@ -115,10 +115,10 @@ const BookCard = ({ title, author, imageUrl }) => {
           alt={`${title} Cover`}
         />
       </div>
-      <h3 className="text-center text-black text-xs font-bold font-['Manrope'] mt-1 line-clamp-1">
+      <h3 className="text-center text-black text-xs font-bold font-manrope mt-1 line-clamp-1">
         {title}
       </h3>
-      <p className="text-center text-[#b5b3b3] text-xs font-semibold font-['Manrope']">
+      <p className="text-center text-[#b5b3b3] text-xs font-semibold font-manrope">
         {author}
       </p>
     </div>
@@ -126,18 +126,14 @@ const BookCard = ({ title, author, imageUrl }) => {
 };
 
 const CatalogPage = () => {
-  const [showAllGenres, setShowAllGenres] = useState(false);
-  const initialGenresCount = 4;
   
-  const displayedGenres = showAllGenres ? allGenres : allGenres.slice(0, initialGenresCount);
-
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           {/* Search Bar and Cart Container */}
           <div className="flex justify-center items-center mb-6">
-            <div className="w-[600px] flex items-center gap-3"> 
+            <div className="w-[600px] flex items-center gap-3">
               {/* Search Bar */}
               <div className="flex-1">
                 <div className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] flex items-center px-5">
@@ -149,7 +145,7 @@ const CatalogPage = () => {
                   />
                 </div>
               </div>
-              
+
               {/* Cart Icon */}
               <button>
                 <BsCart3 className="text-gray-600" size={24} />
@@ -176,7 +172,9 @@ const CatalogPage = () => {
               {/* Categories sections - with white wrapper */}
               <div className="space-y-4 bg-white rounded-2xl border border-[#cdcdcd] p-6">
                 <div className="mb-4">
-                  <h2 className="text-black text-md font-medium mb-4">Categories</h2>
+                  <h2 className="text-black text-md font-medium mb-4">
+                    Categories
+                  </h2>
                   {/* Search in categories */}
                   <div className="relative mb-4">
                     <input
@@ -192,50 +190,44 @@ const CatalogPage = () => {
                 </div>
 
                 <section>
-                  <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
-                  {/* Genre checkboxes container dengan fixed height dan scroll */}
+                  <h3 className="text-black text-sm font-medium mb-4">
+                    Genres
+                  </h3>
                   <div className="mb-3">
-                    <div className={`${showAllGenres ? 'max-h-[210px] overflow-y-auto pr-2' : ''}`}>
-                      {displayedGenres.map((genre) => (
-                        <div key={genre} className="flex items-center gap-3 mb-3">
+                    <div className="max-h-[100px] overflow-y-auto pr-2">
+                      {allGenres.map((genre) => (
+                        <div
+                          key={genre}
+                          className="flex items-center gap-3 mb-3"
+                        >
                           <input
                             type="checkbox"
-                            className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                            className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                             style={checkboxStyle}
-
                           />
-                          <span className="text-black text-xs font-medium font-['Manrope']">
+                          <span className="text-black text-xs font-medium font-manrope">
                             {genre}
                           </span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button 
-                    className="flex items-center text-black text-xs font-medium"
-                    onClick={() => setShowAllGenres(!showAllGenres)}
-                  >
-                    {showAllGenres ? 'Show Less' : 'Load More'}
-                    <IoIosArrowDown 
-                      className={`ml-1 transition-transform duration-200 ${
-                        showAllGenres ? 'rotate-180' : ''
-                      }`} 
-                    />
-                  </button>
                 </section>
 
                 {/* Ratings Section */}
                 <section>
-                  <h3 className="text-black text-sm font-medium mb-4">Ratings</h3>
+                  <h3 className="text-black text-sm font-medium mb-4">
+                    Ratings
+                  </h3>
                   <div className="space-y-3"></div>
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                      className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                     />
                     <div className="flex items-center gap-1">
                       <AiFillStar className="text-[#ECB43C]" />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-manrope">
                         Rated 4 or higher
                       </span>
                     </div>
@@ -244,23 +236,25 @@ const CatalogPage = () => {
 
                 {/* Type of Books Section */}
                 <section>
-                  <h3 className="text-black text-sm font-medium mb-4">Type of Books</h3>
+                  <h3 className="text-black text-sm font-medium mb-4">
+                    Type of Books
+                  </h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                       />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-manrope">
                         Local Books
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                       />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-manrope">
                         International Books
                       </span>
                     </div>
@@ -286,11 +280,11 @@ const CatalogPage = () => {
               <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
                 <IoChevronBackOutline size={16} />
               </button>
-              
+
               <button className="w-8 h-8 flex items-center justify-center text-white bg-[#2e3105] rounded text-xs">
                 1
               </button>
-              
+
               {[2, 3, 4, 5, 6, 7].map((num) => (
                 <button
                   key={num}
@@ -299,13 +293,13 @@ const CatalogPage = () => {
                   {num}
                 </button>
               ))}
-              
+
               <span className="px-1 text-gray-600 text-xs">...</span>
-              
+
               <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 text-xs">
                 15
               </button>
-              
+
               <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
                 <IoChevronForwardOutline size={16} />
               </button>

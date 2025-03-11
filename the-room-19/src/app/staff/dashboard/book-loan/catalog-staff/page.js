@@ -115,10 +115,10 @@ const BookCard = ({ title, author, imageUrl }) => {
           alt={`${title} Cover`}
         />
       </div>
-      <h3 className="text-center text-black text-xs font-bold font-['Manrope'] mt-1 line-clamp-1">
+      <h3 className="text-center text-black text-xs font-bold font-manrope mt-1 line-clamp-1">
         {title}
       </h3>
-      <p className="text-center text-[#b5b3b3] text-xs font-semibold font-['Manrope']">
+      <p className="text-center text-[#b5b3b3] text-xs font-semibold font-manrope">
         {author}
       </p>
     </div>
@@ -126,10 +126,6 @@ const BookCard = ({ title, author, imageUrl }) => {
 };
 
 const CatalogPage = () => {
-  const [showAllGenres, setShowAllGenres] = useState(false);
-  const initialGenresCount = 4;
-  
-  const displayedGenres = showAllGenres ? allGenres : allGenres.slice(0, initialGenresCount);
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -195,33 +191,24 @@ const CatalogPage = () => {
                   <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
                   {/* Genre checkboxes container dengan fixed height dan scroll */}
                   <div className="mb-3">
-                    <div className={`${showAllGenres ? 'max-h-[210px] overflow-y-auto pr-2' : ''}`}>
-                      {displayedGenres.map((genre) => (
-                        <div key={genre} className="flex items-center gap-3 mb-3">
+                  <div className="max-h-[100px] overflow-y-auto pr-2">
+                      {allGenres.map((genre) => (
+                        <div
+                          key={genre}
+                          className="flex items-center gap-3 mb-3"
+                        >
                           <input
                             type="checkbox"
-                            className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                            className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                             style={checkboxStyle}
-
                           />
-                          <span className="text-black text-xs font-medium font-['Manrope']">
+                          <span className="text-black text-xs font-medium font-manrope">
                             {genre}
                           </span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <button 
-                    className="flex items-center text-black text-xs font-medium"
-                    onClick={() => setShowAllGenres(!showAllGenres)}
-                  >
-                    {showAllGenres ? 'Show Less' : 'Load More'}
-                    <IoIosArrowDown 
-                      className={`ml-1 transition-transform duration-200 ${
-                        showAllGenres ? 'rotate-180' : ''
-                      }`} 
-                    />
-                  </button>
                 </section>
 
                 {/* Ratings Section */}
@@ -231,12 +218,12 @@ const CatalogPage = () => {
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                      className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                       style={checkboxStyle}
                     />
                     <div className="flex items-center gap-1">
                       <AiFillStar className="text-[#ECB43C]" />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-manrope">
                         Rated 4 or higher
                       </span>
                     </div>
@@ -250,20 +237,20 @@ const CatalogPage = () => {
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                         style={checkboxStyle}
                       />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-manrope">
                         Local Books
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
-                        className="w-[19px] h-[19px] rounded-2xl border border-[#cdcdcd]"
+                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
                         style={checkboxStyle}
                       />
-                      <span className="text-black text-xs font-medium font-['Manrope']">
+                      <span className="text-black text-xs font-medium font-[manrope">
                         International Books
                       </span>
                     </div>
