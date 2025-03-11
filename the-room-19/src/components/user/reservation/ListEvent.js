@@ -1,16 +1,9 @@
 "use client"
-import { Manrope } from 'next/font/google';
 import { FaWhatsapp, FaEnvelope, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
 import { eventData } from './data/eventData';
-
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 export default function ListEvent() {
   const router = useRouter();

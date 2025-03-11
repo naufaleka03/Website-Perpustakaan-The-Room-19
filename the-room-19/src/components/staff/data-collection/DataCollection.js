@@ -1,18 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { Manrope } from 'next/font/google';
-import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaEllipsisV, FaSort } from 'react-icons/fa';
 import { membershipData } from './data/membershipData';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
 import CancelConfirmationModal from './CancelConfirmationModal';
 import { useRouter } from 'next/navigation';
 import DetailSessionModal from './DetailSessionModal';
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 const formatDate = (dateString) => {
   if (!dateString) return ''; // Handle empty date
@@ -55,14 +49,21 @@ export default function DataCollection() {
   const router = useRouter();
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' atau 'oldest'
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
     let filteredData = filterDataByName(data, searchQuery);
     
-    // Jika data adalah session data, pastikan tetap terurut berdasarkan id terbaru
+    // Urutkan data berdasarkan sortOrder
     if (data === sessionData) {
-      filteredData = [...filteredData].sort((a, b) => b.id - a.id);
+      filteredData = [...filteredData].sort((a, b) => {
+        if (sortOrder === 'newest') {
+          return b.id - a.id;
+        }
+        return a.id - b.id;
+      });
     }
     
     const startIndex = (page - 1) * itemsPerPage;
@@ -128,15 +129,22 @@ export default function DataCollection() {
     );
   };
 
-  // Tambahkan useEffect untuk menginisialisasi sessionStatuses setelah data diambil
+  // Update useEffect untuk fetch data
   useEffect(() => {
     const fetchSessions = async () => {
       try {
         const response = await fetch('/api/sessions');
         const data = await response.json();
-        setSessionData(data);
+        // Sort data berdasarkan created_at
+        const sortedData = data.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA; // Default newest first
+        });
+        
+        setSessionData(sortedData);
         setSessionStatuses(
-          data.map(item => ({
+          sortedData.map(item => ({
             id: item.id,
             status: item.status || 'not attended',
             isCanceled: item.status === 'canceled'
@@ -280,13 +288,44 @@ export default function DataCollection() {
     setActiveDropdown(null);
   };
 
+  // Tambahkan useEffect untuk handle click outside sort dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.sort-container')) {
+        setSortDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Update fungsi handleSort
+  const handleSort = (order) => {
+    setSortOrder(order);
+    setSortDropdownOpen(false);
+    
+    const sortedData = [...sessionData].sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      
+      if (order === 'newest') {
+        return dateB - dateA;
+      }
+      return dateA - dateB;
+    });
+    
+    setSessionData(sortedData);
+    setSessionCurrentPage(1);
+  };
+
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative mb-4">
         <div className="bg-gradient-to-l from-[#4d4d4d] to-black w-full h-[200px] flex items-center">
           <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-8">
-            <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] ${manrope.className}`}>
+            <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope`}>
               DATA <br/>COLLECTION
             </h1>
           </div>
@@ -333,18 +372,56 @@ export default function DataCollection() {
         <div className="w-full overflow-x-auto">
           {activeTab === 'session' && (
             <>
-              <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by name"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e, setSearchQuery)}
-                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by name"
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e, setSearchQuery)}
+                      className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                  </div>
+                  
+                  {/* Sort Dropdown */}
+                  <div className="relative sort-container">
+                    <button
+                      onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    >
+                      <FaSort />
+                      Sort
+                    </button>
+                    
+                    {sortDropdownOpen && (
+                      <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
+                        <button
+                          onClick={() => handleSort('newest')}
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                            sortOrder === 'newest' ? 'text-[#111010] font-medium' : 'text-[#666666]'
+                          }`}
+                        >
+                          Newest First
+                        </button>
+                        <button
+                          onClick={() => handleSort('oldest')}
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                            sortOrder === 'oldest' ? 'text-[#111010] font-medium' : 'text-[#666666]'
+                          }`}
+                        >
+                          Oldest First
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
+                
+                <button 
+                  onClick={() => router.push('/staff/dashboard/data-collection/create-session')}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
+                >
                   <FaPlus size={12} />
                   Create
                 </button>
@@ -467,7 +544,10 @@ export default function DataCollection() {
                   />
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
+                  onClick={() => router.push('/staff/dashboard/data-collection/create-event')}
+                >
                   <FaPlus size={12} />
                   Create
                 </button>
@@ -607,7 +687,10 @@ export default function DataCollection() {
                   />
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']">
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
+                  onClick={() => router.push('/staff/dashboard/data-collection/create-membership')}
+                >
                   <FaPlus size={12} />
                   Create
                 </button>

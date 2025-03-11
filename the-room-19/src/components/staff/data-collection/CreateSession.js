@@ -6,7 +6,7 @@ import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { submitSessionReservation } from '@/app/lib/actions';
 import { useRouter } from 'next/navigation';
 
-export default function SessionReservation() {
+export default function CreateSession() {
   const router = useRouter();
   const [date, setDate] = useState('');
   const [reservationType, setReservationType] = useState('individual');
