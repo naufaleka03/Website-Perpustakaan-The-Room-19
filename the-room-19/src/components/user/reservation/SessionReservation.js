@@ -5,6 +5,7 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { submitSessionReservation } from '@/app/lib/actions';
 import { useRouter } from 'next/navigation';
+import PaymentSummaryModal from '@/components/payment/payment-summary';
 
 export default function SessionReservation() {
   const router = useRouter();
@@ -16,12 +17,15 @@ export default function SessionReservation() {
   const [fullName, setFullName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [reservationFormData, setReservationFormData] = useState(null);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
-      const [year, month, day] = inputDate.split('-');
-      setDate(`${year}-${month}-${day}`);
+      // Ensure date is in YYYY-MM-DD format
+      const formattedDate = new Date(inputDate).toISOString().split('T')[0];
+      setDate(formattedDate);
     } else {
       setDate('');
     }
@@ -53,26 +57,82 @@ export default function SessionReservation() {
     setError('');
 
     try {
+      if (!category || !date || !shiftName || !fullName) {
+        throw new Error('Please fill in all required fields');
+      }
+
       const formData = {
         category,
-        arrivalDate: date,
-        shiftName,
-        fullName,
+        arrival_date: date,
+        shift_name: shiftName,
+        full_name: fullName,
         members: reservationType === 'group' ? members.filter(m => m.trim()) : []
       };
 
-      const result = await submitSessionReservation(formData);
-
-      if (result.success) {
-        router.push('/user/dashboard/reservation/success');
-      } else {
-        setError(result.error || 'Failed to submit reservation');
-      }
+      console.log('Form data before payment:', formData);
+      
+      // Store form data in localStorage
+      localStorage.setItem('reservationFormData', JSON.stringify(formData));
+      
+      setShowPaymentModal(true);
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentResult) => {
+    try {
+      // Debug logs to see what data we have
+      console.log('Payment Result:', paymentResult);
+      console.log('Reservation Data:', reservationFormData);
+      console.log('Arrival Date:', reservationFormData.arrival_date);
+      console.log('Date Type:', typeof reservationFormData.arrival_date);
+
+      // Ensure we have a valid date
+      if (!reservationFormData.arrival_date) {
+        throw new Error('Missing arrival date in reservation data');
+      }
+
+      // Make sure date is properly formatted
+      let formattedDate;
+      try {
+        formattedDate = new Date(reservationFormData.arrival_date).toISOString().split('T')[0];
+      } catch (dateError) {
+        console.error('Date formatting error:', dateError);
+        throw new Error('Invalid arrival date format');
+      }
+
+      // Create formatted data for database insertion
+      const sessionData = {
+        category: reservationFormData.category,
+        arrival_date: formattedDate,
+        shift_name: reservationFormData.shift_name,
+        full_name: reservationFormData.full_name,
+        members: reservationFormData.members || [],
+        payment_id: paymentResult.transaction_id,
+        payment_status: paymentResult.transaction_status,
+        payment_method: paymentResult.payment_type,
+        amount: calculateAmount(),
+        status: 'not_attended'
+      };
+
+      // Log the final data being sent
+      console.log('Session data being submitted:', sessionData);
+
+      const result = await submitSessionReservation(sessionData);
+
+      if (result.success) {
+        router.push(`/payment-finish?order_id=${paymentResult.transaction_id}&transaction_status=${paymentResult.transaction_status}`);
+      } else {
+        throw new Error(result.error || 'Failed to submit reservation');
+      }
+    } catch (err) {
+      console.error('Reservation submission error:', err);
+      setError('Payment successful but failed to save reservation: ' + err.message);
+    }
+    setShowPaymentModal(false);
   };
 
   return (
@@ -252,6 +312,15 @@ export default function SessionReservation() {
           {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
         </button>
       </div>
+
+      {showPaymentModal && (
+        <PaymentSummaryModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          reservationData={reservationFormData}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </form>
   );
 } 

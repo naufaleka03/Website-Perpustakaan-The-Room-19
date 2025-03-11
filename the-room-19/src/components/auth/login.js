@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
-import { useState } from 'react';
-import { logInWithEmail } from '@/app/lib/auth';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { createClient } from '@/app/supabase/client';
 
 export default function LogIn() {
     const [email, setEmail] = useState('');
@@ -15,28 +15,85 @@ export default function LogIn() {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
+
+    // Add effect to check session
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // If already logged in, redirect to appropriate dashboard
+                const { user } = session;
+                // Check user type
+                const tables = ['visitors', 'staff', 'owners'];
+                for (const table of tables) {
+                    const { data } = await supabase
+                        .from(table)
+                        .select('id')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (data) {
+                        const userType = table.slice(0, -1);
+                        const dashboardPath = `/${userType === 'visitor' ? 'user' : userType}/dashboard`;
+                        router.push(dashboardPath);
+                        break;
+                    }
+                }
+            }
+        };
+        
+        checkSession();
+    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const { user, userType, userData } = await logInWithEmail(email, password);
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) throw error;
+
+            const { user } = data;
             
-            // Redirect based on user type
-            switch (userType) {
-                case 'visitor':
-                    router.push('/user/dashboard');
+            // Check which type of user they are
+            const tables = ['visitors', 'staff', 'owners'];
+            let userType = null;
+
+            for (const table of tables) {
+                const { data: userData } = await supabase
+                    .from(table)
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (userData) {
+                    userType = table.slice(0, -1);
                     break;
-                case 'staff':
-                    router.push('/staff/dashboard');
-                    break;
-                case 'owner':
-                    router.push('/owner/dashboard');
-                    break;
-                default:
-                    throw new Error('Invalid user type');
+                }
+            }
+
+            if (!userType) {
+                throw new Error('User profile not found');
+            }
+
+            // Check for redirect parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectPath = urlParams.get('redirect');
+            
+            if (redirectPath) {
+                router.replace(redirectPath);
+            } else {
+                const dashboardPath = userType === 'visitor' 
+                    ? '/user/dashboard'
+                    : `/${userType}/dashboard`;
+                router.replace(dashboardPath);
             }
         } catch (error) {
+            console.error('Login error:', error);
             setError(error.message);
         } finally {
             setIsLoading(false);
