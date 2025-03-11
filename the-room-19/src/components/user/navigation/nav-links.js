@@ -23,7 +23,7 @@ const links = [
     icon: FaCalendarCheck,
     subLinks: [
       { name: 'Sessions', href: '/user/dashboard/reservation/session-reservation' },
-      { name: 'Events', href: '/user/dashboard/reservation/list-event' }
+      { name: 'Events', href: '/user/dashboard/reservation/event-list' }
     ]
   },
   {

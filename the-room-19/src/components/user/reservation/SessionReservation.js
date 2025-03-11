@@ -4,6 +4,9 @@ import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { Manrope } from 'next/font/google';
+import { submitSessionReservation } from '@/app/lib/actions';
+import { useRouter } from 'next/navigation';
+import PaymentSummaryModal from '@/components/payment/payment-summary';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -11,15 +14,24 @@ const manrope = Manrope({
 });
 
 export default function SessionReservation() {
+  const router = useRouter();
   const [date, setDate] = useState('');
   const [reservationType, setReservationType] = useState('individual');
   const [members, setMembers] = useState(['']);
+  const [category, setCategory] = useState('');
+  const [shiftName, setShiftName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [reservationFormData, setReservationFormData] = useState(null);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
-      const [year, month, day] = inputDate.split('-');
-      setDate(`${day}/${month}/${year}`);
+      // Ensure date is in YYYY-MM-DD format
+      const formattedDate = new Date(inputDate).toISOString().split('T')[0];
+      setDate(formattedDate);
     } else {
       setDate('');
     }
@@ -40,8 +52,97 @@ export default function SessionReservation() {
     setMembers(newMembers);
   };
 
+  const handleReservationTypeChange = (type) => {
+    setReservationType(type);
+    setMembers(['']); // Reset members when switching types
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      if (!category || !date || !shiftName || !fullName) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const formData = {
+        category,
+        arrival_date: date,
+        shift_name: shiftName,
+        full_name: fullName,
+        members: reservationType === 'group' ? members.filter(m => m.trim()) : []
+      };
+
+      console.log('Form data before payment:', formData);
+      
+      // Store form data in localStorage
+      localStorage.setItem('reservationFormData', JSON.stringify(formData));
+      
+      setShowPaymentModal(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentResult) => {
+    try {
+      // Debug logs to see what data we have
+      console.log('Payment Result:', paymentResult);
+      console.log('Reservation Data:', reservationFormData);
+      console.log('Arrival Date:', reservationFormData.arrival_date);
+      console.log('Date Type:', typeof reservationFormData.arrival_date);
+
+      // Ensure we have a valid date
+      if (!reservationFormData.arrival_date) {
+        throw new Error('Missing arrival date in reservation data');
+      }
+
+      // Make sure date is properly formatted
+      let formattedDate;
+      try {
+        formattedDate = new Date(reservationFormData.arrival_date).toISOString().split('T')[0];
+      } catch (dateError) {
+        console.error('Date formatting error:', dateError);
+        throw new Error('Invalid arrival date format');
+      }
+
+      // Create formatted data for database insertion
+      const sessionData = {
+        category: reservationFormData.category,
+        arrival_date: formattedDate,
+        shift_name: reservationFormData.shift_name,
+        full_name: reservationFormData.full_name,
+        members: reservationFormData.members || [],
+        payment_id: paymentResult.transaction_id,
+        payment_status: paymentResult.transaction_status,
+        payment_method: paymentResult.payment_type,
+        amount: calculateAmount(),
+        status: 'not_attended'
+      };
+
+      // Log the final data being sent
+      console.log('Session data being submitted:', sessionData);
+
+      const result = await submitSessionReservation(sessionData);
+
+      if (result.success) {
+        router.push(`/payment-finish?order_id=${paymentResult.transaction_id}&transaction_status=${paymentResult.transaction_status}`);
+      } else {
+        throw new Error(result.error || 'Failed to submit reservation');
+      }
+    } catch (err) {
+      console.error('Reservation submission error:', err);
+      setError('Payment successful but failed to save reservation: ' + err.message);
+    }
+    setShowPaymentModal(false);
+  };
+
   return (
-     <div className="max-w-[1440px] min-h-[750px] mx-auto bg-white px-0 pb-20">
+    <form onSubmit={handleSubmit} className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
         <img 
@@ -49,7 +150,7 @@ export default function SessionReservation() {
           src="https://via.placeholder.com/1402x272" 
           alt="Reservation banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full">
+        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
           <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
             RESERVE <br/>A PLACE
           </h1>
@@ -59,47 +160,49 @@ export default function SessionReservation() {
       {/* Reservation Type Selector */}
       <div className="flex justify-center gap-4 max-w-[1200px] mx-auto mb-4">
         <button
-          onClick={() => setReservationType('individual')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          type="button"
+          onClick={() => handleReservationTypeChange('individual')}
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'individual' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUser size={20} />
-          <span>Individual</span>
+          <FaUser />
+          Individual
         </button>
         <button
-          onClick={() => setReservationType('group')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          type="button"
+          onClick={() => handleReservationTypeChange('group')}
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'group' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
-          <FaUsers size={20} />
-          <span>Group</span>
+          <FaUsers />
+          Group
         </button>
       </div>
 
       {/* Form Section */}
-      <div className="flex flex-col gap-4 max-w-[1200px] mx-10 px-6">
+      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Category Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="category" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Category
           </label>
-          <div className="relative">
-            <select 
-              className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
-            >
-              <option value="" className="text-[#666666]/40">Choose your category</option>
-              <option value="category1" className="text-[#666666]">Category 1</option>
-              <option value="category2" className="text-[#666666]">Category 2</option>
-              <option value="category3" className="text-[#666666]">Category 3</option>
-            </select>
-            <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
-          </div>
+          <select 
+            id="category"
+            name="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+          >
+            <option value="" className="text-[#666666]/40">Choose your category</option>
+            <option value="Reguler">Reguler</option>
+            <option value="Student">Student</option>
+          </select>
         </div>
 
         {/* Arrival Date Field */}
@@ -113,7 +216,7 @@ export default function SessionReservation() {
               onChange={handleDateChange}
               className="absolute opacity-0 w-full h-full cursor-pointer"
             />
-            <div className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 flex items-center">
+            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
               <span className={`text-sm font-normal font-['Poppins'] ${date ? 'text-[#666666]' : 'text-[#A9A9A9]'}`}>
                 {date || 'Choose your arrival date'}
               </span>
@@ -124,17 +227,21 @@ export default function SessionReservation() {
 
         {/* Shift Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="shiftName" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Shift
           </label>
           <div className="relative">
-            <select 
-              className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+            <select
+              id="shiftName"
+              name="shiftName"
+              value={shiftName}
+              onChange={(e) => setShiftName(e.target.value)}
+              className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
             >
               <option value="" className="text-[#666666]/40">Choose your shift</option>
-              <option value="shift1" className="text-[#666666]">Shift 1</option>
-              <option value="shift2" className="text-[#666666]">Shift 2</option>
-              <option value="shift3" className="text-[#666666]">Shift 3</option>
+              <option value="Shift A">Shift A (10:00 - 14:00)</option>
+              <option value="Shift B">Shift B (14:00 - 18:00)</option>
+              <option value="Shift C">Shift C (18:00 - 22:00)</option>
             </select>
             <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
           </div>
@@ -142,12 +249,16 @@ export default function SessionReservation() {
 
         {/* Full Name Field */}
         <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+          <label htmlFor="fullName" className="text-[#666666] text-sm font-medium font-['Poppins']">
             Full Name
           </label>
           <input 
+            id="fullName"
+            name="fullName"
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
         </div>
@@ -165,7 +276,7 @@ export default function SessionReservation() {
                     type="text"
                     value={member}
                     onChange={(e) => handleMemberChange(index, e.target.value)}
-                    className="h-[35px] flex-1 rounded-2xl border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
+                    className="h-[35px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
                     placeholder={`Member ${index + 1} name`}
                   />
                   {index > 0 && (
@@ -191,11 +302,31 @@ export default function SessionReservation() {
           </div>
         )}
 
-        {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-2xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
-          SUBMIT
+        {error && (
+          <div className="text-red-500 text-sm text-center mb-4">
+            {error}
+          </div>
+        )}
+
+        <button 
+          type="submit"
+          disabled={isSubmitting}
+          className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          } ${manrope.className}`}
+        >
+          {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
         </button>
       </div>
-    </div>
+
+      {showPaymentModal && (
+        <PaymentSummaryModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          reservationData={reservationFormData}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+    </form>
   );
 } 

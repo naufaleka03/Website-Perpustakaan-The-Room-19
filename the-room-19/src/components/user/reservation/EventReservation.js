@@ -41,7 +41,7 @@ export default function EventReservation() {
   };
 
   return (
-    <div className="max-w-[1440px] min-h-[850px] mx-auto bg-white px-0 pb-20">
+    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
         <img 
@@ -49,7 +49,7 @@ export default function EventReservation() {
           src="https://via.placeholder.com/1402x272" 
           alt="Reservation banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full">
+        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
           <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
             RESERVE <br/>AN EVENTS
           </h1>
@@ -60,7 +60,7 @@ export default function EventReservation() {
       <div className="flex justify-center gap-4 max-w-[1200px] mx-auto mb-4">
         <button
           onClick={() => setReservationType('individual')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'individual' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
@@ -71,7 +71,7 @@ export default function EventReservation() {
         </button>
         <button
           onClick={() => setReservationType('group')}
-          className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all text-sm ${
+          className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
             reservationType === 'group' 
               ? 'bg-[#111010] text-white' 
               : 'bg-white text-[#666666] border border-[#666666]/30'
@@ -83,7 +83,7 @@ export default function EventReservation() {
       </div>
 
       {/* Form Section */}
-      <div className="flex flex-col gap-4 max-w-[1200px] mx-10 px-6">
+      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Auto Generated Fields - Disabled */}
         {['Activity Name', 'Description', 'Date', 'Shift', 'Fee Ticket', 'Additional Notes'].map((field) => (
           <div key={field} className="space-y-1">
@@ -93,7 +93,7 @@ export default function EventReservation() {
             <input 
               type="text"
               disabled
-              className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+              className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
               placeholder={`Auto generated ${field.toLowerCase()}`}
             />
           </div>
@@ -106,7 +106,7 @@ export default function EventReservation() {
           </label>
           <input 
             type="text"
-            className="h-[35px] w-full rounded-2xl border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
         </div>
@@ -124,7 +124,7 @@ export default function EventReservation() {
                     type="text"
                     value={member}
                     onChange={(e) => handleMemberChange(index, e.target.value)}
-                    className="h-[35px] flex-1 rounded-2xl border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
+                    className="h-[35px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
                     placeholder={`Member ${index + 1} name`}
                   />
                   {index > 0 && (
@@ -151,7 +151,7 @@ export default function EventReservation() {
         )}
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-2xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
           SUBMIT
         </button>
       </div>
