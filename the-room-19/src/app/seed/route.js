@@ -19,7 +19,7 @@ async function seedUsers(tx) {
 
     // Staff table
     await sql`
-        CREATE TABLE IF NOT EXISTS staff (
+        CREATE TABLE IF NOT EXISTS staffs (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
             email TEXT NOT NULL UNIQUE,

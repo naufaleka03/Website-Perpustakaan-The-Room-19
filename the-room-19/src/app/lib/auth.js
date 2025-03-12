@@ -108,7 +108,7 @@ export async function logInWithEmail(email, password) {
   const supabase = createClient();
   try {
     console.log('Auth: Attempting login for:', email);
-    const { data: { user }, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -117,31 +117,40 @@ export async function logInWithEmail(email, password) {
       console.error('Auth: Supabase login error:', error);
       throw error;
     }
+
+    if (!data.user) {
+      throw new Error('No user data returned from authentication');
+    }
     
-    console.log('Auth: Supabase login successful, user ID:', user.id);
+    console.log('Auth: Supabase login successful, user ID:', data.user.id);
 
     // Check which type of user they are
-    const tables = ['visitors', 'staff', 'owners'];
+    const tables = ['visitors', 'staffs', 'owners'];
     let userType = null;
     let userData = null;
 
+    console.log('Auth: Checking user tables...');
+    
     for (const table of tables) {
-      console.log('Auth: Checking user in table:', table);
-      const { data, error: tableError } = await supabase
+      console.log('Auth: Querying table:', table);
+      const { data: tableData, error: tableError } = await supabase
         .from(table)
         .select('*')
-        .eq('id', user.id)
+        .eq('id', data.user.id)
         .single();
       
       if (tableError) {
         console.log('Auth: Table query error for', table, ':', tableError);
+        continue;
       }
 
-      if (data) {
+      if (tableData) {
         userType = table.slice(0, -1); // Remove 's' from end
-        userData = data;
-        console.log('Auth: Found user in table:', table);
+        userData = tableData;
+        console.log('Auth: Found user in table:', table, 'userType:', userType);
         break;
+      } else {
+        console.log('Auth: No data found in table:', table);
       }
     }
 
@@ -151,7 +160,7 @@ export async function logInWithEmail(email, password) {
     }
 
     console.log('Auth: Login complete, returning user type:', userType);
-    return { user, userType, userData };
+    return { user: data.user, userType, userData };
   } catch (error) {
     console.error('Login error:', error);
     throw error;

@@ -11,7 +11,7 @@ import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 
 
-// Map of links to display in the side navigation.
+// Map of links to display in the side navigation for staff.
 const links = [
   { 
     name: 'Dashboard',
@@ -20,12 +20,12 @@ const links = [
   },
   {
     name: 'Attendance',
-    href: '/user/dashboard/attendance',
+    href: '/staff/dashboard/attendance',
     icon: IoIdCard,
   },
   {
     name: 'Reservation',
-    href: '/user/dashboard/reservation',
+    href: '/staff/dashboard/reservation',
     icon: FaCalendarCheck,
     subLinks: [
       { name: 'Sessions', href: '/staff/dashboard/reservation/session-reservation' },
@@ -34,20 +34,20 @@ const links = [
   },
   {
     name: 'Book Loan',
-    href: '/user/dashboard/book-loan',
+    href: '/staff/dashboard/book-loan',
     icon: FaBook,
     subLinks: [
-      { name: 'Book Catalog', href: '/user/dashboard/book-loan/management' },
-      { name: 'History', href: '/user/dashboard/book-loan/history' }
+      { name: 'Book Catalog', href: '/staff/dashboard/book-loan/management' },
+      { name: 'History', href: '/staff/dashboard/book-loan/history' }
     ]
   },
   {
     name: 'Inventory',
-    href: '/user/dashboard/inventory',
+    href: '/staff/dashboard/inventory',
     icon: MdInventory,
     subLinks: [
-      { name: 'Books', href: '/user/dashboard/inventory/book' },
-      { name: 'Utilities', href: '/user/dashboard/inventory/utility' }
+      { name: 'Books', href: '/staff/dashboard/inventory/book' },
+      { name: 'Utilities', href: '/staff/dashboard/inventory/utility' }
     ]
   }
 ];

@@ -1,6 +1,6 @@
 'use client';
 
-import Header from '@/components/owner/layout/header';
+import Header from '@/components/layout/header';
 import SideNav from '@/components/owner/navigation/sidenav';
 import { useState } from 'react';
 

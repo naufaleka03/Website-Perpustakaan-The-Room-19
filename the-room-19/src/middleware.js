@@ -68,36 +68,48 @@ export async function middleware(request) {
 
   // Get the pathname from the request URL
   const { pathname } = request.nextUrl;
+  console.log('Middleware: Current pathname:', pathname);
+  
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
   if (isProtectedRoute && !session) {
+    console.log('Middleware: No session, redirecting to login');
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
   }
   
-  // If the user is logged in, check role-based access
   if (session && isProtectedRoute) {
     const userId = session.user.id;
+    console.log('Middleware: Checking user type for ID:', userId);
     
     // Check user type in the database tables
-    const tables = ['visitors', 'staff', 'owners'];
+    const tables = ['visitors', 'staffs', 'owners'];
     let userType = null;
     
     for (const table of tables) {
-      const { data } = await supabase
+      console.log(`Middleware: Querying table: ${table} for user ID: ${userId}`);
+      const { data, error } = await supabase
         .from(table)
         .select('id')
         .eq('id', userId)
         .single();
       
+      if (error) {
+        console.log(`Middleware: Error querying table ${table}:`, error);
+      }
+
+      console.log(`Middleware: Query result for table ${table}:`, data);
+      
       if (data) {
         userType = table.slice(0, -1); // Remove 's' from end
+        console.log('Middleware: Found user type:', userType);
         break;
       }
     }
     
     if (!userType) {
+      console.log('Middleware: No user type found, redirecting to login');
       return NextResponse.redirect(new URL('/login', request.url));
     }
     
@@ -106,8 +118,9 @@ export async function middleware(request) {
     const hasAccess = allowedRoutes.some(route => pathname.startsWith(route));
     
     if (!hasAccess) {
-      const dashboardUrl = new URL(`/${userType === 'visitor' ? 'user' : userType}/dashboard`, request.url);
-      return NextResponse.redirect(dashboardUrl);
+      const dashboardPath = userType === 'visitor' ? '/user/dashboard' : `/${userType}/dashboard`;
+      console.log('Middleware: Redirecting to dashboard:', dashboardPath);
+      return NextResponse.redirect(new URL(dashboardPath, request.url));
     }
   }
 
