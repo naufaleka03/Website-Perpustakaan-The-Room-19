@@ -3,12 +3,6 @@ import { useState } from 'react';
 import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
-import { Manrope } from 'next/font/google';
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 export default function CreateEvent() {
   const [activityName, setActivityName] = useState('');
@@ -47,7 +41,7 @@ export default function CreateEvent() {
           alt="Reservation banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
+          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}>
             CREATE <br/>EVENT
           </h1>
         </div>
@@ -184,7 +178,7 @@ export default function CreateEvent() {
         </div>
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope`}>
           SUBMIT
         </button>
       </div>
