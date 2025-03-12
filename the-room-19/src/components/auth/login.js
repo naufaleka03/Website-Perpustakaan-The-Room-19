@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/app/supabase/client';
+import { logInWithEmail } from '@/app/lib/auth';
 
 export default function LogIn() {
     const [email, setEmail] = useState('');
@@ -50,46 +51,38 @@ export default function LogIn() {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (error) throw error;
-
-            const { user } = data;
+            console.log('Starting login process...');
+            const { user, userType, userData } = await logInWithEmail(email, password);
+            console.log('Login successful, userType:', userType);
             
-            // Check which type of user they are
-            const tables = ['visitors', 'staff', 'owners'];
-            let userType = null;
-
-            for (const table of tables) {
-                const { data: userData } = await supabase
-                    .from(table)
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (userData) {
-                    userType = table.slice(0, -1);
-                    break;
-                }
-            }
-
-            if (!userType) {
-                throw new Error('User profile not found');
-            }
-
             // Check for redirect parameter in URL
             const urlParams = new URLSearchParams(window.location.search);
             const redirectPath = urlParams.get('redirect');
             
             if (redirectPath) {
+                console.log('Redirecting to:', redirectPath);
                 router.replace(redirectPath);
             } else {
-                const dashboardPath = userType === 'visitor' 
-                    ? '/user/dashboard'
-                    : `/${userType}/dashboard`;
+                // Otherwise, redirect based on user type
+                let dashboardPath;
+                console.log('User type before switch:', userType);
+                
+                switch (userType) {
+                    case 'visitor':
+                        dashboardPath = '/user/dashboard';
+                        break;
+                    case 'staff':
+                        dashboardPath = '/staff/dashboard';
+                        break;
+                    case 'owner':
+                        dashboardPath = '/owner/dashboard';
+                        break;
+                    default:
+                        console.error('Invalid user type:', userType);
+                        throw new Error('Invalid user type');
+                }
+                
+                console.log('Redirecting to dashboard:', dashboardPath);
                 router.replace(dashboardPath);
             }
         } catch (error) {

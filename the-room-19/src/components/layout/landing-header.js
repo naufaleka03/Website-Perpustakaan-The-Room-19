@@ -11,8 +11,8 @@ export default function landingHeader() {
       <div className="flex items-center gap-3 absolute left-6 top-1/2 -translate-y-1/2">
         <Image
           src="/the-room-19.jpg"
-          width={56}
-          height={52}
+          width={42}
+          height={39}
           className="hidden md:block rounded-full"
           alt="The Room 19 independent library logo"
         />
