@@ -5,8 +5,8 @@ const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     await sql`
       UPDATE sessions 
       SET status = 'canceled'
@@ -17,4 +17,4 @@ export async function PUT(request, { params }) {
   } catch (error) {
     return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 });
   }
-} 
+}

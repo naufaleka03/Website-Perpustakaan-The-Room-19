@@ -20,8 +20,7 @@ export async function submitSessionReservation(formData) {
       amount: formData.amount
     };
 
-    console.log('Formatted data for DB:', dbFormData); // Debug log
-
+    console.log('Formatted data for DB:', dbFormData); 
     // Validation after conversion
     if (!dbFormData.category) throw new Error('Category is required');
     if (!dbFormData.arrival_date) throw new Error('Arrival date is required');
@@ -80,8 +79,7 @@ export async function submitSessionReservation(formData) {
       RETURNING *
     `;
 
-    console.log('Insert result:', result); // Debug log
-
+    console.log('Insert result:', result); 
     return { 
       success: true,
       data: result[0]
@@ -92,5 +90,70 @@ export async function submitSessionReservation(formData) {
       success: false, 
       error: error.message || 'Failed to submit reservation' 
     };
+  }
+}
+
+export async function submitEventCreation(formData) {
+  try {
+    console.log('Received event form data:', formData);
+
+    const dbFormData = {
+      event_name: formData.event_name,
+      description: formData.description,
+      event_date: formData.event_date,
+      shift_name: formData.shift_name,
+      max_participants: parseInt(formData.max_participants),
+      ticket_fee: parseInt(formData.ticket_fee),
+      additional_notes: formData.additional_notes,
+      activity_poster: formData.activity_poster,
+    };
+
+    // Validasi data
+    if (!dbFormData.event_name) throw new Error('Title is required');
+    if (!dbFormData.event_date) throw new Error('Event date is required');
+    if (!dbFormData.shift_name) throw new Error('Shift name is required');
+    if (!dbFormData.ticket_fee) throw new Error('Price is required');
+
+    // Fetch shift details
+    const [shift] = await sql`
+      SELECT shift_start, shift_end FROM shifts
+      WHERE shift_name = ${dbFormData.shift_name}
+    `;
+
+    if (!shift) throw new Error('Invalid shift selected');
+
+    // Insert ke database dengan shift details
+    const [newEvent] = await sql`
+      INSERT INTO events (
+        event_name,
+        description,
+        event_date,
+        shift_name,
+        shift_start,
+        shift_end,
+        max_participants,
+        ticket_fee,
+        additional_notes,
+        activity_poster,
+        created_at
+      ) VALUES (
+        ${dbFormData.event_name},
+        ${dbFormData.description},
+        ${dbFormData.event_date},
+        ${dbFormData.shift_name},
+        ${shift.shift_start},
+        ${shift.shift_end},
+        ${dbFormData.max_participants},
+        ${dbFormData.ticket_fee},
+        ${dbFormData.additional_notes},
+        ${dbFormData.activity_poster},
+        NOW()
+      ) RETURNING *
+    `;
+
+    return { success: true, data: newEvent };
+  } catch (error) {
+    console.error('Error creating event:', error);
+    return { success: false, error: error.message };
   }
 }

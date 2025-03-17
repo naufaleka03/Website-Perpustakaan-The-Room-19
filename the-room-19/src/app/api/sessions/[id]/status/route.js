@@ -4,7 +4,7 @@ const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 
 export async function PUT(request, { params }) {
   try {
-    const id = await params.id;
+    const { id } = await params; 
     const { status } = await request.json();
 
     await sql`
@@ -18,4 +18,4 @@ export async function PUT(request, { params }) {
     console.error('Error updating status:', error);
     return Response.json({ error: 'Failed to update status' }, { status: 500 });
   }
-} 
+}
