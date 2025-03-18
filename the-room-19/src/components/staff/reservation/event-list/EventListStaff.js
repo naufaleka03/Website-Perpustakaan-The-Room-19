@@ -1,14 +1,19 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaPlus } from 'react-icons/fa';
-import { FaPencil, FaTrash } from 'react-icons/fa6';
+import { FaPlus, FaPencil, FaTrash } from 'react-icons/fa6';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function EventListStaff() {
   const router = useRouter();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    eventId: null,
+    eventName: ''
+  });
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -51,6 +56,30 @@ export default function EventListStaff() {
     setCurrentSlide((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
   };
 
+  const handleDelete = async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete event');
+      }
+
+      // Update state untuk menghapus event dari UI
+      setEvents(events.filter(event => event.id !== eventId));
+      setDeleteModal({ isOpen: false, eventId: null, eventName: '' });
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      setError('Failed to delete event');
+    }
+  };
+
+  const handleEdit = (e, eventId) => {
+    e.stopPropagation();
+    router.push(`/staff/dashboard/reservation/event-list/update-event?id=${eventId}`);
+  };
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto pt-10">
@@ -70,15 +99,19 @@ export default function EventListStaff() {
             <p>Loading events...</p>
           ) : error ? (
             <p>Error: {error}</p>
+          ) : events.length === 0 ? (
+            <div className="col-span-3 flex justify-center items-center h-[400px]">
+              <p className="text-[#666666] text-sm font-['Poppins']">No events available</p>
+            </div>
           ) : (
             events.map((event) => (
               <div 
                 key={event.id} 
                 className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] h-[300px] flex flex-col relative"
-                onClick={() => router.push(`/user/dashboard/reservation/event-reservation`)}
+                onClick={(e) => handleEdit(e, event.id)}
               >
                 <img 
-                  src={event.activity_poster || "https://via.placeholder.com/400x200"}
+                  src={event.activity_poster || "/images/default-event.jpg"}
                   alt={event.event_name}
                   className="w-full h-[150px] object-cover"
                 />
@@ -101,10 +134,7 @@ export default function EventListStaff() {
                 <div className="absolute bottom-4 right-2 flex gap-2">
                   <button 
                     className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-200 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle edit
-                    }}
+                    onClick={(e) => handleEdit(e, event.id)}
                   >
                     <FaPencil size={14} className="text-[#666666]" />
                   </button>
@@ -112,7 +142,11 @@ export default function EventListStaff() {
                     className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-700 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle delete
+                      setDeleteModal({
+                        isOpen: true,
+                        eventId: event.id,
+                        eventName: event.event_name
+                      });
                     }}
                   >
                     <FaTrash size={14} className="text-red-600 hover:text-white" />
@@ -123,6 +157,13 @@ export default function EventListStaff() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, eventId: null, eventName: '' })}
+        onConfirm={() => handleDelete(deleteModal.eventId)}
+        eventName={deleteModal.eventName}
+      />
     </div>
   );
 }

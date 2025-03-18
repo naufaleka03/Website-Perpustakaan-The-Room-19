@@ -95,17 +95,26 @@ export async function submitSessionReservation(formData) {
 
 export async function submitEventCreation(formData) {
   try {
-    console.log('Received event form data:', formData);
+    const [month, day, year] = formData.event_date.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Convert File object to base64 string if exists
+    let posterUrl = formData.activity_poster;
+    if (formData.activity_poster instanceof File) {
+      const buffer = await formData.activity_poster.arrayBuffer();
+      const base64String = Buffer.from(buffer).toString('base64');
+      posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
+    }
 
     const dbFormData = {
       event_name: formData.event_name,
       description: formData.description,
-      event_date: formData.event_date,
+      event_date: formattedDate,
       shift_name: formData.shift_name,
       max_participants: parseInt(formData.max_participants),
       ticket_fee: parseInt(formData.ticket_fee),
       additional_notes: formData.additional_notes,
-      activity_poster: formData.activity_poster,
+      activity_poster: posterUrl,
     };
 
     // Validasi data
@@ -139,7 +148,7 @@ export async function submitEventCreation(formData) {
       ) VALUES (
         ${dbFormData.event_name},
         ${dbFormData.description},
-        ${dbFormData.event_date},
+        ${dbFormData.event_date}::date,
         ${dbFormData.shift_name},
         ${shift.shift_start},
         ${shift.shift_end},
@@ -154,6 +163,69 @@ export async function submitEventCreation(formData) {
     return { success: true, data: newEvent };
   } catch (error) {
     console.error('Error creating event:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function submitEventUpdate(eventId, formData) {
+  try {
+    const [month, day, year] = formData.event_date.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Convert File object to base64 string if exists
+    let posterUrl = formData.activity_poster;
+    if (formData.activity_poster instanceof File) {
+      const buffer = await formData.activity_poster.arrayBuffer();
+      const base64String = Buffer.from(buffer).toString('base64');
+      posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
+    }
+
+    const dbFormData = {
+      event_name: formData.event_name,
+      description: formData.description,
+      event_date: formattedDate,
+      shift_name: formData.shift_name,
+      max_participants: parseInt(formData.max_participants),
+      ticket_fee: parseInt(formData.ticket_fee),
+      additional_notes: formData.additional_notes,
+      activity_poster: posterUrl,
+    };
+
+    // Validasi data
+    if (!dbFormData.event_name) throw new Error('Title is required');
+    if (!dbFormData.event_date) throw new Error('Event date is required');
+    if (!dbFormData.shift_name) throw new Error('Shift name is required');
+    if (!dbFormData.ticket_fee) throw new Error('Price is required');
+
+    // Fetch shift details
+    const [shift] = await sql`
+      SELECT shift_start, shift_end FROM shifts
+      WHERE shift_name = ${dbFormData.shift_name}
+    `;
+
+    if (!shift) throw new Error('Invalid shift selected');
+
+    // Update event di database
+    const [updatedEvent] = await sql`
+      UPDATE events
+      SET 
+        event_name = ${dbFormData.event_name},
+        description = ${dbFormData.description},
+        event_date = ${dbFormData.event_date}::date,
+        shift_name = ${dbFormData.shift_name},
+        shift_start = ${shift.shift_start},
+        shift_end = ${shift.shift_end},
+        max_participants = ${dbFormData.max_participants},
+        ticket_fee = ${dbFormData.ticket_fee},
+        additional_notes = ${dbFormData.additional_notes},
+        activity_poster = ${dbFormData.activity_poster}
+      WHERE id = ${eventId}
+      RETURNING *
+    `;
+
+    return { success: true, data: updatedEvent };
+  } catch (error) {
+    console.error('Error updating event:', error);
     return { success: false, error: error.message };
   }
 }
