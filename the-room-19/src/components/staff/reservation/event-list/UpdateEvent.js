@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { submitEventUpdate } from '@/app/lib/actions';
 
@@ -50,7 +49,7 @@ export default function UpdateEvent() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    date.setHours(12); // Set jam ke tengah hari untuk menghindari masalah timezone
+    date.setHours(12); 
     
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -63,7 +62,7 @@ export default function UpdateEvent() {
     if (inputDate) {
       const [year, month, day] = inputDate.split('-');
       const date = new Date(year, parseInt(month) - 1, parseInt(day));
-      date.setHours(12); // Set jam ke tengah hari untuk menghindari masalah timezone
+      date.setHours(12); 
       
       const adjustedMonth = String(date.getMonth() + 1).padStart(2, '0');
       const adjustedDay = String(date.getDate()).padStart(2, '0');
@@ -76,13 +75,11 @@ export default function UpdateEvent() {
   const handlePosterUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validasi ukuran file (maksimal 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError('File size should not exceed 5MB');
         return;
       }
       
-      // Validasi tipe file
       if (!file.type.startsWith('image/')) {
         setError('Please upload an image file');
         return;
@@ -188,7 +185,6 @@ export default function UpdateEvent() {
           </div>
         </div>
 
-        {/* Shift */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Shift
@@ -205,7 +201,6 @@ export default function UpdateEvent() {
           </select>
         </div>
 
-        {/* Max Participants */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Max Participants
@@ -218,7 +213,6 @@ export default function UpdateEvent() {
           />
         </div>
 
-        {/* Ticket Fee */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Ticket Fee
@@ -231,7 +225,6 @@ export default function UpdateEvent() {
           />
         </div>
 
-        {/* Additional Notes */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Additional Notes
@@ -243,7 +236,6 @@ export default function UpdateEvent() {
           />
         </div>
 
-        {/* Current Poster Preview */}
         {currentPosterUrl && (
           <div className="space-y-1">
             <label className="text-[#666666] text-sm font-medium font-['Poppins']">
