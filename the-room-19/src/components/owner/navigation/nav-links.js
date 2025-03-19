@@ -10,29 +10,29 @@ import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 
 
-// Map of links to display in the side navigation.
+// Map of links to display in the side navigation for owners.
 const links = [
   { 
     name: 'Dashboard',
-    href: '/user/dashboard',
+    href: '/owner/dashboard',
     icon: GoHomeFill,
   },
   {
     name: 'Reservation',
-    href: '/user/dashboard/reservation',
+    href: '/owner/dashboard/reservation',
     icon: FaCalendarCheck,
     subLinks: [
-      { name: 'Reserve a place', href: '/staff/dashboard/reservation/place' },
-      { name: 'Reserve an activity', href: '/staff/dashboard/reservation/activity' }
+      { name: 'Sessions', href: '/owner/dashboard/reservation/session-reservation' },
+      { name: 'Events', href: '/owner/dashboard/reservation/event-list' }
     ]
   },
   {
     name: 'Book Loan',
-    href: '/user/dashboard/book-loan',
+    href: '/owner/dashboard/book-loan',
     icon: FaBook,
     subLinks: [
-      { name: 'Book Catalog', href: '/user/dashboard/book-loan/management' },
-      { name: 'History', href: '/user/dashboard/book-loan/history' }
+      { name: 'Book Catalog', href: '/owner/dashboard/book-loan/management' },
+      { name: 'History', href: '/owner/dashboard/book-loan/history' }
     ]
   }
 ];
@@ -76,7 +76,7 @@ function SubNavItem({ href, label }) {
     <Link 
       href={href} 
       className={clsx(
-        'ml-10 py-2 px-3 block rounded',
+        'ml-7 py-2 px-3 block rounded',
         {
           'text-[#52570d]': pathname === href,
           'text-[#5d7285]': pathname !== href

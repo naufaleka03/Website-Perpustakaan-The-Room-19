@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
-import { useState } from 'react';
-import { logInWithEmail } from '@/app/lib/auth';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { createClient } from '@/app/supabase/client';
+import { logInWithEmail } from '@/app/lib/auth';
 
 export default function LogIn() {
     const [email, setEmail] = useState('');
@@ -15,28 +16,77 @@ export default function LogIn() {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
+
+    // Add effect to check session
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // If already logged in, redirect to appropriate dashboard
+                const { user } = session;
+                // Check user type
+                const tables = ['visitors', 'staff', 'owners'];
+                for (const table of tables) {
+                    const { data } = await supabase
+                        .from(table)
+                        .select('id')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (data) {
+                        const userType = table.slice(0, -1);
+                        const dashboardPath = `/${userType === 'visitor' ? 'user' : userType}/dashboard`;
+                        router.push(dashboardPath);
+                        break;
+                    }
+                }
+            }
+        };
+        
+        checkSession();
+    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
+            console.log('Starting login process...');
             const { user, userType, userData } = await logInWithEmail(email, password);
+            console.log('Login successful, userType:', userType);
             
-            // Redirect based on user type
-            switch (userType) {
-                case 'visitor':
-                    router.push('/user/dashboard');
-                    break;
-                case 'staff':
-                    router.push('/staff/dashboard');
-                    break;
-                case 'owner':
-                    router.push('/owner/dashboard');
-                    break;
-                default:
-                    throw new Error('Invalid user type');
+            // Check for redirect parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectPath = urlParams.get('redirect');
+            
+            if (redirectPath) {
+                console.log('Redirecting to:', redirectPath);
+                router.replace(redirectPath);
+            } else {
+                // Otherwise, redirect based on user type
+                let dashboardPath;
+                console.log('User type before switch:', userType);
+                
+                switch (userType) {
+                    case 'visitor':
+                        dashboardPath = '/user/dashboard';
+                        break;
+                    case 'staff':
+                        dashboardPath = '/staff/dashboard';
+                        break;
+                    case 'owner':
+                        dashboardPath = '/owner/dashboard';
+                        break;
+                    default:
+                        console.error('Invalid user type:', userType);
+                        throw new Error('Invalid user type');
+                }
+                
+                console.log('Redirecting to dashboard:', dashboardPath);
+                router.replace(dashboardPath);
             }
         } catch (error) {
+            console.error('Login error:', error);
             setError(error.message);
         } finally {
             setIsLoading(false);

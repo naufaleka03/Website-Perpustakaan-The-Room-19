@@ -1,12 +1,7 @@
 "use client"
-import { Manrope } from 'next/font/google';
+
 import { useState } from 'react';
 import TermsPopup from './TermsPopup';
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 export default function MembershipForm() {
   const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -22,7 +17,7 @@ export default function MembershipForm() {
           alt="Membership banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
+          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}>
             MEMBERSHIP
           </h1>
         </div>
@@ -144,7 +139,7 @@ export default function MembershipForm() {
         </div>
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope`}>
           SUBMIT
         </button>
       </div>

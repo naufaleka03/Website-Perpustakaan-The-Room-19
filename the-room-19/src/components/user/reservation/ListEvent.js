@@ -1,16 +1,9 @@
 "use client"
-import { Manrope } from 'next/font/google';
 import { FaWhatsapp, FaEnvelope, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
 import { eventData } from './data/eventData';
-
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 export default function ListEvent() {
   const router = useRouter();
@@ -60,7 +53,7 @@ export default function ListEvent() {
               <div 
                 key={event.id} 
                 className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] h-[300px] flex flex-col"
-                onClick={() => router.push(`/user/dashboard/reservation/event-reservation`)}
+                onClick={() => router.push(`/user/dashboard/reservation/event-list/event-reservation?eventId=${event.id}`)}
               >
                 <img 
                   src={event.image}

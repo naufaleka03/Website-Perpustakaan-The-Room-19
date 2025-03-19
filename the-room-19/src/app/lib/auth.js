@@ -1,4 +1,5 @@
-import { supabase } from './supabase-client';
+'use client';
+import { createClient } from '@/app/supabase/client';
 
 // Define user types
 export const USER_TYPES = {
@@ -9,6 +10,7 @@ export const USER_TYPES = {
 
 // Original visitor signup function
 export async function signUpVisitor(email, password, fullName, phoneNumber) {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -44,6 +46,7 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
 
 // New function for staff/owner registration (admin only)
 export async function registerUser(userType, userData) {
+  const supabase = createClient();
   if (!['staff', 'owner'].includes(userType)) {
     throw new Error('Invalid user type for registration');
   }
@@ -102,38 +105,62 @@ export async function registerUser(userType, userData) {
 
 // Log in function
 export async function logInWithEmail(email, password) {
+  const supabase = createClient();
   try {
-    const { data: { user }, error } = await supabase.auth.signInWithPassword({
+    console.log('Auth: Attempting login for:', email);
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Auth: Supabase login error:', error);
+      throw error;
+    }
+
+    if (!data.user) {
+      throw new Error('No user data returned from authentication');
+    }
+    
+    console.log('Auth: Supabase login successful, user ID:', data.user.id);
 
     // Check which type of user they are
-    const tables = ['visitors', 'staff', 'owners'];
+    const tables = ['visitors', 'staffs', 'owners'];
     let userType = null;
     let userData = null;
 
+    console.log('Auth: Checking user tables...');
+    
     for (const table of tables) {
-      const { data } = await supabase
+      console.log('Auth: Querying table:', table);
+      const { data: tableData, error: tableError } = await supabase
         .from(table)
         .select('*')
-        .eq('id', user.id)
+        .eq('id', data.user.id)
         .single();
+      
+      if (tableError) {
+        console.log('Auth: Table query error for', table, ':', tableError);
+        continue;
+      }
 
-      if (data) {
+      if (tableData) {
         userType = table.slice(0, -1); // Remove 's' from end
-        userData = data;
+        userData = tableData;
+        console.log('Auth: Found user in table:', table, 'userType:', userType);
         break;
+      } else {
+        console.log('Auth: No data found in table:', table);
       }
     }
 
     if (!userType) {
+      console.error('Auth: User profile not found in any table');
       throw new Error('User profile not found');
     }
 
-    return { user, userType, userData };
+    console.log('Auth: Login complete, returning user type:', userType);
+    return { user: data.user, userType, userData };
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -142,13 +169,15 @@ export async function logInWithEmail(email, password) {
 
 // Log out function
 export async function logOut() {
+  const supabase = createClient();
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
 
 // User sessions
 export function onAuthStateChange(callback) {
-    return supabase.auth.onAuthStateChange((event, session) => {
-      callback(event, session);
-    });
-  }
+  const supabase = createClient();
+  return supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session);
+  });
+}

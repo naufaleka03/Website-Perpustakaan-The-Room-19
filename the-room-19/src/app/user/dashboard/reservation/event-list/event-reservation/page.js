@@ -1,5 +1,6 @@
+"use client"
 import EventReservation from '@/components/user/reservation/EventReservation';
 
-export default function Page() {
+export default function EventReservationPage() {
   return <EventReservation />;
 }

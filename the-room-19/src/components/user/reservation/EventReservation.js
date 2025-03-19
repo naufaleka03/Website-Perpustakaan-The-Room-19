@@ -1,19 +1,34 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { eventData } from './data/eventData';
 import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
-import { Manrope } from 'next/font/google';
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-});
 
 export default function EventReservation() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get('eventId');
+  const [eventDetails, setEventDetails] = useState(null);
   const [date, setDate] = useState('');
   const [reservationType, setReservationType] = useState('individual');
   const [members, setMembers] = useState(['']);
+
+  useEffect(() => {
+    if (!eventId) {
+      router.push('/user/dashboard/reservation'); // Redirect jika tidak ada eventId
+      return;
+    }
+
+    const event = eventData.find(e => e.id === parseInt(eventId));
+    if (!event) {
+      router.push('/user/dashboard/reservation'); // Redirect jika event tidak ditemukan
+      return;
+    }
+
+    setEventDetails(event);
+  }, [eventId, router]);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
@@ -50,7 +65,7 @@ export default function EventReservation() {
           alt="Reservation banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 ${manrope.className}`}>
+          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}>
             RESERVE <br/>AN EVENTS
           </h1>
         </div>
@@ -84,20 +99,78 @@ export default function EventReservation() {
 
       {/* Form Section */}
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
-        {/* Auto Generated Fields - Disabled */}
-        {['Activity Name', 'Description', 'Date', 'Shift', 'Fee Ticket', 'Additional Notes'].map((field) => (
-          <div key={field} className="space-y-1">
-            <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-              {field}
-            </label>
-            <input 
-              type="text"
-              disabled
-              className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              placeholder={`Auto generated ${field.toLowerCase()}`}
-            />
-          </div>
-        ))}
+        {/* Auto Generated Fields */}
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Activity Name
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.title || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Description
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.description || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Date
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.date || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Shift
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.shift || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Fee Ticket
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.price || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Additional Notes
+          </label>
+          <input 
+            type="text"
+            value={eventDetails?.additionalNotes || ''}
+            disabled
+            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+          />
+        </div>
 
         {/* Full Name Field */}
         <div className="space-y-1">
@@ -151,7 +224,7 @@ export default function EventReservation() {
         )}
 
         {/* Submit Button */}
-        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] ${manrope.className}`}>
+        <button className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope`}>
           SUBMIT
         </button>
       </div>

@@ -1,12 +1,14 @@
 "use client"
-import { useState } from 'react';
-import { GoTriangleDown } from 'react-icons/go';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { IoCalendarOutline } from "react-icons/io5";
-import { useRouter } from 'next/navigation';
-import { submitEventCreation } from '@/app/lib/actions';
+import { submitEventUpdate } from '@/app/lib/actions';
 
-export default function CreateEvent() {
+export default function UpdateEvent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get('id');
+  
   const [event_name, setEventName] = useState('');
   const [description, setDescription] = useState('');
   const [event_date, setEventDate] = useState('');
@@ -15,15 +17,52 @@ export default function CreateEvent() {
   const [ticket_fee, setTicketFee] = useState('');
   const [additional_notes, setAdditionalNotes] = useState('');
   const [activity_poster, setActivityPoster] = useState(null);
+  const [currentPosterUrl, setCurrentPosterUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        const response = await fetch(`/api/events/${eventId}`);
+        if (!response.ok) throw new Error('Failed to fetch event data');
+        
+        const data = await response.json();
+        setEventName(data.event_name);
+        setDescription(data.description);
+        setEventDate(formatDate(data.event_date));
+        setShiftName(data.shift_name);
+        setMaxParticipants(data.max_participants.toString());
+        setTicketFee(data.ticket_fee.toString());
+        setAdditionalNotes(data.additional_notes);
+        setCurrentPosterUrl(data.activity_poster);
+      } catch (err) {
+        setError('Failed to fetch event data');
+        console.error('Error:', err);
+      }
+    };
+
+    if (eventId) {
+      fetchEventData();
+    }
+  }, [eventId]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    date.setHours(12); 
+    
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}-${day}-${year}`;
+  };
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
       const [year, month, day] = inputDate.split('-');
       const date = new Date(year, parseInt(month) - 1, parseInt(day));
-      date.setHours(12); // Set jam ke tengah hari untuk menghindari masalah timezone
+      date.setHours(12); 
       
       const adjustedMonth = String(date.getMonth() + 1).padStart(2, '0');
       const adjustedDay = String(date.getDate()).padStart(2, '0');
@@ -36,13 +75,11 @@ export default function CreateEvent() {
   const handlePosterUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validasi ukuran file (maksimal 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError('File size should not exceed 5MB');
         return;
       }
       
-      // Validasi tipe file
       if (!file.type.startsWith('image/')) {
         setError('Please upload an image file');
         return;
@@ -66,20 +103,19 @@ export default function CreateEvent() {
         max_participants: parseInt(max_participants),
         ticket_fee: parseInt(ticket_fee.replace(/[^0-9]/g, '')),
         additional_notes,
-        activity_poster: activity_poster ? URL.createObjectURL(activity_poster) : null
+        activity_poster: activity_poster ? URL.createObjectURL(activity_poster) : currentPosterUrl
       };
 
-      console.log('Submitting event data:', formData);
-      const result = await submitEventCreation(formData);
+      const result = await submitEventUpdate(eventId, formData);
 
       if (result.success) {
         router.push('/staff/dashboard/reservation/event-list');
         router.refresh();
       } else {
-        setError(result.error || 'Failed to create event');
+        setError(result.error || 'Failed to update event');
       }
     } catch (err) {
-      console.error('Error submitting event:', err);
+      console.error('Error updating event:', err);
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
@@ -93,16 +129,16 @@ export default function CreateEvent() {
         <img 
           className="w-full h-[200px] object-cover" 
           src="https://via.placeholder.com/1402x272" 
-          alt="Reservation banner"
+          alt="Update Event banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}>
-            CREATE <br/>EVENT
+          <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope">
+            UPDATE <br/>EVENT
           </h1>
         </div>
       </div>
 
-      {/* Form Section */}
+      {/* Form Section - menggunakan struktur yang sama dengan CreateEvent.js */}
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
         {/* Event Name */}
         <div className="space-y-1">
@@ -113,7 +149,6 @@ export default function CreateEvent() {
             type="text"
             value={event_name}
             onChange={(e) => setEventName(e.target.value)}
-            placeholder="Enter Event Name"
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
           />
         </div>
@@ -126,7 +161,6 @@ export default function CreateEvent() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter Description"
             className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
           />
         </div>
@@ -151,7 +185,6 @@ export default function CreateEvent() {
           </div>
         </div>
 
-        {/* Shift */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Shift
@@ -168,7 +201,6 @@ export default function CreateEvent() {
           </select>
         </div>
 
-        {/* Max Participants */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Max Participants
@@ -177,12 +209,10 @@ export default function CreateEvent() {
             type="number"
             value={max_participants}
             onChange={(e) => setMaxParticipants(e.target.value)}
-            placeholder="Enter Max Participants"
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
           />
         </div>
 
-        {/* Ticket Fee */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Ticket Fee
@@ -191,12 +221,10 @@ export default function CreateEvent() {
             type="text"
             value={ticket_fee}
             onChange={(e) => setTicketFee(e.target.value)}
-            placeholder="Enter Ticket Fee"
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
           />
         </div>
 
-        {/* Additional Notes */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Additional Notes
@@ -204,15 +232,27 @@ export default function CreateEvent() {
           <textarea
             value={additional_notes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
-            placeholder="Add Additional Notes"
             className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
           />
         </div>
 
-        {/* Upload Activity Poster */}
+        {currentPosterUrl && (
+          <div className="space-y-1">
+            <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+              Current Poster
+            </label>
+            <img 
+              src={currentPosterUrl} 
+              alt="Current event poster" 
+              className="w-full max-w-[200px] h-auto rounded-lg"
+            />
+          </div>
+        )}
+
+        {/* Upload New Poster */}
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Upload Activity Poster
+            Upload New Poster
           </label>
           <div className="relative">
             <input
@@ -223,19 +263,19 @@ export default function CreateEvent() {
             />
             <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
               <span className={`text-sm font-normal font-['Poppins'] ${activity_poster ? 'text-[#666666]' : 'text-[#A9A9A9]'}`}>
-                {activity_poster ? activity_poster.name : 'Choose file or drop here'}
+                {activity_poster ? activity_poster.name : 'Choose new poster or drop here'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Update Button */}
         <button 
           type="submit" 
           disabled={isSubmitting}
           className="h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope"
         >
-          {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+          {isSubmitting ? 'UPDATING...' : 'UPDATE EVENT'}
         </button>
 
         {error && (
