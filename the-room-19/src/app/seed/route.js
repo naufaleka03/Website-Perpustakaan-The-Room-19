@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
@@ -7,14 +6,20 @@ async function seedUsers(tx) {
     const sql = tx ?? sql;
     await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
     
-    // Visitors table (existing)
+    // Visitors table
     await sql`
         CREATE TABLE IF NOT EXISTS visitors (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
             email TEXT NOT NULL UNIQUE,
             phone_number VARCHAR(20),
-            member_status VARCHAR(20) NOT NULL DEFAULT 'guest'
+            member_status VARCHAR(20) NOT NULL DEFAULT 'guest',
+            profile_picture VARCHAR(255),
+            address VARCHAR(255),
+            city VARCHAR(100),
+            state VARCHAR(100),
+            postal_code VARCHAR(20),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )`;
 
     // Staff table
@@ -81,12 +86,87 @@ async function seedSession(tx) {
         )`;
 }
 
+async function seedEvents(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
+        CREATE TABLE IF NOT EXISTS events (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            event_name VARCHAR(255) NOT NULL,
+            description TEXT,
+            event_date DATE NOT NULL,
+            shift_name VARCHAR(255) NOT NULL,
+            shift_start TIME NOT NULL,
+            shift_end TIME NOT NULL,
+            max_participants INTEGER NOT NULL,
+            ticket_fee INTEGER NOT NULL,
+            additional_notes TEXT,
+            activity_poster VARCHAR(255),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            FOREIGN KEY (shift_name, shift_start, shift_end) 
+                REFERENCES shifts(shift_name, shift_start, shift_end)
+        )`;
+}
+
+async function seedBooks(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
+        CREATE TABLE IF NOT EXISTS books (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            book_name VARCHAR(255) NOT NULL,
+            isbn_code VARCHAR(20) NOT NULL,
+            author VARCHAR(255) NOT NULL,
+            publisher VARCHAR(255) NOT NULL,
+            published_year INTEGER NOT NULL,
+            description TEXT,
+            genre VARCHAR(100) NOT NULL,
+            book_type VARCHAR(50) NOT NULL,
+            rating NUMERIC(3, 2) DEFAULT 0.00 NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
+async function seedBookGenres(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
+        CREATE TABLE IF NOT EXISTS genres (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            genre_name VARCHAR(100) NOT NULL,
+            is_showed BOOLEAN DEFAULT true NOT NULL,
+            is_stored BOOLEAN DEFAULT true NOT NULL,
+            number_of_books INTEGER DEFAULT 0 NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
+async function seedBookLoans(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
+        CREATE TABLE IF NOT EXISTS loans (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            loan_start DATE NOT NULL,
+            loan_due DATE NOT NULL,
+            book_name1 VARCHAR(255) NOT NULL,
+            book_name2 VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 export async function GET() {
     try {
         await sql.begin(async (tx) => {
             await seedUsers(tx);
             await seedShifts(tx);
             await seedSession(tx);
+            await seedEvents(tx);
+            await seedBooks(tx);
+            await seedBookGenres(tx);
+            await seedBookLoans(tx);
         });
 
         return Response.json({ 

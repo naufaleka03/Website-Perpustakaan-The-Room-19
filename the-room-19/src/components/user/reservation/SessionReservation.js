@@ -305,11 +305,11 @@ export default function SessionReservation() {
         <button 
           type="submit"
           disabled={isSubmitting}
-          className={`h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-4 ${
+          className={`h-[40px] bg-[#111010] rounded-3xl text-white text-sm font-semibold mt-2 ${
             isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
           } font-manrope`}
         >
-          {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+          {isSubmitting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
 

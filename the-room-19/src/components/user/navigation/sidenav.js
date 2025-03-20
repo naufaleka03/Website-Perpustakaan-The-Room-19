@@ -3,14 +3,43 @@
 import NavLinks from './nav-links';
 import { IoLogOut } from "react-icons/io5";
 import { clsx } from 'clsx';
+import Link from 'next/link';
 import { createClient } from '@/app/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
-export default function SideNav({ isExpanded }) {
+export default function SideNav({ isExpanded, profilePicture }) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUserId(session.user.id);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (userId) {
+        const { data, error } = await supabase.from('visitors').select('name').eq('id', userId).single();
+        if (data) {
+          setUserName(data.name);
+        } else {
+          console.error('Error fetching user name:', error);
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [userId]);
 
   const handleLogout = async () => {
     try {
@@ -36,19 +65,33 @@ export default function SideNav({ isExpanded }) {
         
         {isExpanded && (
           <>
-            <div className="flex items-center gap-3 mb-4 mt-2">
-              <div className="w-12 h-12 flex-shrink-0">
-                <div className="w-full h-full bg-[#d9d9d9] rounded-full" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <div className="text-[#5d7285] text-xs font-semibold truncate">Wildan Fauzan Ramdana</div>
-                <div className="flex items-center mt-1">
-                  <div className="bg-[#2e3105] rounded-full px-3 pb-0.5">
-                    <span className="text-white text-xs">Member</span>
+            <Link href="/user/dashboard/profile">
+              <div className="flex items-center gap-3 mb-4 mt-2 cursor-pointer">
+                <div className="w-12 h-12 flex-shrink-0">
+                  {profilePicture ? (
+                    <Image
+                      src={profilePicture}
+                      alt="Profile"
+                      width={48}
+                      height={48}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
+                      {/* Grey background when no profile picture is set */}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="text-[#5d7285] text-xs font-semibold truncate">{userName || 'User Name'}</div>
+                  <div className="flex items-center mt-1">
+                    <div className="bg-[#2e3105] rounded-full px-3 pb-0.5">
+                      <span className="text-white text-xs">Member</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             <div className="h-px bg-[#767676]/30 mb-2" />
           </>

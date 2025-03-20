@@ -64,7 +64,7 @@ export async function middleware(request) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: user } = await supabase.auth.getUser();
 
   // Get the pathname from the request URL
   const { pathname } = request.nextUrl;
@@ -72,15 +72,15 @@ export async function middleware(request) {
   
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !user) {
     console.log('Middleware: No session, redirecting to login');
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
   }
   
-  if (session && isProtectedRoute) {
-    const userId = session.user.id;
+  if (user && isProtectedRoute) {
+    const userId = user.user.id;
     console.log('Middleware: Checking user type for ID:', userId);
     
     // Check user type in the database tables

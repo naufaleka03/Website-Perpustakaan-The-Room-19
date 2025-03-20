@@ -1,6 +1,7 @@
 import './globals.css'
 import { poppins, manrope } from '@/components/fonts'
 
+
 export const metadata = {
   title: 'The Room 19',
   description: 'Welcome to The Room 19',
