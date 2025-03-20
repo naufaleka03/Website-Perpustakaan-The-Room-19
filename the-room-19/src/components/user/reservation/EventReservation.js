@@ -1,7 +1,6 @@
-"use client"
+"use client";
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { eventData } from './data/eventData';
 import { GoTriangleDown } from 'react-icons/go';
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
@@ -17,24 +16,32 @@ export default function EventReservation() {
 
   useEffect(() => {
     if (!eventId) {
-      router.push('/user/dashboard/reservation'); // Redirect jika tidak ada eventId
+      router.push('/user/dashboard/reservation');
       return;
     }
 
-    const event = eventData.find(e => e.id === parseInt(eventId));
-    if (!event) {
-      router.push('/user/dashboard/reservation'); // Redirect jika event tidak ditemukan
-      return;
-    }
+    const fetchEventDetails = async () => {
+      try {
+        const response = await fetch(`/api/events/${eventId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch event details');
+        }
+        const data = await response.json();
+        setEventDetails(data);
+      } catch (error) {
+        console.error('Error fetching event details:', error);
+        router.push('/user/dashboard/reservation'); // Redirect jika error fetch
+      }
+    };
 
-    setEventDetails(event);
+    fetchEventDetails();
   }, [eventId, router]);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
       const [year, month, day] = inputDate.split('-');
-      setDate(`${day}/${month}/${year}`);
+      setDate(`<span class="math-inline">\{day\}/</span>{month}/${year}`);
     } else {
       setDate('');
     }
@@ -55,18 +62,33 @@ export default function EventReservation() {
     setMembers(newMembers);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString("en-US", options);
+  };
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-4 mt-0">
-        <img 
-          className="w-full h-[200px] object-cover" 
-          src="https://via.placeholder.com/1402x272" 
+        <img
+          className="w-full h-[200px] object-cover"
+          src="https://via.placeholder.com/1402x272"
           alt="Reservation banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
           <h1 className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}>
-            RESERVE <br/>AN EVENTS
+            RESERVE <br />AN EVENTS
           </h1>
         </div>
       </div>
@@ -76,8 +98,8 @@ export default function EventReservation() {
         <button
           onClick={() => setReservationType('individual')}
           className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
-            reservationType === 'individual' 
-              ? 'bg-[#111010] text-white' 
+            reservationType === 'individual'
+              ? 'bg-[#111010] text-white'
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
@@ -87,8 +109,8 @@ export default function EventReservation() {
         <button
           onClick={() => setReservationType('group')}
           className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm ${
-            reservationType === 'group' 
-              ? 'bg-[#111010] text-white' 
+            reservationType === 'group'
+              ? 'bg-[#111010] text-white'
               : 'bg-white text-[#666666] border border-[#666666]/30'
           }`}
         >
@@ -104,9 +126,9 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Activity Name
           </label>
-          <input 
+          <input
             type="text"
-            value={eventDetails?.title || ''}
+            value={eventDetails?.event_name || ''}
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
@@ -116,21 +138,21 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Description
           </label>
-          <input 
-            type="text"
+          <textarea
             value={eventDetails?.description || ''}
             disabled
-            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-          />
+            className="w-full rounded-md border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+            rows="3"
+          ></textarea>
         </div>
 
         <div className="space-y-1">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Date
           </label>
-          <input 
+          <input
             type="text"
-            value={eventDetails?.date || ''}
+            value={formatDate(eventDetails?.event_date) || ''}
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
@@ -140,9 +162,9 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Shift
           </label>
-          <input 
+          <input
             type="text"
-            value={eventDetails?.shift || ''}
+            value={eventDetails?.shift_name || ''}
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
@@ -152,9 +174,9 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Fee Ticket
           </label>
-          <input 
+          <input
             type="text"
-            value={eventDetails?.price || ''}
+            value={formatRupiah(eventDetails?.ticket_fee) || ''}
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
@@ -164,12 +186,12 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Additional Notes
           </label>
-          <input 
-            type="text"
-            value={eventDetails?.additionalNotes || ''}
+          <textarea
+            value={eventDetails?.additional_notes || ''}
             disabled
-            className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-          />
+            className="w-full rounded-md border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
+            rows="3" 
+          ></textarea>
         </div>
 
         {/* Full Name Field */}
@@ -177,7 +199,7 @@ export default function EventReservation() {
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Full Name
           </label>
-          <input 
+          <input
             type="text"
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
@@ -193,7 +215,7 @@ export default function EventReservation() {
               </label>
               {members.map((member, index) => (
                 <div key={index} className="flex gap-3 items-center">
-                  <input 
+                  <input
                     type="text"
                     value={member}
                     onChange={(e) => handleMemberChange(index, e.target.value)}
@@ -230,4 +252,5 @@ export default function EventReservation() {
       </div>
     </div>
   );
-} 
+}
+

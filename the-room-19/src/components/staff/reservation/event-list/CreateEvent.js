@@ -33,7 +33,7 @@ export default function CreateEvent() {
     }
   };
 
-  const handlePosterUpload = async (e) => {
+  const handlePosterUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validasi ukuran file (maksimal 5MB)
@@ -48,6 +48,7 @@ export default function CreateEvent() {
         return;
       }
 
+      // Set gambar yang diupload untuk ditampilkan
       setActivityPoster(file);
     }
   };
@@ -228,6 +229,8 @@ export default function CreateEvent() {
             </div>
           </div>
         </div>
+
+
 
         {/* Submit Button */}
         <button 

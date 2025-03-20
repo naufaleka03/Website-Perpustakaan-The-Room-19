@@ -72,7 +72,7 @@ export default function UpdateEvent() {
     }
   };
 
-  const handlePosterUpload = async (e) => {
+  const handlePosterUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {

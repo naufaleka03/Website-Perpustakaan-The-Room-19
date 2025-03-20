@@ -48,14 +48,6 @@ export default function EventListStaff() {
     return `Rp ${price.toLocaleString('id-ID')}`;
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
-  };
-
   const handleDelete = async (eventId) => {
     try {
       const response = await fetch(`/api/events/${eventId}`, {
@@ -66,7 +58,6 @@ export default function EventListStaff() {
         throw new Error('Failed to delete event');
       }
 
-      // Update state untuk menghapus event dari UI
       setEvents(events.filter(event => event.id !== eventId));
       setDeleteModal({ isOpen: false, eventId: null, eventName: '' });
     } catch (err) {
@@ -80,11 +71,18 @@ export default function EventListStaff() {
     router.push(`/staff/dashboard/reservation/event-list/update-event?id=${eventId}`);
   };
 
+  const truncateDescription = (description, maxLength) => {
+    if (description.length <= maxLength) {
+      return description;
+    }
+    return description.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto pt-10">
         <div className="flex justify-start items-center mb-6 mx-11">
-          <button 
+          <button
             className="flex items-center gap-2 px-4 py-2 bg-[#2e3105] text-white rounded-lg text-sm hover:bg-[#2e3105] transition-colors"
             onClick={() => router.push('/staff/dashboard/reservation/event-list/create-event')}
           >
@@ -93,7 +91,6 @@ export default function EventListStaff() {
           </button>
         </div>
 
-        {/* Events Grid */}
         <div className="grid grid-cols-3 gap-6 max-w-[1200px] mx-5 px-6 mb-1 min-h-[400px]">
           {isLoading ? (
             <p>Loading events...</p>
@@ -105,12 +102,12 @@ export default function EventListStaff() {
             </div>
           ) : (
             events.map((event) => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] h-[300px] flex flex-col relative"
                 onClick={(e) => handleEdit(e, event.id)}
               >
-                <img 
+                <img
                   src={event.activity_poster || "/images/default-event.jpg"}
                   alt={event.event_name}
                   className="w-full h-[150px] object-cover"
@@ -120,7 +117,7 @@ export default function EventListStaff() {
                     {event.event_name}
                   </h3>
                   <p className="text-[#666666] text-xs font-['Poppins'] line-clamp-2 flex-1">
-                    {event.description}
+                    {truncateDescription(event.description, 80)}
                   </p>
                   <div className="absolute bottom-4 left-4 right-4">
                     <p className="text-[#666666] text-xs font-['Poppins']">
@@ -132,13 +129,13 @@ export default function EventListStaff() {
                   </div>
                 </div>
                 <div className="absolute bottom-4 right-2 flex gap-2">
-                  <button 
+                  <button
                     className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-200 transition-colors"
                     onClick={(e) => handleEdit(e, event.id)}
                   >
                     <FaPencil size={14} className="text-[#666666]" />
                   </button>
-                  <button 
+                  <button
                     className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-700 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
