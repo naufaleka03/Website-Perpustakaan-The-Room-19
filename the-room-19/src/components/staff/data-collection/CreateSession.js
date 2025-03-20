@@ -21,7 +21,7 @@ export default function CreateSession() {
     const inputDate = e.target.value;
     if (inputDate) {
       const [year, month, day] = inputDate.split('-');
-      setDate(`${year}-${month}-${day}`);
+      setDate(`${month}-${day}-${year}`);
     } else {
       setDate('');
     }

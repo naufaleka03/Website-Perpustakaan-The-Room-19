@@ -23,9 +23,8 @@ export default function SessionReservation() {
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
-      // Ensure date is in YYYY-MM-DD format
-      const formattedDate = new Date(inputDate).toISOString().split('T')[0];
-      setDate(formattedDate);
+      const [year, month, day] = inputDate.split('-');
+      setDate(`${month}-${day}-${year}`);
     } else {
       setDate('');
     }

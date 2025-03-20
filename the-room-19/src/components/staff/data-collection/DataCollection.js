@@ -21,7 +21,7 @@ const formatDate = (dateString) => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+  return `${month}-${day}-${year}`;
 };
 
 export default function DataCollection() {
@@ -161,14 +161,14 @@ export default function DataCollection() {
   // Update handler untuk mengubah status session
   const handleSessionStatusChange = async (sessionId, newStatus) => {
     try {
-      const response = await fetch(`/api/sessions/${sessionId}/status`, {
+      const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
+  
       if (response.ok) {
         setSessionStatuses(prevStatuses =>
           prevStatuses.map(status =>
@@ -225,13 +225,14 @@ export default function DataCollection() {
 
   const handleCancelConfirm = async (sessionId) => {
     try {
-      const response = await fetch(`/api/sessions/${sessionId}/cancel`, {
+      const response = await fetch(`/api/sessions/${sessionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ status: 'canceled' })
       });
-
+  
       if (response.ok) {
         setSessionStatuses(prevStatuses =>
           prevStatuses.map(status =>

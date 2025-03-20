@@ -1,16 +1,19 @@
-"use client"
-import { FaWhatsapp, FaEnvelope, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaSearch, FaPlus, FaEllipsisV } from 'react-icons/fa';
-import { eventData } from './data/eventData';
+"use client";
+import {
+  FaWhatsapp,
+  FaEnvelope,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ListEvent() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const events = eventData;
-  const eventsPerPage = 6; // 3 kesamping x 2 kebawah
+  const [events, setEvents] = useState([]);
+  const eventsPerPage = 6;
 
   const carouselImages = [
     "https://images.unsplash.com/photo-1524178232363-1fb2b075b655",
@@ -18,8 +21,27 @@ export default function ListEvent() {
     "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
   ];
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("/api/events");
+        if (!response.ok) {
+          throw new Error("Failed to fetch events");
+        }
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
+    setCurrentSlide((prev) =>
+      prev === carouselImages.length - 1 ? 0 : prev + 1
+    );
   };
 
   const prevSlide = () => {
@@ -34,10 +56,30 @@ export default function ListEvent() {
 
   const totalPages = Math.ceil(events.length / eventsPerPage);
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString("en-US", options);
+  };
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
+  const truncateDescription = (description, maxLength) => {
+    if (description.length <= maxLength) {
+      return description;
+    }
+    return description.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-aut pt-10">
-        {/* Events Grid */}
         <div className="grid grid-cols-3 gap-6 max-w-[1200px] mx-5 px-6 mb-2 min-h-[400px]">
           {events.length === 0 ? (
             <div className="col-span-3 flex flex-col items-center justify-center space-y-4">
@@ -50,29 +92,33 @@ export default function ListEvent() {
             </div>
           ) : (
             getPaginatedEvents().map((event) => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] h-[300px] flex flex-col"
-                onClick={() => router.push(`/user/dashboard/reservation/event-reservation`)}
+                onClick={() =>
+                  router.push(
+                    `/user/dashboard/reservation/event-list/event-reservation?eventId=${event.id}`
+                  )
+                }
               >
-                <img 
-                  src={event.image}
-                  alt={event.title}
+                <img
+                  src={event.activity_poster}
+                  alt={event.event_name}
                   className="w-full h-[150px] object-cover"
                 />
                 <div className="p-4 space-y-2 flex-1 flex flex-col">
                   <h3 className="text-[#111010] text-sm font-medium font-['Poppins'] line-clamp-1">
-                    {event.title}
+                    {event.event_name}
                   </h3>
                   <p className="text-[#666666] text-xs font-['Poppins'] line-clamp-2 flex-1">
-                    {event.description}
+                    {truncateDescription(event.description, 80)}
                   </p>
                   <div className="space-y-1">
                     <p className="text-[#666666] text-xs font-['Poppins']">
-                      {event.date}
+                      {formatDate(event.event_date)}
                     </p>
                     <p className="text-[#111010] text-xs font-medium font-['Poppins']">
-                      {event.price}
+                      {formatRupiah(event.ticket_fee)}
                     </p>
                   </div>
                 </div>
@@ -81,15 +127,14 @@ export default function ListEvent() {
           )}
         </div>
 
-        {/* Pagination Controls */}
         <div className="flex justify-center items-center gap-4 mt-1 mb-14">
           <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className={`px-3 py-1 rounded text-xs ${
-              currentPage === 1 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50'
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
             }`}
           >
             Previous
@@ -98,12 +143,14 @@ export default function ListEvent() {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className={`px-3 py-1 rounded text-xs ${
-              currentPage === totalPages 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50'
+              currentPage === totalPages
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
             }`}
           >
             Next
