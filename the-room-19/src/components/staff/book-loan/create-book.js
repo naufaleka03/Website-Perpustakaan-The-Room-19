@@ -140,18 +140,27 @@ const CreateBook = () => {
                       className="w-full h-[40px] bg-[#f2f2f2] rounded-xl border border-[#cdcdcd] px-3 text-xs text-[#666666]"
                     />
                   </div>
+
+                  <div>
+                    <label className="text-black text-xs font-medium font-manrope block mb-1">
+                      ISBN
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter the ISBN code"
+                      className="w-full h-[40px] bg-[#f2f2f2] rounded-xl border border-[#cdcdcd] px-3 text-xs text-[#666666]"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="text-black text-xs font-medium font-manrope block mb-1">
-                  ISBN
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter the ISBN code"
-                  className="w-full h-[40px] bg-[#f2f2f2] rounded-xl border border-[#cdcdcd] px-3 text-xs text-[#666666] mb-3"
-                />
+              <div className="flex justify-end gap-3 mt-6">
+                <button className="w-[138px] h-[34px] bg-white rounded-lg border border-[#2e3105] text-[#2e3105] text-xs font-medium">
+                  Cancel
+                </button>
+                <button className="w-[138px] h-[34px] bg-[#2e3105] rounded-lg text-white text-xs font-medium">
+                  Submit
+                </button>
               </div>
             </div>
           </div>
@@ -160,5 +169,4 @@ const CreateBook = () => {
     </div>
   );
 };
-
 export default CreateBook;
