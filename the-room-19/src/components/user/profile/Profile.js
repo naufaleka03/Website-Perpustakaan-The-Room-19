@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FaCamera } from 'react-icons/fa'; // Import camera icon
 import { createClient } from '@/app/supabase/client'; // Updated import path
 import { useRouter } from 'next/navigation'; // Import useRouter
+import Link from 'next/link';
 
 export default function Profile({ profilePicture, setProfilePicture }) {
   const [activeTab, setActiveTab] = useState('profile');
@@ -18,6 +19,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     city: '',
     state: '',
     postalCode: '',
+    memberStatus: 'guest', // Add member status
   });
 
   const [accountSettings, setAccountSettings] = useState({
@@ -71,6 +73,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             city: data.city || '',
             state: data.state || '',
             postalCode: data.postal_code || '',
+            memberStatus: data.member_status || 'guest', // Add member status
           });
         } else {
           console.error('Error fetching personal information:', error);
@@ -186,7 +189,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
   console.log('Current Profile Picture URL:', profilePicture);
 
   return (
-    <div className="w-full min-h-screen bg-[#272906] p-8">
+    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
       {/* Card Profile */}
       <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mb-6">
         <div className="flex flex-col items-center">
@@ -215,6 +218,19 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             />
           </div>
           <h2 className="text-md font-semibold text-[#111010]">{personalInfo.fullName}</h2>
+          <div className="flex flex-col items-center mt-1">
+            <div className={`rounded-full px-3 pb-0.5 ${personalInfo.memberStatus === 'member' ? 'bg-[#2e3105]' : 'bg-gray-400'}`}>
+              <span className="text-white text-xs">{personalInfo.memberStatus === 'member' ? 'Member' : 'Guest'}</span>
+            </div>
+            {personalInfo.memberStatus !== 'member' && (
+              <Link 
+                href="/user/dashboard/membership"
+                className="mt-2 text-sm text-[#2e3105] hover:underline"
+              >
+                Join our membership to borrow a book
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -421,6 +437,18 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Preferences Card */}
+      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mt-6">
+        <Link href="/user/dashboard/profile/questionnaire" className="block">
+          <div className="flex flex-col items-center text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors duration-200">
+            <h3 className="text-lg font-semibold text-[#111010] mb-2">User Preferences</h3>
+            <p className="text-sm text-[#666666] max-w-md">
+              Want to know more about your interest? Help us tailor a recommendation for you!
+            </p>
+          </div>
+        </Link>
       </div>
     </div>
   );

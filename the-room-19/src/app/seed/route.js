@@ -157,6 +157,46 @@ async function seedBookLoans(tx) {
         )`;
 }
 
+async function seedUserPreferences(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
+        CREATE TABLE IF NOT EXISTS preferences (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES auth.users(id),
+            
+            -- Demographic Info
+            age_group VARCHAR(20),
+            occupation VARCHAR(100),
+            education_level VARCHAR(50),
+            state VARCHAR(100),
+            city VARCHAR(100),
+            preferred_language VARCHAR(50),
+            
+            -- Reading Behavior & Preferences
+            reading_frequency VARCHAR(50),
+            reader_type VARCHAR(50),
+            reading_goals INTEGER,
+            reading_habits TEXT,
+            
+            -- Arrays for multiple selections
+            favorite_genres TEXT[],
+            preferred_book_types TEXT[],
+            preferred_formats TEXT[],
+            favorite_books TEXT[],
+            desired_feelings TEXT[],
+            disliked_genres TEXT[],
+            disliked_authors TEXT[],
+            
+            -- Timestamps
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            
+            -- Ensure one preference record per user
+            UNIQUE(user_id)
+        )`;
+}
+
 export async function GET() {
     try {
         await sql.begin(async (tx) => {
@@ -167,6 +207,7 @@ export async function GET() {
             await seedBooks(tx);
             await seedBookGenres(tx);
             await seedBookLoans(tx);
+            await seedUserPreferences(tx);
         });
 
         return Response.json({ 

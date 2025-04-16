@@ -12,14 +12,36 @@ export const USER_TYPES = {
 export async function signUpVisitor(email, password, fullName, phoneNumber) {
   const supabase = createClient();
   try {
+    // Sign up the user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          full_name: fullName,
+          phone_number: phoneNumber
+        }
+      }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Auth signup error:', error);
+      throw error;
+    }
     if (!data.user) {
       throw new Error('Signup failed: No user data returned');
+    }
+
+    // Verify the visitors table exists
+    const { error: tableError } = await supabase
+      .from('visitors')
+      .select('id')
+      .limit(1);
+
+    if (tableError) {
+      console.error('Visitors table error:', tableError);
+      throw new Error('Visitors table not accessible');
     }
 
     // Insert into visitors table
@@ -33,11 +55,61 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
       }]);
 
     if (visitorError) {
-      await supabase.auth.signOut();
+      console.error('Raw visitor error:', visitorError);
+      if (visitorError.code === '23503') {
+        throw new Error('Foreign key constraint failed. User might not exist in auth.users table.');
+      }
       throw new Error(`Failed to create visitor profile: ${visitorError.message}`);
     }
 
-    return data.user;
+    // Verify the preferences table exists
+    const { error: prefTableError } = await supabase
+      .from('preferences')
+      .select('id')
+      .limit(1);
+
+    if (prefTableError) {
+      console.error('Preferences table error:', prefTableError);
+      throw new Error('Preferences table not accessible');
+    }
+
+    // Insert into preferences table
+    const { error: preferencesError } = await supabase
+      .from('preferences')
+      .insert([{
+        user_id: data.user.id,
+        // Initialize with default values
+        age_group: null,
+        occupation: null,
+        education_level: null,
+        state: null,
+        city: null,
+        preferred_language: null,
+        reading_frequency: null,
+        reader_type: null,
+        reading_goals: null,
+        reading_habits: null,
+        favorite_genres: [],
+        preferred_book_types: [],
+        preferred_formats: [],
+        favorite_books: [],
+        desired_feelings: [],
+        disliked_genres: [],
+        disliked_authors: []
+      }]);
+
+    if (preferencesError) {
+      console.error('Raw preferences error:', preferencesError);
+      if (preferencesError.code === '23503') {
+        throw new Error('Foreign key constraint failed for preferences. User might not exist in auth.users table.');
+      }
+      throw new Error(`Failed to create preferences profile: ${preferencesError.message}`);
+    }
+
+    return {
+      user: data.user,
+      message: 'Please check your email to verify your account'
+    };
   } catch (error) {
     console.error('Signup error:', error);
     throw error;
