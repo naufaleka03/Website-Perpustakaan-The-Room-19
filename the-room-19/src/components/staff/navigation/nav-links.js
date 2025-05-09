@@ -153,7 +153,7 @@ export default function NavLinks({ collapsed = false }) {
         
         return (
           <div key={link.name}>
-            {link.name === 'Dashboard' ? (
+            {link.name === 'Dashboard' || !link.subLinks ? (
               <Link href={link.href}>
                 <NavItem
                   icon={link.icon}
