@@ -24,21 +24,17 @@ const links = [
     icon: IoIdCard,
   },
   {
-    name: 'Reservation',
-    href: '/staff/dashboard/reservation',
+    name: 'Monitoring',
+    href: '/staff/dashboard/data-collection',
     icon: FaCalendarCheck,
-    subLinks: [
-      { name: 'Sessions', href: '/staff/dashboard/reservation/session-reservation' },
-      { name: 'Events', href: '/staff/dashboard/reservation/event-reservation' }
-    ]
   },
   {
-    name: 'Book Loan',
-    href: '/staff/dashboard/book-loan',
+    name: 'Book Management',
+    href: '/staff/dashboard/book-management',
     icon: FaBook,
     subLinks: [
-      { name: 'Book Catalog', href: '/staff/dashboard/book-loan/management' },
-      { name: 'History', href: '/staff/dashboard/book-loan/history' }
+      { name: 'Catalog', href: '/staff/dashboard/book-management/catalog' },
+      { name: 'Categorization', href: '/staff/dashboard/book-management/genre-settings' }
     ]
   },
   {
