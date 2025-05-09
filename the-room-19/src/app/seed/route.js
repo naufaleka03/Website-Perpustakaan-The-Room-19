@@ -175,6 +175,7 @@ async function seedUserPreferences(tx) {
             
             -- Reading Behavior & Preferences
             reading_frequency VARCHAR(50),
+            reading_time_availability VARCHAR(20),
             reader_type VARCHAR(50),
             reading_goals INTEGER,
             reading_habits TEXT,
@@ -186,7 +187,6 @@ async function seedUserPreferences(tx) {
             favorite_books TEXT[],
             desired_feelings TEXT[],
             disliked_genres TEXT[],
-            disliked_authors TEXT[],
             
             -- Timestamps
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,

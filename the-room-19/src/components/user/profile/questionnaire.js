@@ -23,6 +23,7 @@ export default function Questionnaire() {
     preferredBookTypes: [],
     preferredFormats: [],
     readingFrequency: '',
+    readingTimeAvailability: '',
     favoriteBooks: [],
 
     // Personality & Mood-based Inputs
@@ -32,7 +33,6 @@ export default function Questionnaire() {
 
     // Optional Add-ons
     readingGoals: '',
-    dislikedAuthors: '',
     dislikedGenres: [],
   });
 
@@ -167,6 +167,7 @@ export default function Questionnaire() {
         city: formData.city,
         preferred_language: formData.preferredLanguage,
         reading_frequency: formData.readingFrequency,
+        reading_time_availability: formData.readingTimeAvailability,
         reader_type: formData.readerType,
         reading_goals: formData.readingGoals ? parseInt(formData.readingGoals) : null,
         reading_habits: formData.readingHabits,
@@ -175,8 +176,7 @@ export default function Questionnaire() {
         preferred_formats: formData.preferredFormats,
         favorite_books: formData.favoriteBooks,
         desired_feelings: formData.desiredFeelings,
-        disliked_genres: formData.dislikedGenres,
-        disliked_authors: formData.dislikedAuthors ? [formData.dislikedAuthors] : []
+        disliked_genres: formData.dislikedGenres
       };
 
       const { error } = await supabase
@@ -407,6 +407,26 @@ export default function Questionnaire() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-[#666666] mb-1">How much time can you dedicate to reading?</label>
+                <div className="relative group">
+                  <select
+                    value={formData.readingTimeAvailability}
+                    onChange={(e) => handleSelectChange(e, 'readingTimeAvailability')}
+                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                  >
+                    <option value="">Select time availability</option>
+                    <option value="<15 mins">Less than 15 minutes</option>
+                    <option value="15-30 mins">15-30 minutes</option>
+                    <option value="30-60 mins">30-60 minutes</option>
+                    <option value="1 hour+">1 hour or more</option>
+                  </select>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#666666] transition-transform duration-300 group-hover:text-[#2e3105] group-focus-within:rotate-180">
+                    <IoIosArrowDown size={16} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-[#666666] mb-1">Top 3 Favorite Books</label>
                 <div className="space-y-2">
                   {formData.favoriteBooks.length > 0 && (
@@ -506,17 +526,6 @@ export default function Questionnaire() {
                   className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300"
                   placeholder="Enter your reading goal"
                   min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-[#666666] mb-1">Authors you dislike</label>
-                <input
-                  type="text"
-                  value={formData.dislikedAuthors}
-                  onChange={(e) => setFormData({ ...formData, dislikedAuthors: e.target.value })}
-                  className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300"
-                  placeholder="Enter authors you dislike"
                 />
               </div>
 

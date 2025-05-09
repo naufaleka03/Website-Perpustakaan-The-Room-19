@@ -86,6 +86,7 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
         city: null,
         preferred_language: null,
         reading_frequency: null,
+        reading_time_availability: null,
         reader_type: null,
         reading_goals: null,
         reading_habits: null,
@@ -94,8 +95,7 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
         preferred_formats: [],
         favorite_books: [],
         desired_feelings: [],
-        disliked_genres: [],
-        disliked_authors: []
+        disliked_genres: []
       }]);
 
     if (preferencesError) {
