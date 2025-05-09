@@ -27,12 +27,12 @@ const links = [
     ]
   },
   {
-    name: 'Book Loan',
-    href: '/user/dashboard/book-loan',
+    name: 'Books',
+    href: '/user/dashboard/books',
     icon: FaBook,
     subLinks: [
-      { name: 'Book Catalog', href: '/user/dashboard/book-loan/management' },
-      { name: 'History', href: '/user/dashboard/book-loan/history' }
+      { name: 'Catalog', href: '/user/dashboard/books/catalog' },
+      { name: 'History', href: '/user/dashboard/books/history' }
     ]
   }
 ];

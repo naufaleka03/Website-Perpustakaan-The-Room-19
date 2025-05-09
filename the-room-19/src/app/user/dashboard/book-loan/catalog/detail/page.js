@@ -1,4 +1,4 @@
-import Detail from "@/components/user/book-loan/detail";
+import Detail from "@/components/user/books/detail";
 
 export default function Page() {
   return <Detail />;

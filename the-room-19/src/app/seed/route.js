@@ -114,14 +114,18 @@ async function seedBooks(tx) {
     await sql`
         CREATE TABLE IF NOT EXISTS books (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-            book_name VARCHAR(255) NOT NULL,
+            book_title VARCHAR(255) NOT NULL,
             isbn_code VARCHAR(20) NOT NULL,
+            language VARCHAR(50) NOT NULL,
             author VARCHAR(255) NOT NULL,
             publisher VARCHAR(255) NOT NULL,
+            cover_type VARCHAR(50) NOT NULL,
+            usage VARCHAR(50) NOT NULL,
+            price NUMERIC(10, 2) NOT NULL,
             published_year INTEGER NOT NULL,
             description TEXT,
-            genre VARCHAR(100) NOT NULL,
             book_type VARCHAR(50) NOT NULL,
+            genre VARCHAR(100) NOT NULL,
             rating NUMERIC(3, 2) DEFAULT 0.00 NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
@@ -150,8 +154,8 @@ async function seedBookLoans(tx) {
             full_name VARCHAR(255) NOT NULL,
             loan_start DATE NOT NULL,
             loan_due DATE NOT NULL,
-            book_name1 VARCHAR(255) NOT NULL,
-            book_name2 VARCHAR(255),
+            book_name1 VARCHAR(255),
+            book_name2 VARCHAR(255) NOT NULL,
             status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
