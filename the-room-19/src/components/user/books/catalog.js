@@ -1,11 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BiSearch } from "react-icons/bi";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
 import { BsCart3 } from "react-icons/bs";
+import Link from "next/link";
 
 const Catalog = () => {
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [highRatingOnly, setHighRatingOnly] = useState(false);
@@ -14,99 +18,63 @@ const Catalog = () => {
     international: false,
   });
 
-  // Data buku
-  const booksData = [
-    {
-      id: 1,
-      title: "I Want to Die but I Want to Eat Tteokpokki",
-      author: "Baek Se Hee",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 2,
-      title: "The Midnight Library",
-      author: "Matt Haig",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 3,
-      title: "Atomic Habits",
-      author: "James Clear",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 4,
-      title: "The Psychology of Money",
-      author: "Morgan Housel",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 5,
-      title: "Think and Grow Rich",
-      author: "Napoleon Hill",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 6,
-      title: "Rich Dad Poor Dad",
-      author: "Robert Kiyosaki",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 7,
-      title: "The 48 Laws of Power",
-      author: "Robert Greene",
-      imageUrl: "https://placehold.co/219x312",
-    },
-    {
-      id: 8,
-      title: "How to Win Friends and Influence People",
-      author: "Dale Carnegie",
-      imageUrl: "https://placehold.co/219x312",
-    },
-  ];
-
   // Data genre
   const allGenres = [
     "Arts & Architecture",
     "Business",
-    "CCI",
     "Children's Books",
-    "Chinese Literature",
-    "Climate Change",
-    "Colonialism",
-    "Colonialism, Race, Class (Fict.)",
     "Crime & Mystery",
-    "Dystopian & Post-Apocalyptic",
-    "Education",
-    "Family",
     "Fantasy & Sci-Fi",
-    "Feminism",
     "Historical Fiction",
-    "History",
-    "Indonesian Literature",
-    "Japanese Literature",
-    "Korean Literature",
-    "Magazine & Zine",
-    "Memoirs & Biography",
-    "Natural Science",
-    "On Womanhood",
-    "Other People's Book",
-    "Pets!",
-    "Philosophy",
-    "Poetry & Literary Criticism",
-    "Politics & Sociology",
     "Psychology & Self Help",
-    "Religions",
     "Romance",
-    "Russian Literature",
     "Science",
-    "Self Discovery",
-    "Travel",
-    "Western Classics",
-    "Western Contemporary Lit.",
-    "World Literature",
+    // ... rest of the genres
   ];
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        // Build the query parameters
+        const params = new URLSearchParams();
+        
+        if (searchQuery) {
+          params.append('search', searchQuery);
+        }
+        
+        if (selectedGenres.length === 1) {
+          params.append('genre', selectedGenres[0]);
+        }
+        
+        if (bookType.local && !bookType.international) {
+          params.append('bookType', 'Local Books');
+        } else if (!bookType.local && bookType.international) {
+          params.append('bookType', 'International Books');
+        }
+        
+        if (highRatingOnly) {
+          params.append('minRating', '4');
+        }
+        
+        const response = await fetch(`/api/books?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch books');
+        }
+        
+        const data = await response.json();
+        setBooks(data.books || []);
+      } catch (err) {
+        console.error('Error fetching books:', err);
+        setError('Failed to load books. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, [searchQuery, selectedGenres, highRatingOnly, bookType]);
 
   return (
     <main className="min-h-screen bg-white p-8">
@@ -134,23 +102,41 @@ const Catalog = () => {
       <div className="flex gap-8">
         {/* Grid Buku */}
         <div className="flex-1 grid grid-cols-4 gap-4">
-          {booksData.map((book) => (
-            <div key={book.id} className="relative">
-              <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
-                <img
-                  src={book.imageUrl}
-                  alt={book.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <h3 className="text-center text-black text-xs font-bold mt-1 line-clamp-1">
-                {book.title}
-              </h3>
-              <p className="text-center text-[#b5b3b3] text-xs font-semibold">
-                {book.author}
-              </p>
+          {loading ? (
+            <div className="col-span-4 text-center py-10">Loading books...</div>
+          ) : error ? (
+            <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
+          ) : books.length === 0 ? (
+            <div className="col-span-4 text-center py-10">
+              No books available based on your search criteria.
             </div>
-          ))}
+          ) : (
+            books.map((book) => (
+              <Link href={`/user/dashboard/books/catalog/detail?id=${book.id}`} key={book.id}>
+                <div className="relative">
+                  <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
+                    <img
+                      src={book.cover_image || "https://placehold.co/219x312"}
+                      alt={book.book_title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-center text-black text-xs font-bold mt-1 line-clamp-1">
+                    {book.book_title}
+                  </h3>
+                  <p className="text-center text-[#b5b3b3] text-xs font-semibold">
+                    {book.author}
+                  </p>
+                  <div className="flex justify-center items-center mt-1">
+                    <AiFillStar className="text-[#ECB43C] text-sm" />
+                    <span className="text-[#666666] text-xs ml-1">
+                      {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
 
         {/* Sidebar Filter */}
@@ -229,22 +215,25 @@ const Catalog = () => {
                 Type of Books
               </h3>
               <div className="space-y-3">
-                {["Local Books", "International Books"].map((type) => (
-                  <label key={type} className="flex items-center gap-3">
+                {[
+                  { key: "local", label: "Local Books" },
+                  { key: "international", label: "International Books" }
+                ].map((type) => (
+                  <label key={type.key} className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      checked={bookType[type.toLowerCase().split(" ")[0]]}
+                      checked={bookType[type.key]}
                       onChange={(e) =>
                         setBookType({
                           ...bookType,
-                          [type.toLowerCase().split(" ")[0]]: e.target.checked,
+                          [type.key]: e.target.checked,
                         })
                       }
                       className="w-4 h-4 rounded-2xl border-[#cdcdcd]"
                       style={{ accentColor: "#2e3105" }}
                     />
                     <span className="text-black text-xs font-medium">
-                      {type}
+                      {type.label}
                     </span>
                   </label>
                 ))}

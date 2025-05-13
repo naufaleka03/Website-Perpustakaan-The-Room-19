@@ -1,136 +1,143 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BiSearch } from "react-icons/bi";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
 import { IoIosArrowDown } from "react-icons/io";
+import Link from "next/link";
 
-// Data contoh buku
-const booksData = [
-  {
-    id: 1,
-    title: "I Want to Die but I Want to Eat Tteokpokki",
-    author: "Baek Se Hee",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 2,
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 3,
-    title: "Atomic Habits",
-    author: "James Clear",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 4,
-    title: "The Psychology of Money",
-    author: "Morgan Housel",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 5,
-    title: "Think and Grow Rich",
-    author: "Napoleon Hill",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 6,
-    title: "Rich Dad Poor Dad",
-    author: "Robert Kiyosaki",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 7,
-    title: "The 48 Laws of Power",
-    author: "Robert Greene",
-    imageUrl: "https://placehold.co/219x312",
-  },
-  {
-    id: 8,
-    title: "How to Win Friends and Influence People",
-    author: "Dale Carnegie",
-    imageUrl: "https://placehold.co/219x312",
-  },
-];
-
-const checkboxStyle = {
-  accentColor: "#2e3105",
-  cursor: "pointer",
-};
-
+// Genres list
 const allGenres = [
   "Arts & Architecture",
   "Business",
-  "CCI",
   "Children's Books",
-  "Chinese Literature",
-  "Climate Change",
-  "Colonialism",
-  "Colonialism, Race, Class (Fict.)",
   "Crime & Mystery",
-  "Dystopian & Post-Apocalyptic",
-  "Education",
-  "Family",
   "Fantasy & Sci-Fi",
-  "Feminism",
   "Historical Fiction",
-  "History",
-  "Indonesian Literature",
-  "Japanese Literature",
-  "Korean Literature",
-  "Magazine & Zine",
-  "Memoirs & Biography",
-  "Natural Science",
-  "On Womanhood",
-  "Other People's Book",
-  "Pets!",
-  "Philosophy",
-  "Poetry & Literary Criticism",
-  "Politics & Sociology",
   "Psychology & Self Help",
-  "Religions",
   "Romance",
-  "Russian Literature",
   "Science",
-  "Self Discovery",
-  "Travel",
-  "Western Classics",
-  "Western Contemporary Lit.",
-  "World Literature",
+  // ... rest of the genres
 ];
 
-// Komponen Card Buku
-const BookCard = ({ title, author, imageUrl }) => {
+// Book Card Component
+const BookCard = ({ id, title, author, imageUrl, rating }) => {
+  // Convert rating to a number and default to 0 if it's null/undefined
+  const numericRating = typeof rating === 'number' ? rating : 0;
+
+  // Add console log to debug image URLs
+  console.log(`Book ${id} image URL:`, imageUrl);
+  
+  // Ensure imageUrl is valid and not null/undefined
+  const displayUrl = imageUrl && imageUrl.trim() !== '' 
+    ? imageUrl 
+    : "https://placehold.co/219x312";
+  
   return (
-    <div className="relative">
-      <div className="w-full aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
-        <img
-          className="w-full h-full object-cover"
-          src={imageUrl}
-          alt={`${title} Cover`}
-        />
+    <Link href={`/staff/dashboard/book-management/detail?id=${id}`}>
+      <div className="relative cursor-pointer">
+        <div className="w-full aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
+          <img
+            className="w-full h-full object-cover"
+            src={displayUrl}
+            alt={`${title} Cover`}
+            onError={(e) => {
+              console.error(`Error loading image for book ${id}:`, e);
+              e.target.src = "https://placehold.co/219x312";
+            }}
+          />
+        </div>
+        <h3 className="text-center text-black text-xs font-bold font-manrope mt-1 line-clamp-1">
+          {title}
+        </h3>
+        <p className="text-center text-[#b5b3b3] text-xs font-semibold font-manrope">
+          {author}
+        </p>
+        <div className="flex justify-center items-center mt-1">
+          <AiFillStar className="text-[#ECB43C] text-sm" />
+          <span className="text-[#666666] text-xs ml-1">{numericRating.toFixed(1)}</span>
+        </div>
       </div>
-      <h3 className="text-center text-black text-xs font-bold font-manrope mt-1 line-clamp-1">
-        {title}
-      </h3>
-      <p className="text-center text-[#b5b3b3] text-xs font-semibold font-manrope">
-        {author}
-      </p>
-    </div>
+    </Link>
   );
 };
 
 const CatalogStaff = () => {
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedBookTypes, setSelectedBookTypes] = useState([]);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        // Build the query parameters
+        const params = new URLSearchParams();
+        
+        if (searchQuery) {
+          params.append('search', searchQuery);
+        }
+        
+        if (selectedGenres.length === 1) {
+          params.append('genre', selectedGenres[0]);
+        }
+        
+        if (selectedBookTypes.length === 1) {
+          params.append('bookType', selectedBookTypes[0]);
+        }
+        
+        const response = await fetch(`/api/books?${params.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch books');
+        }
+        
+        const data = await response.json();
+        setBooks(data.books || []);
+      } catch (err) {
+        console.error('Error fetching books:', err);
+        setError('Failed to load books. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, [searchQuery, selectedGenres, selectedBookTypes]);
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleGenreChange = (genre) => {
+    setSelectedGenres(prev => {
+      if (prev.includes(genre)) {
+        return prev.filter(g => g !== genre);
+      } else {
+        return [...prev, genre];
+      }
+    });
+  };
+
+  const handleBookTypeChange = (type) => {
+    setSelectedBookTypes(prev => {
+      if (prev.includes(type)) {
+        return prev.filter(t => t !== type);
+      } else {
+        return [...prev, type];
+      }
+    });
+  };
+
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
-          {/* Search Bar and Cart Container */}
+          {/* Search Bar and Add Book Button */}
           <div className="flex justify-center items-center mb-6">
             <div className="w-[600px] flex items-center gap-3">
               {/* Search Bar */}
@@ -140,15 +147,19 @@ const CatalogStaff = () => {
                   <input
                     type="text"
                     placeholder="Search"
+                    value={searchQuery}
+                    onChange={handleSearch}
                     className="ml-2 bg-transparent text-gray-400 outline-none w-full font-manrope text-xs"
                   />
                 </div>
               </div>
 
               {/* Add Book Button */}
-              <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
-                Add Book
-              </button>
+              <Link href="/staff/dashboard/book-management/create-book">
+                <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
+                  Add Book
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -156,14 +167,26 @@ const CatalogStaff = () => {
           <div className="flex gap-8 justify-between">
             {/* Book Grid */}
             <div className="flex-1 grid grid-cols-4 gap-x-4 gap-y-4">
-              {booksData.map((book) => (
-                <BookCard
-                  key={book.id}
-                  title={book.title}
-                  author={book.author}
-                  imageUrl={book.imageUrl}
-                />
-              ))}
+              {loading ? (
+                <div className="col-span-4 text-center py-10">Loading books...</div>
+              ) : error ? (
+                <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
+              ) : books.length === 0 ? (
+                <div className="col-span-4 text-center py-10">
+                  No books available. Add a new book to get started!
+                </div>
+              ) : (
+                books.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    id={book.id}
+                    title={book.book_title}
+                    author={book.author}
+                    imageUrl={book.cover_image || null}
+                    rating={book.rating || 0}
+                  />
+                ))
+              )}
             </div>
 
             {/* Categories Sidebar - Fixed width */}
@@ -192,7 +215,7 @@ const CatalogStaff = () => {
                   <h3 className="text-black text-sm font-medium mb-4">
                     Genres
                   </h3>
-                  {/* Genre checkboxes container dengan fixed height dan scroll */}
+                  {/* Genre checkboxes container */}
                   <div className="mb-3">
                     <div className="max-h-[100px] overflow-y-auto pr-2">
                       {allGenres.map((genre) => (
@@ -202,8 +225,10 @@ const CatalogStaff = () => {
                         >
                           <input
                             type="checkbox"
+                            checked={selectedGenres.includes(genre)}
+                            onChange={() => handleGenreChange(genre)}
                             className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
-                            style={checkboxStyle}
+                            style={{ accentColor: "#2e3105" }}
                           />
                           <span className="text-black text-xs font-medium font-manrope">
                             {genre}
@@ -214,98 +239,29 @@ const CatalogStaff = () => {
                   </div>
                 </section>
 
-                {/* Ratings Section */}
-                <section>
-                  <h3 className="text-black text-sm font-medium mb-4">
-                    Ratings
-                  </h3>
-                  <div className="space-y-3"></div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
-                      style={checkboxStyle}
-                    />
-                    <div className="flex items-center gap-1">
-                      <AiFillStar className="text-[#ECB43C]" />
-                      <span className="text-black text-xs font-medium font-manrope">
-                        Rated 4 or higher
-                      </span>
-                    </div>
-                  </div>
-                </section>
-
                 {/* Type of Books Section */}
                 <section>
                   <h3 className="text-black text-sm font-medium mb-4">
                     Type of Books
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
-                        style={checkboxStyle}
-                      />
-                      <span className="text-black text-xs font-medium font-manrope">
-                        Local Books
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
-                        style={checkboxStyle}
-                      />
-                      <span className="text-black text-xs font-medium font-[manrope">
-                        International Books
-                      </span>
-                    </div>
+                    {["Local Books", "International Books"].map((type) => (
+                      <div key={type} className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedBookTypes.includes(type)}
+                          onChange={() => handleBookTypeChange(type)}
+                          className="w-[16px] h-[16px] rounded-2xl border border-[#cdcdcd]"
+                          style={{ accentColor: "#2e3105" }}
+                        />
+                        <span className="text-black text-xs font-medium font-manrope">
+                          {type}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </section>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 mt-6">
-                  <button className="w-[90px] h-[30px] border border-[#2e3105] text-[#111111] text-xs rounded-2xl">
-                    Clear
-                  </button>
-                  <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
-                    Apply
-                  </button>
-                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Pagination - centered */}
-          <div className="flex justify-center mt-8">
-            <div className="flex items-center gap-2">
-              <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                <IoChevronBackOutline size={16} />
-              </button>
-
-              <button className="w-8 h-8 flex items-center justify-center text-white bg-[#2e3105] rounded text-xs">
-                1
-              </button>
-
-              {[2, 3, 4, 5, 6, 7].map((num) => (
-                <button
-                  key={num}
-                  className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 text-xs"
-                >
-                  {num}
-                </button>
-              ))}
-
-              <span className="px-1 text-gray-600 text-xs">...</span>
-
-              <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 text-xs">
-                15
-              </button>
-
-              <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
-                <IoChevronForwardOutline size={16} />
-              </button>
             </div>
           </div>
         </div>

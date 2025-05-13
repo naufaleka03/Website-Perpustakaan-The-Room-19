@@ -1,13 +1,112 @@
 "use client";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import { AiFillStar } from "react-icons/ai";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const DetailStaff = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const bookId = searchParams.get("id");
 
-  const description =
-    "This book is a memoir by Baek Sehee, a young South Korean woman who struggles with depression and anxiety. Through a series of conversations with her therapist, she shares her thoughts and feelings about low self-esteem, societal expectations, and how she tries to navigate life despite feeling inadequate. Its unique title reflects her emotional duality—the desire to disappear but also the longing for small joys, like enjoying tteokbokki (a popular Korean dish). This book offers an honest and relatable perspective on mental health, especially for those who have ever felt trapped in similar emotions.";
+  const [book, setBook] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      if (!bookId) {
+        setError("Book ID is missing");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/books/${bookId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch book details');
+        }
+        
+        const data = await response.json();
+        console.log('Fetched book details:', data.book);
+        setBook(data.book || null);
+      } catch (err) {
+        console.error('Error fetching book details:', err);
+        setError('Failed to load book details. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookDetails();
+  }, [bookId]);
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this book?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Deleting book with ID:', bookId);
+      const response = await fetch(`/api/books/${bookId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to delete book');
+      }
+
+      console.log('Book deleted successfully');
+      router.push('/staff/dashboard/book-management/catalog');
+    } catch (err) {
+      console.error('Error deleting book:', err);
+      setError('Failed to delete book. Please try again later.');
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
+        <p>Loading book details...</p>
+      </div>
+    );
+  }
+
+  if (error || !book) {
+    return (
+      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex flex-col justify-center items-center">
+        <p className="text-red-500 mb-4">{error || "Book not found"}</p>
+        <Link href="/staff/dashboard/book-management/catalog">
+          <button className="bg-[#2e3105] text-white px-4 py-2 rounded-lg text-sm">
+            Back to Catalog
+          </button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Generate star ratings
+  const renderStars = () => {
+    const stars = [];
+    const rating = Math.round(book.rating);
+    
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        stars.push(<AiFillStar key={i} className="text-[#ECB43C] text-lg" />);
+      } else {
+        stars.push(<AiFillStar key={i} className="text-gray-300 text-lg" />);
+      }
+    }
+    
+    return stars;
+  };
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -17,31 +116,34 @@ const DetailStaff = () => {
             {/* Book Cover */}
             <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
               <img
-                src="https://placehold.co/180x250"
-                alt="Book Cover"
+                src={book.cover_image && book.cover_image.trim() !== '' 
+                  ? book.cover_image 
+                  : "https://placehold.co/180x250"}
+                alt={`${book.book_title} Cover`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error(`Error loading image:`, e);
+                  e.target.src = "https://placehold.co/180x250";
+                }}
               />
             </div>
 
             {/* Book Details */}
             <div className="flex-1">
               <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
-                I Want To Die But I Want To Eat Tteokpokki
+                {book.book_title}
               </h1>
               <h2 className="text-black text-base font-medium font-manrope mb-4">
-                Baek Se Hee
+                {book.author}
               </h2>
 
               {/* Rating */}
               <div className="flex items-center gap-2 mb-6">
-                {[1, 2, 3, 4].map((star) => (
-                  <AiFillStar key={star} className="text-[#ECB43C] text-lg" />
-                ))}
-                <AiFillStar className="text-gray-300 text-lg" />
-                <span className="text-[#666666] text-xs ml-2">4.0</span>
+                {renderStars()}
+                <span className="text-[#666666] text-xs ml-2">
+                  {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
+                </span>
               </div>
-
-              <hr className="border-[#767676]/40 mb-6" />
 
               {/* Tabs */}
               <div className="border-b border-[#767676]/40">
@@ -55,14 +157,22 @@ const DetailStaff = () => {
               {/* Description */}
               <div className="py-6 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
-                  {isExpanded ? description : description.slice(0, 200) + "..."}
+                  {book.description 
+                    ? (isExpanded 
+                        ? book.description 
+                        : book.description.length > 200 
+                          ? book.description.slice(0, 200) + "..." 
+                          : book.description)
+                    : "No description available for this book."}
                 </p>
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-[#ECB43C] text-xs font-bold mt-2 hover:underline"
-                >
-                  {isExpanded ? "Show Less" : "Show More"}
-                </button>
+                {book.description && book.description.length > 200 && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="text-[#ECB43C] text-xs font-bold mt-2 hover:underline"
+                  >
+                    {isExpanded ? "Show Less" : "Show More"}
+                  </button>
+                )}
               </div>
 
               {/* Book Details Section */}
@@ -80,21 +190,37 @@ const DetailStaff = () => {
                     <div>
                       <span className="text-black font-medium">Author</span>
                     </div>
-                    <div className="text-black">Baek Se Hee</div>
+                    <div className="text-black">{book.author}</div>
+                    
                     <div>
                       <span className="text-black font-medium">Publisher</span>
                     </div>
-                    <div className="text-black">Haru</div>
+                    <div className="text-black">{book.publisher}</div>
+                    
                     <div>
-                      <span className="text-black font-medium">
-                        Published Year
-                      </span>
+                      <span className="text-black font-medium">Published Year</span>
                     </div>
-                    <div className="text-black">2019</div>
+                    <div className="text-black">{book.published_year}</div>
+                    
                     <div>
-                      <span className="text-black font-medium">Category</span>
+                      <span className="text-black font-medium">Language</span>
                     </div>
-                    <div className="text-black">xxxx</div>
+                    <div className="text-black">{book.language}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">ISBN</span>
+                    </div>
+                    <div className="text-black">{book.isbn_code}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Genre</span>
+                    </div>
+                    <div className="text-black">{book.genre}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Book Type</span>
+                    </div>
+                    <div className="text-black">{book.book_type}</div>
                   </div>
                 </div>
               </div>
@@ -119,24 +245,18 @@ const DetailStaff = () => {
               </div>
 
               <div className="space-y-3 mt-6">
-                <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
-                  Edit
-                </button>
-                <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">
-                  Cart
+                <Link href={`/staff/dashboard/book-management/edit-book?id=${bookId}`}>
+                  <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
+                    Edit
+                  </button>
+                </Link>
+                <button 
+                  onClick={handleDelete}
+                  className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
+                >
+                  Delete
                 </button>
               </div>
-
-              <hr className="border-[#767676]/40 my-6" />
-
-              {/* <h3 className="text-black text-base font-semibold text-center mb-2">
-                Return Policy
-              </h3>
-              <p className="text-black text-xs text-justify font-medium font-manrope leading-relaxed">
-                Book returns are automatic 7 days after borrowing. You can
-                extend the loan period by following certain terms and
-                conditions.
-              </p> */}
             </div>
           </div>
         </div>
