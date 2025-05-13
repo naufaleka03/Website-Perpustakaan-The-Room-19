@@ -61,11 +61,12 @@ export async function POST(request) {
       book_type, 
       content_type,
       genre,
-      cover_image
+      cover_image,
+      themes
     } = body;
     
     // Validate required fields
-    if (!book_title || !isbn_code || !author || !publisher || !content_type) {
+    if (!book_title || !author || !publisher || !usage) {
       return NextResponse.json(
         { error: 'Missing required fields' }, 
         { status: 400 }
@@ -87,7 +88,8 @@ export async function POST(request) {
         book_type, 
         content_type,
         genre,
-        cover_image
+        cover_image,
+        themes
       ) VALUES (
         ${book_title}, 
         ${isbn_code}, 
@@ -102,7 +104,8 @@ export async function POST(request) {
         ${book_type}, 
         ${content_type},
         ${genre},
-        ${cover_image}
+        ${cover_image},
+        ${themes || []}
       ) RETURNING *
     `;
     

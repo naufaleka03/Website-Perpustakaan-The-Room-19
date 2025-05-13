@@ -92,7 +92,8 @@ export async function PUT(request, { params }) {
         rating = ${body.rating},
         cover_type = ${body.cover_type},
         usage = ${body.usage},
-        price = ${body.price}
+        price = ${body.price},
+        themes = ${body.themes || []}
       WHERE id = ${id}
       RETURNING *
     `;

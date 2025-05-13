@@ -88,9 +88,15 @@ const Detail = () => {
             {/* Book Cover */}
             <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
               <img
-                src={book.cover_image || "https://placehold.co/180x250"}
+                src={book.cover_image && book.cover_image.trim() !== '' 
+                  ? book.cover_image 
+                  : "https://placehold.co/180x250"}
                 alt={`${book.book_title} Cover`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error(`Error loading image:`, e);
+                  e.target.src = "https://placehold.co/180x250";
+                }}
               />
             </div>
 
@@ -102,6 +108,20 @@ const Detail = () => {
               <h2 className="text-black text-base font-medium font-manrope mb-4">
                 {book.author}
               </h2>
+
+              {/* Themes */}
+              {book.themes && book.themes.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {book.themes.map((theme) => (
+                    <span 
+                      key={theme} 
+                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666]"
+                    >
+                      {theme}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Rating */}
               <div className="flex items-center gap-2 mb-6">
@@ -156,37 +176,59 @@ const Detail = () => {
                     <div>
                       <span className="text-black font-medium">Author</span>
                     </div>
-                    <div className="text-black">{book.author}</div>
+                    <div className="text-black">{book.author || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Publisher</span>
                     </div>
-                    <div className="text-black">{book.publisher}</div>
+                    <div className="text-black">{book.publisher || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Published Year</span>
                     </div>
-                    <div className="text-black">{book.published_year}</div>
+                    <div className="text-black">{book.published_year || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Language</span>
                     </div>
-                    <div className="text-black">{book.language}</div>
+                    <div className="text-black">{book.language || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">ISBN</span>
                     </div>
-                    <div className="text-black">{book.isbn_code}</div>
+                    <div className="text-black">{book.isbn_code || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Genre</span>
                     </div>
-                    <div className="text-black">{book.genre}</div>
+                    <div className="text-black">{book.genre || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Book Type</span>
                     </div>
-                    <div className="text-black">{book.book_type}</div>
+                    <div className="text-black">{book.book_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Content Type</span>
+                    </div>
+                    <div className="text-black">{book.content_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Cover Type</span>
+                    </div>
+                    <div className="text-black">{book.cover_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Usage</span>
+                    </div>
+                    <div className="text-black">{book.usage || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Price</span>
+                    </div>
+                    <div className="text-black">
+                      {book.price === 0 ? "Free" : `Rp ${book.price.toLocaleString('id-ID')}`}
+                    </div>
                   </div>
                 </div>
               </div>

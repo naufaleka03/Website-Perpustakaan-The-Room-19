@@ -49,6 +49,9 @@ const CreateBook = () => {
     genre: ""
   });
 
+  const [themes, setThemes] = useState([]);
+  const [themeInput, setThemeInput] = useState('');
+
   // If usage is "On-site Only", set price to "On-site Only"
   useEffect(() => {
     if (formData.usage === "On-site Only") {
@@ -197,6 +200,18 @@ const CreateBook = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleThemeSubmit = (e) => {
+    e.preventDefault();
+    if (themeInput.trim() && !themes.includes(themeInput.trim())) {
+      setThemes([...themes, themeInput.trim()]);
+      setThemeInput('');
+    }
+  };
+
+  const removeTheme = (themeToRemove) => {
+    setThemes(themes.filter(theme => theme !== themeToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -237,7 +252,8 @@ const CreateBook = () => {
         book_type: formData.book_type || null,
         content_type: formData.content_type || null,
         genre: formData.genre || null,
-        cover_image: coverImageUrl
+        cover_image: coverImageUrl,
+        themes: themes.length > 0 ? themes : null
       };
       
       console.log('Sending book data to API:', bookData);
@@ -478,6 +494,51 @@ const CreateBook = () => {
                       className="w-full h-[100px] rounded-lg border border-[#666666]/30 px-4 py-2 text-sm text-[#666666] resize-none transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">Provide a brief summary or description of the book.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#666666] mb-1">
+                      Themes
+                    </label>
+                    <div className="space-y-2">
+                      {themes.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {themes.map((theme) => (
+                            <div
+                              key={theme}
+                              className="flex items-center gap-1 bg-[#2e3105]/10 px-2 py-1 rounded-full text-sm text-[#666666]"
+                            >
+                              <span>{theme}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeTheme(theme)}
+                                className="text-[#666666] hover:text-[#2e3105]"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={themeInput}
+                          onChange={(e) => setThemeInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleThemeSubmit(e)}
+                          placeholder="Add a theme and press Enter"
+                          className="flex-1 h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleThemeSubmit}
+                          className="h-[35px] bg-[#2e3105] text-white rounded-lg px-3 text-sm transition-all duration-300 hover:bg-[#3e4310]"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Add themes that represent this book. Press Enter or click Add after each theme.</p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

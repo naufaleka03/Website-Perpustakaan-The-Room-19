@@ -129,6 +129,7 @@ async function seedBooks(tx) {
             genre VARCHAR(100),
             rating NUMERIC(3, 2) DEFAULT 0.00 NOT NULL,
             cover_image TEXT,
+            themes TEXT[],
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }
