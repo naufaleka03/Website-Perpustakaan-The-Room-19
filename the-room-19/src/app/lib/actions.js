@@ -1,5 +1,6 @@
 'use server'
 import postgres from 'postgres';
+import { revalidatePath } from 'next/cache';
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 
@@ -227,5 +228,130 @@ export async function submitEventUpdate(eventId, formData) {
   } catch (error) {
     console.error('Error updating event:', error);
     return { success: false, error: error.message };
+  }
+}
+
+// Create genre
+export async function createGenre(formData) {
+  console.log('[POST] Creating new genre...');
+  const genre_name = formData.get('genre_name');
+
+  // Validasi sederhana
+  if (!genre_name || genre_name.trim() === '') {
+      console.error('[POST] Error: Genre name is required');
+      throw new Error('Genre name is required');
+  }
+
+  try {
+      const result = await sql`
+          INSERT INTO genres (genre_name, number_of_books)
+          VALUES (${genre_name.trim()}, ${0})
+          RETURNING *
+      `;
+      
+      console.log('[POST] Genre created successfully:', result[0]);
+      revalidatePath('/dashboard/book-management/genre-settings');
+      return { success: true, data: result[0] };
+  } catch (error) {
+      console.error('[POST] Error creating genre:', error);
+      return { success: false, error: error.message };
+  }
+}
+
+// Update genre
+export async function updateGenre(id, formData) {
+  console.log('[PUT] Updating genre with ID:', id);
+  const genre_name = formData.get('genre_name');
+
+  // Validasi sederhana
+  if (!genre_name || genre_name.trim() === '') {
+      console.error('[PUT] Error: Genre name is required');
+      throw new Error('Genre name is required');
+  }
+
+  try {
+      // Cek apakah genre dengan ID tersebut ada
+      const existingGenre = await sql`
+          SELECT * FROM genres WHERE id = ${id}
+      `;
+
+      if (existingGenre.length === 0) {
+          console.error('[PUT] Error: Genre not found');
+          throw new Error('Genre not found');
+      }
+
+      const result = await sql`
+          UPDATE genres
+          SET 
+              genre_name = ${genre_name.trim()},
+              number_of_books = ${existingGenre[0].number_of_books}
+          WHERE id = ${id}
+          RETURNING *
+      `;
+
+      if (result.length > 0) {
+          console.log('[PUT] Genre updated successfully:', result[0]);
+          // Revalidate path terlebih dahulu
+          revalidatePath('/dashboard/book-management/genre-settings');
+          // Kembalikan hasil sukses
+          return { success: true, data: result[0] };
+      } else {
+          throw new Error('Failed to update genre: No rows updated');
+      }
+  } catch (error) {
+      console.error('[PUT] Error updating genre:', error);
+      return { success: false, error: error.message };
+  }
+}
+
+// Delete genre
+export async function deleteGenre(id) {
+  console.log('[DELETE] Deleting genre with ID:', id);
+  
+  if (!id) {
+      console.error('[DELETE] Error: Genre ID is required');
+      throw new Error('Genre ID is required');
+  }
+
+  try {
+      // Cek apakah genre dengan ID tersebut ada
+      const existingGenre = await sql`
+          SELECT * FROM genres WHERE id = ${id}
+      `;
+
+      if (existingGenre.length === 0) {
+          console.error('[DELETE] Error: Genre not found');
+          throw new Error('Genre not found');
+      }
+
+      const result = await sql`
+          DELETE FROM genres 
+          WHERE id = ${id}
+          RETURNING *
+      `;
+
+      console.log('[DELETE] Genre deleted successfully:', result[0]);
+      revalidatePath('/dashboard/book-management/genre-settings');
+  } catch (error) {
+      console.error('[DELETE] Error deleting genre:', error);
+      throw new Error(`Failed to delete genre: ${error.message}`);
+  }
+}
+
+// Get all genres (tambahan untuk logging)
+export async function getGenres() {
+  console.log('[GET] Fetching all genres...');
+  
+  try {
+      const result = await sql`
+          SELECT * FROM genres 
+          ORDER BY created_at DESC
+      `;
+      
+      console.log('[GET] Successfully fetched genres:', result.length, 'records');
+      return result;
+  } catch (error) {
+      console.error('[GET] Error fetching genres:', error);
+      throw new Error(`Failed to fetch genres: ${error.message}`);
   }
 }

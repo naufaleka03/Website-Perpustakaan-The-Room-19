@@ -140,8 +140,6 @@ async function seedBookGenres(tx) {
         CREATE TABLE IF NOT EXISTS genres (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             genre_name VARCHAR(100) NOT NULL,
-            is_showed BOOLEAN DEFAULT true NOT NULL,
-            is_stored BOOLEAN DEFAULT true NOT NULL,
             number_of_books INTEGER DEFAULT 0 NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
