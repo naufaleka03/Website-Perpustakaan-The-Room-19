@@ -1,14 +1,14 @@
-import bcrypt from 'bcrypt';
-import postgres from 'postgres';
+import bcrypt from "bcrypt";
+import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
 async function seedUsers(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    
-    // Visitors table (existing)
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+  // Visitors table (existing)
+  await sql`
         CREATE TABLE IF NOT EXISTS visitors (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -17,8 +17,8 @@ async function seedUsers(tx) {
             member_status VARCHAR(20) NOT NULL DEFAULT 'guest'
         )`;
 
-    // Staff table
-    await sql`
+  // Staff table
+  await sql`
         CREATE TABLE IF NOT EXISTS staffs (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -29,8 +29,8 @@ async function seedUsers(tx) {
             employee_id VARCHAR(20) UNIQUE
         )`;
 
-    // Owners table
-    await sql`
+  // Owners table
+  await sql`
         CREATE TABLE IF NOT EXISTS owners (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -42,9 +42,9 @@ async function seedUsers(tx) {
 }
 
 async function seedShifts(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS shifts (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             shift_name VARCHAR(255) NOT NULL,
@@ -55,9 +55,9 @@ async function seedShifts(tx) {
 }
 
 async function seedSession(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS sessions (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             category VARCHAR(255) NOT NULL,
@@ -82,27 +82,33 @@ async function seedSession(tx) {
 }
 
 export async function GET() {
-    try {
-        await sql.begin(async (tx) => {
-            await seedUsers(tx);
-            await seedShifts(tx);
-            await seedSession(tx);
-        });
+  try {
+    await sql.begin(async (tx) => {
+      await seedUsers(tx);
+      await seedShifts(tx);
+      await seedSession(tx);
+    });
 
-        return Response.json({ 
-            success: true,
-            message: 'Database seeded successfully' 
-        });
-    } catch (error) {
-        console.error('Database seeding failed:', error);
-        
-        return Response.json({ 
-            success: false,
-            message: 'Failed to seed database',
-            // Only send safe error information
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-        }, { 
-            status: 500 
-        });
-    }
+    return Response.json({
+      success: true,
+      message: "Database seeded successfully",
+    });
+  } catch (error) {
+    console.error("Database seeding failed:", error);
+
+    return Response.json(
+      {
+        success: false,
+        message: "Failed to seed database",
+        // Only send safe error information
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Internal server error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
