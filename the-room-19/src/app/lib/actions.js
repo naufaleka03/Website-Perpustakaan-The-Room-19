@@ -1,11 +1,11 @@
-'use server'
-import postgres from 'postgres';
+"use server";
+import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
 export async function submitSessionReservation(formData) {
   try {
-    console.log('Received form data:', formData); // Debug log
+    console.log("Received form data:", formData); // Debug log
 
     // Convert camelCase to snake_case for database consistency
     const dbFormData = {
@@ -17,17 +17,35 @@ export async function submitSessionReservation(formData) {
       payment_id: formData.payment_id,
       payment_status: formData.payment_status,
       payment_method: formData.payment_method,
-      amount: formData.amount
+      amount: formData.amount,
     };
 
-    console.log('Formatted data for DB:', dbFormData); 
+    console.log("Formatted data for DB:", dbFormData);
     // Validation after conversion
-    if (!dbFormData.category) throw new Error('Category is required');
-    if (!dbFormData.arrival_date) throw new Error('Arrival date is required');
-    if (!dbFormData.shift_name) throw new Error('Shift name is required');
-    if (!dbFormData.full_name) throw new Error('Full name is required');
-    if (formData.groupMember === 'group' && (!formData.members || formData.members.length === 0)) {
-      throw new Error('At least one group member is required');
+    if (!dbFormData.category) throw new Error("Category is required");
+    if (!dbFormData.arrival_date) throw new Error("Arrival date is required");
+    if (!dbFormData.shift_name) throw new Error("Shift name is required");
+    if (!dbFormData.full_name) throw new Error("Full name is required");
+    if (
+      formData.groupMember === "group" &&
+      (!formData.members || formData.members.length === 0)
+    ) {
+      throw new Error("At least one group member is required");
+    }
+
+    // Check existing reservations for the same date and shift
+    const existingReservations = await sql`
+      SELECT COUNT(*) as count 
+      FROM sessions 
+      WHERE arrival_date = ${dbFormData.arrival_date} 
+      AND shift_name = ${dbFormData.shift_name}
+      AND status != 'canceled'
+    `;
+
+    if (existingReservations[0].count >= 2) {
+      throw new Error(
+        "Sorry, this shift is already fully booked. Please choose another shift or date."
+      );
     }
 
     // Fetch shift details
@@ -36,9 +54,9 @@ export async function submitSessionReservation(formData) {
       WHERE shift_name = ${dbFormData.shift_name}
     `;
 
-    if (!shift) throw new Error('Invalid shift selected');
+    if (!shift) throw new Error("Invalid shift selected");
 
-    console.log('Inserting data:', dbFormData); // Debug log
+    console.log("Inserting data:", dbFormData);
 
     // Insert reservation with payment details
     const result = await sql`
@@ -70,7 +88,7 @@ export async function submitSessionReservation(formData) {
         ${dbFormData.members[1] || null},
         ${dbFormData.members[2] || null},
         ${dbFormData.members[3] || null},
-        ${'not_attended'},
+        ${"not_attended"},
         ${dbFormData.payment_id},
         ${dbFormData.payment_status},
         ${dbFormData.payment_method},
@@ -79,30 +97,30 @@ export async function submitSessionReservation(formData) {
       RETURNING *
     `;
 
-    console.log('Insert result:', result); 
-    return { 
+    console.log("Insert result:", result);
+    return {
       success: true,
-      data: result[0]
+      data: result[0],
     };
   } catch (error) {
-    console.error('Reservation submission error:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to submit reservation' 
+    console.error("Reservation submission error:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to submit reservation",
     };
   }
 }
 
 export async function submitEventCreation(formData) {
   try {
-    const [month, day, year] = formData.event_date.split('-');
+    const [month, day, year] = formData.event_date.split("-");
     const formattedDate = `${year}-${month}-${day}`;
 
     // Convert File object to base64 string if exists
     let posterUrl = formData.activity_poster;
     if (formData.activity_poster instanceof File) {
       const buffer = await formData.activity_poster.arrayBuffer();
-      const base64String = Buffer.from(buffer).toString('base64');
+      const base64String = Buffer.from(buffer).toString("base64");
       posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
     }
 
@@ -118,10 +136,10 @@ export async function submitEventCreation(formData) {
     };
 
     // Validasi data
-    if (!dbFormData.event_name) throw new Error('Title is required');
-    if (!dbFormData.event_date) throw new Error('Event date is required');
-    if (!dbFormData.shift_name) throw new Error('Shift name is required');
-    if (!dbFormData.ticket_fee) throw new Error('Price is required');
+    if (!dbFormData.event_name) throw new Error("Title is required");
+    if (!dbFormData.event_date) throw new Error("Event date is required");
+    if (!dbFormData.shift_name) throw new Error("Shift name is required");
+    if (!dbFormData.ticket_fee) throw new Error("Price is required");
 
     // Fetch shift details
     const [shift] = await sql`
@@ -129,7 +147,7 @@ export async function submitEventCreation(formData) {
       WHERE shift_name = ${dbFormData.shift_name}
     `;
 
-    if (!shift) throw new Error('Invalid shift selected');
+    if (!shift) throw new Error("Invalid shift selected");
 
     // Insert ke database dengan shift details
     const [newEvent] = await sql`
@@ -162,21 +180,21 @@ export async function submitEventCreation(formData) {
 
     return { success: true, data: newEvent };
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error("Error creating event:", error);
     return { success: false, error: error.message };
   }
 }
 
 export async function submitEventUpdate(eventId, formData) {
   try {
-    const [month, day, year] = formData.event_date.split('-');
+    const [month, day, year] = formData.event_date.split("-");
     const formattedDate = `${year}-${month}-${day}`;
 
     // Convert File object to base64 string if exists
     let posterUrl = formData.activity_poster;
     if (formData.activity_poster instanceof File) {
       const buffer = await formData.activity_poster.arrayBuffer();
-      const base64String = Buffer.from(buffer).toString('base64');
+      const base64String = Buffer.from(buffer).toString("base64");
       posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
     }
 
@@ -192,10 +210,10 @@ export async function submitEventUpdate(eventId, formData) {
     };
 
     // Validasi data
-    if (!dbFormData.event_name) throw new Error('Title is required');
-    if (!dbFormData.event_date) throw new Error('Event date is required');
-    if (!dbFormData.shift_name) throw new Error('Shift name is required');
-    if (!dbFormData.ticket_fee) throw new Error('Price is required');
+    if (!dbFormData.event_name) throw new Error("Title is required");
+    if (!dbFormData.event_date) throw new Error("Event date is required");
+    if (!dbFormData.shift_name) throw new Error("Shift name is required");
+    if (!dbFormData.ticket_fee) throw new Error("Price is required");
 
     // Fetch shift details
     const [shift] = await sql`
@@ -203,7 +221,7 @@ export async function submitEventUpdate(eventId, formData) {
       WHERE shift_name = ${dbFormData.shift_name}
     `;
 
-    if (!shift) throw new Error('Invalid shift selected');
+    if (!shift) throw new Error("Invalid shift selected");
 
     // Update event di database
     const [updatedEvent] = await sql`
@@ -225,7 +243,7 @@ export async function submitEventUpdate(eventId, formData) {
 
     return { success: true, data: updatedEvent };
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error("Error updating event:", error);
     return { success: false, error: error.message };
   }
 }
