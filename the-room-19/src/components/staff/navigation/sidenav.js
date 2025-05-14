@@ -16,12 +16,17 @@ export default function SideNav({ isExpanded, profilePicture }) {
   const [userId, setUserId] = useState(null);
   const [staffName, setStaffName] = useState('');
   const [position, setPosition] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUserId(session.user.id);
+        }
+      } catch (err) {
+        console.error('Error getting session:', err.message);
       }
     };
     fetchUserId();
@@ -30,12 +35,20 @@ export default function SideNav({ isExpanded, profilePicture }) {
   useEffect(() => {
     const fetchStaffInfo = async () => {
       if (userId) {
-        const { data, error } = await supabase.from('staff').select('name, position').eq('id', userId).single();
-        if (data) {
-          setStaffName(data.name);
-          setPosition(data.position || 'Staff');
-        } else {
-          console.error('Error fetching staff info:', error);
+        try {
+          // First check if the staffs table exists and has the right columns
+          const { data, error } = await supabase.from('staffs').select('name, position').eq('id', userId).single();
+          if (error) throw error;
+          
+          if (data) {
+            setStaffName(data.name || 'Staff');
+            setPosition(data.position || 'Staff');
+          }
+        } catch (err) {
+          console.error('Error fetching staff info:', err.message);
+          // Don't show error to user - use default values
+          setStaffName('Staff');
+          setPosition('Staff');
         }
       }
     };
@@ -52,7 +65,7 @@ export default function SideNav({ isExpanded, profilePicture }) {
       // Redirect to login page
       router.replace('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error logging out:', error.message);
     } finally {
       setIsLoggingOut(false);
     }
@@ -79,8 +92,8 @@ export default function SideNav({ isExpanded, profilePicture }) {
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
-                      {/* Grey background when no profile picture is set */}
+                    <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-lg font-semibold text-gray-600">
+                      {staffName ? staffName.charAt(0).toUpperCase() : 'S'}
                     </div>
                   )}
                 </div>

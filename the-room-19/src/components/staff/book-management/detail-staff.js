@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import React from 'react';
 import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Fragment } from "react";
 
 const DetailStaff = () => {
   const router = useRouter();
@@ -13,6 +15,8 @@ const DetailStaff = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lendCount, setLendCount] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -33,6 +37,20 @@ const DetailStaff = () => {
         const data = await response.json();
         console.log('Fetched book details:', data.book);
         setBook(data.book || null);
+        
+        // Fetch lend count
+        const lendResponse = await fetch(`/api/books/${bookId}/lend-count`);
+        if (lendResponse.ok) {
+          const lendData = await lendResponse.json();
+          setLendCount(lendData.count || 0);
+        }
+        
+        // Fetch rating count
+        const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
+        if (ratingResponse.ok) {
+          const ratingData = await ratingResponse.json();
+          setRatingCount(ratingData.count || 0);
+        }
       } catch (err) {
         console.error('Error fetching book details:', err);
         setError('Failed to load book details. Please try again later.');
@@ -71,12 +89,101 @@ const DetailStaff = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
-        <p>Loading book details...</p>
+  // Loading skeleton for the detail page
+  const DetailLoadingSkeleton = () => (
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <div className="w-full h-full relative bg-white">
+        <div className="w-full mx-auto px-12 py-8">
+          <div className="flex gap-8 animate-pulse">
+            {/* Book Cover Skeleton */}
+            <div className="w-[180px] h-[250px] rounded-2xl bg-gray-200"></div>
+
+            {/* Book Details Skeleton */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center">
+                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+              </div>
+
+              {/* Themes Skeleton */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                ))}
+              </div>
+
+              {/* Condition Skeleton */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3].map(i => (
+                    <Fragment key={i}>
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tabs Skeleton */}
+              <div className="border-b border-[#767676]/40 mt-4">
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
+              </div>
+
+              {/* Description Skeleton */}
+              <div className="py-4">
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </div>
+
+              {/* Details Skeleton */}
+              <div className="mb-6">
+                <div className="border-b border-[#767676]/40">
+                  <div className="h-8 bg-gray-200 rounded w-24"></div>
+                </div>
+                <div className="py-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                      <Fragment key={i}>
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                      </Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Book Status Card Skeleton */}
+            <div className="w-[280px] h-fit bg-white rounded-2xl border border-[#cdcdcd] p-6">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+              <hr className="border-[#767676]/40 mb-4" />
+
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+              </div>
+
+              <div className="space-y-3 mt-6">
+                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    );
+    </div>
+  );
+
+  if (loading) {
+    return <DetailLoadingSkeleton />;
   }
 
   if (error || !book) {
@@ -91,22 +198,6 @@ const DetailStaff = () => {
       </div>
     );
   }
-
-  // Generate star ratings
-  const renderStars = () => {
-    const stars = [];
-    const rating = Math.round(book.rating);
-    
-    for (let i = 1; i <= 5; i++) {
-      if (i <= rating) {
-        stars.push(<AiFillStar key={i} className="text-[#ECB43C] text-lg" />);
-      } else {
-        stars.push(<AiFillStar key={i} className="text-gray-300 text-lg" />);
-      }
-    }
-    
-    return stars;
-  };
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -130,12 +221,38 @@ const DetailStaff = () => {
 
             {/* Book Details */}
             <div className="flex-1">
-              <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
-                {book.book_title}
-              </h1>
-              <h2 className="text-black text-base font-medium font-manrope mb-4">
-                {book.author}
-              </h2>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
+                    {book.book_title}
+                  </h1>
+                  
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center">
+                      <AiFillStar className="text-[#ECB43C] text-lg" />
+                      <span className="text-[#666666] text-xs ml-1">
+                        {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
+                      </span>
+                      <span className="text-[#666666] text-xs ml-1">
+                        ({ratingCount} reviews)
+                      </span>
+                    </div>
+                    
+                    <div className="text-[#666666] text-xs">
+                      Borrowed {lendCount} times
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Price - Moved to upper section */}
+                {book.price !== undefined && (
+                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
+                    <p className="text-[#2e3105] text-lg font-bold">
+                      {book.price === 0 ? "Free" : `Rp ${parseInt(book.price).toLocaleString('id-ID')}`}
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Themes */}
               {book.themes && book.themes.length > 0 && (
@@ -151,16 +268,38 @@ const DetailStaff = () => {
                 </div>
               )}
 
-              {/* Rating */}
-              <div className="flex items-center gap-2 mb-6">
-                {renderStars()}
-                <span className="text-[#666666] text-xs ml-2">
-                  {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
-                </span>
+              {/* Book Condition */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <h3 className="text-black text-sm font-medium mb-2">Book Condition</h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-black font-medium">Status</span>
+                  </div>
+                  <div className="text-black">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      book.condition === 'Pristine' ? 'bg-green-100 text-green-800' :
+                      book.condition === 'Good' ? 'bg-blue-100 text-blue-800' :
+                      book.condition === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-200 text-gray-800'
+                    }`}>
+                      {book.condition || "Not specified"}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <span className="text-black font-medium">Description</span>
+                  </div>
+                  <div className="text-black">{book.condition_description || "No description available"}</div>
+                  
+                  <div>
+                    <span className="text-black font-medium">Last Updated</span>
+                  </div>
+                  <div className="text-black">{book.condition_updated_at || "Not available"}</div>
+                </div>
               </div>
 
               {/* Tabs */}
-              <div className="border-b border-[#767676]/40">
+              <div className="border-b border-[#767676]/40 mt-4">
                 <div className="flex gap-8">
                   <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
                     Description
@@ -169,7 +308,7 @@ const DetailStaff = () => {
               </div>
 
               {/* Description */}
-              <div className="py-6 text-xs font-manrope leading-relaxed">
+              <div className="py-4 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
                   {book.description 
                     ? (isExpanded 
@@ -199,7 +338,7 @@ const DetailStaff = () => {
                   </div>
                 </div>
 
-                <div className="py-6">
+                <div className="py-4">
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-black font-medium">Author</span>
@@ -250,13 +389,6 @@ const DetailStaff = () => {
                       <span className="text-black font-medium">Usage</span>
                     </div>
                     <div className="text-black">{book.usage || "Not set"}</div>
-                    
-                    <div>
-                      <span className="text-black font-medium">Price</span>
-                    </div>
-                    <div className="text-black">
-                      {book.price === 0 ? "Free" : `Rp ${book.price.toLocaleString('id-ID')}`}
-                    </div>
                   </div>
                 </div>
               </div>

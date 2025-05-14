@@ -2,24 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { BiSearch } from "react-icons/bi";
-import { IoChevronBackOutline, IoChevronForwardOutline, IoClose } from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
 import { IoIosArrowDown } from "react-icons/io";
 import Link from "next/link";
-
-// Genres list
-const allGenres = [
-  "Arts & Architecture",
-  "Business",
-  "Children's Books",
-  "Crime & Mystery",
-  "Fantasy & Sci-Fi",
-  "Historical Fiction",
-  "Psychology & Self Help",
-  "Romance",
-  "Science",
-  // ... rest of the genres
-];
+import GenreSelectModal from "@/components/common/GenreSelectModal";
 
 // Book Card Component
 const BookCard = ({ id, title, author, imageUrl, rating }) => {
@@ -88,167 +75,6 @@ const LoadingSkeleton = () => (
   </>
 );
 
-// Simpler GenreSelectModal without external dependencies
-const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredGenres, setFilteredGenres] = useState(genres);
-
-  // Close modal on ESC key
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-    }
-    
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [isOpen, onClose]);
-
-  // Prevent scrolling when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isOpen]);
-
-  // Reset filtered genres when genres prop changes
-  useEffect(() => {
-    setFilteredGenres(genres);
-  }, [genres]);
-
-  // Filter genres based on search query
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredGenres(genres);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    const filtered = genres.filter(genre => 
-      genre.toLowerCase().includes(query)
-    );
-    setFilteredGenres(filtered);
-  }, [searchQuery, genres]);
-
-  const handleGenreToggle = (genre) => {
-    let newSelected;
-    if (selectedGenres.includes(genre)) {
-      newSelected = selectedGenres.filter(g => g !== genre);
-    } else {
-      newSelected = [...selectedGenres, genre];
-    }
-    onChange(newSelected);
-  };
-
-  const handleClearAll = () => {
-    onChange([]);
-  };
-
-  const handleApply = () => {
-    onClose();
-  };
-  
-  // Stop propagation on modal content click to prevent closing
-  const handleModalContentClick = (e) => {
-    e.stopPropagation();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div 
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
-        onClick={handleModalContentClick}
-      >
-        <div className="flex items-center justify-between border-b p-4">
-          <h3 className="text-lg font-medium text-gray-900">
-            {title}
-          </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-            <IoClose size={24} />
-          </button>
-        </div>
-
-        {/* Search Box */}
-        <div className="p-4 border-b">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search genres"
-              className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] pl-10 pr-4 text-xs text-gray-400"
-            />
-            <BiSearch
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-          </div>
-        </div>
-
-        {/* Genres List */}
-        <div className="max-h-[350px] overflow-y-auto p-4">
-          {filteredGenres.length === 0 ? (
-            <div className="text-center py-4 text-gray-500 text-sm">
-              No genres found.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {filteredGenres.map((genre) => (
-                <label
-                  key={genre}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedGenres.includes(genre)}
-                    onChange={() => handleGenreToggle(genre)}
-                    className="w-4 h-4 rounded-sm border-[#cdcdcd]"
-                    style={{ accentColor: "#2e3105" }}
-                  />
-                  <span className="text-black text-xs font-medium truncate">
-                    {genre}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center border-t p-4">
-          <button
-            onClick={handleClearAll}
-            className="px-4 py-2 border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl"
-          >
-            Reset
-          </button>
-          <button
-            onClick={handleApply}
-            className="px-4 py-2 bg-[#2e3105] text-white text-xs rounded-2xl"
-          >
-            Apply
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const CatalogStaff = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -259,6 +85,7 @@ const CatalogStaff = () => {
   const [genres, setGenres] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
   const booksPerPage = 12;
 
   // Fetch all genres from database
@@ -341,14 +168,8 @@ const CatalogStaff = () => {
     setCurrentPage(1); // Reset to first page on new search
   };
 
-  const handleGenreChange = (genre) => {
-    setSelectedGenres(prev => {
-      if (prev.includes(genre)) {
-        return prev.filter(g => g !== genre);
-      } else {
-        return [...prev, genre];
-      }
-    });
+  const handleGenresChange = (newSelectedGenres) => {
+    setSelectedGenres(newSelectedGenres);
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
@@ -362,6 +183,10 @@ const CatalogStaff = () => {
     });
     setCurrentPage(1); // Reset to first page when filter changes
   };
+
+  // Process genres for display
+  const genreNames = genres.map(genre => genre.genre_name);
+  const initialVisibleGenres = genreNames.slice(0, 15);
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -442,24 +267,38 @@ const CatalogStaff = () => {
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-black text-sm font-medium">Genres</h3>
-                    <Link href="/staff/dashboard/book-management/genre-settings">
-                      <button className="text-[#2e3105] text-xs hover:underline">
-                        Manage
-                      </button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {genreNames.length > 15 && (
+                        <button 
+                          onClick={() => setIsGenreModalOpen(true)}
+                          className="text-[#2e3105] text-xs hover:underline"
+                        >
+                          See all
+                        </button>
+                      )}
+                      <Link href="/staff/dashboard/book-management/genre-settings">
+                        <button className="text-[#2e3105] text-xs hover:underline">
+                          Manage
+                        </button>
+                      </Link>
+                    </div>
                   </div>
                   <div className="max-h-[150px] overflow-y-auto pr-2">
-                    {genres.map((genre) => (
-                      <label key={genre.id} className="flex items-center gap-3 mb-3">
+                    {initialVisibleGenres.map((genre) => (
+                      <label key={genre} className="flex items-center gap-3 mb-3">
                         <input
                           type="checkbox"
-                          checked={selectedGenres.includes(genre.genre_name)}
-                          onChange={() => handleGenreChange(genre.genre_name)}
+                          checked={selectedGenres.includes(genre)}
+                          onChange={() => handleGenresChange(
+                            selectedGenres.includes(genre) 
+                              ? selectedGenres.filter(g => g !== genre) 
+                              : [...selectedGenres, genre]
+                          )}
                           className="w-4 h-4 rounded-2xl border-[#cdcdcd]"
                           style={{ accentColor: "#2e3105" }}
                         />
                         <span className="text-black text-xs font-medium">
-                          {genre.genre_name}
+                          {genre}
                         </span>
                       </label>
                     ))}
@@ -552,8 +391,18 @@ const CatalogStaff = () => {
           )}
         </div>
       </div>
+
+      {/* Genre Selection Modal */}
+      <GenreSelectModal
+        isOpen={isGenreModalOpen}
+        onClose={() => setIsGenreModalOpen(false)}
+        genres={genreNames}
+        selectedGenres={selectedGenres}
+        onChange={handleGenresChange}
+        title="Select Genres"
+      />
     </div>
   );
 };
 
-export default CatalogStaff;
+export default CatalogStaff; 

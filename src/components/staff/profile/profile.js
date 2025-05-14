@@ -1,10 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FaCamera } from 'react-icons/fa'; // Import camera icon
-import { createClient } from '@/app/supabase/client'; // Updated import path
-import { useRouter } from 'next/navigation'; // Import useRouter
+import React from 'react';
+import { FaCamera } from 'react-icons/fa';
+import { createClient } from '@/app/supabase/client';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 export default function Profile({ profilePicture, setProfilePicture }) {
   const [activeTab, setActiveTab] = useState('profile');
@@ -16,7 +18,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     gender: 'Male', // Default value
     phone: '',
     position: '', // Add staff position
-    hireDate: '', // Add hire date
+    hire_date: null, // Add hire date
   });
 
   const [accountSettings, setAccountSettings] = useState({
@@ -52,12 +54,34 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     const fetchProfilePicture = async () => {
       if (userId) {
         try {
-          const { data, error } = await supabase.from('staffs').select('profile_picture').eq('id', userId).single();
-          if (error) throw error;
+          // First check if the profile_picture column exists by getting the columns
+          const { data: columns, error: columnsError } = await supabase
+            .from('staffs')
+            .select('*')
+            .limit(1);
+            
+          if (columnsError) {
+            console.error('Error checking table structure:', columnsError.message);
+            return;
+          }
           
-          if (data && data.profile_picture) {
-            console.log('Fetched profile picture URL:', data.profile_picture);
-            setProfilePicture(data.profile_picture);
+          // If the profile_picture property exists in the columns, query it
+          if (columns.length > 0 && 'profile_picture' in columns[0]) {
+            const { data, error } = await supabase
+              .from('staffs')
+              .select('profile_picture')
+              .eq('id', userId)
+              .single();
+              
+            if (error) throw error;
+            
+            if (data && data.profile_picture) {
+              console.log('Fetched profile picture URL:', data.profile_picture);
+              setProfilePicture(data.profile_picture);
+            }
+          } else {
+            console.log('Profile picture column does not exist in staffs table');
+            // Profile picture column doesn't exist, no need to show an error
           }
         } catch (error) {
           console.error('Error fetching profile picture:', error.message);
@@ -81,8 +105,8 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               fullName: data.name || '',
               gender: data.gender || 'Male', 
               phone: data.phone_number || '', // Default to empty string if not set
-              position: data.position || '', // Add staff position
-              hireDate: data.hire_date ? new Date(data.hire_date).toLocaleDateString() : '',
+              position: data.position || '',
+              hire_date: data.hire_date || null,
             });
           }
         } catch (error) {
@@ -227,7 +251,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
         </div>
         <div className="p-6">
           <div className="space-y-4 px-2">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <div key={i}>
                 <div className="h-4 bg-gray-300 rounded w-20 mb-1"></div>
                 <div className="h-5 bg-gray-300 rounded w-full"></div>
@@ -264,7 +288,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               />
             ) : (
               <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-2xl font-semibold text-gray-600">
-                {personalInfo.fullName ? personalInfo.fullName.charAt(0).toUpperCase() : 'S'}
+                {personalInfo.fullName ? personalInfo.fullName.charAt(0).toUpperCase() : ''}
               </div>
             )}
             <label htmlFor="profilePictureUpload" className="absolute inset-0 cursor-pointer flex items-center justify-center transition duration-300 hover:bg-black hover:bg-opacity-50 rounded-full">
@@ -319,7 +343,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               {/* Display personal information */}
               <div>
                 <label className="text-sm text-[#666666]">Full Name</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.fullName}</p>
+                <p className="text-[#111010] font-medium text-sm">{personalInfo.fullName || 'Not set'}</p>
               </div>
               <div>
                 <label className="text-sm text-[#666666]">Position</label>
@@ -327,21 +351,18 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               </div>
               <div>
                 <label className="text-sm text-[#666666]">Gender</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.gender}</p>
+                <p className="text-[#111010] font-medium text-sm">{personalInfo.gender || 'Not set'}</p>
               </div>
               <div>
                 <label className="text-sm text-[#666666]">Phone</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.phone}</p>
+                <p className="text-[#111010] font-medium text-sm">{personalInfo.phone || 'Not set'}</p>
               </div>
               <div>
-                <label className="text-sm text-[#666666]">Hire Date</label>
+                <label className="text-sm text-[#666666]">Working Since</label>
                 <p className="text-[#111010] font-medium text-sm">
-                  {personalInfo.hireDate || 'Not available'}
-                  {personalInfo.hireDate && (
-                    <span className="ml-2 text-xs text-gray-500">
-                      ({Math.floor((new Date() - new Date(personalInfo.hireDate)) / (1000 * 60 * 60 * 24 * 30))} months of service)
-                    </span>
-                  )}
+                  {personalInfo.hire_date 
+                   ? format(new Date(personalInfo.hire_date), 'MMMM d, yyyy')
+                   : 'Not available'}
                 </p>
               </div>
             </div>
@@ -362,6 +383,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your full name"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Your full name as it appears on official documents</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Position</label>
@@ -372,6 +394,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your staff position"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Your current role or position in the library</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Gender</label>
@@ -383,6 +406,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">Select your gender</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Phone</label>
@@ -393,6 +417,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your phone number"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Your contact number for official communications</p>
                   </div>
                   <button
                     type="submit"
@@ -420,6 +445,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Email"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Your email cannot be changed</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Current Password</label>
@@ -430,6 +456,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter current password"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Enter your current password for verification</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">New Password</label>
@@ -440,6 +467,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter new password"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Choose a strong password with at least 8 characters</p>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Confirm New Password</label>
@@ -450,6 +478,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 mb-2 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Confirm new password"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Re-enter your new password to confirm</p>
                   </div>
                   <button
                     type="submit"
@@ -465,4 +494,4 @@ export default function Profile({ profilePicture, setProfilePicture }) {
       </div>
     </div>
   );
-}
+} 

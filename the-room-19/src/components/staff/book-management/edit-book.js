@@ -9,19 +9,6 @@ import { IoIosArrowDown } from "react-icons/io";
 
 const bookTypes = ["Local Books", "International Books"];
 const contentTypes = ["Fiction", "Nonfiction"];
-const genres = [
-  "Arts & Architecture",
-  "Business",
-  "Children's Books",
-  "Crime & Mystery",
-  "Fantasy & Sci-Fi",
-  "Historical Fiction",
-  "Psychology & Self Help",
-  "Romance",
-  "Science",
-  // Add more genres as needed
-];
-
 const languages = ["Indonesian", "English", "Chinese", "Japanese", "More"];
 const coverTypes = ["Hardcover", "Paperback", "E-Book"];
 const usageOptions = ["On-site Only", "On-site Only and For Rent"];
@@ -52,13 +39,32 @@ const EditBook = () => {
 
   const [themes, setThemes] = useState([]);
   const [themeInput, setThemeInput] = useState('');
-
+  const [genres, setGenres] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+
+  // Fetch genres from database
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const { data, error } = await supabase.from('genres').select('genre_name');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const genreNames = data.map(genre => genre.genre_name);
+          setGenres(genreNames);
+        }
+      } catch (error) {
+        console.error('Error fetching genres:', error.message);
+      }
+    };
+    
+    fetchGenres();
+  }, []);
 
   // If usage is "On-site Only", set price to "On-site Only"
   useEffect(() => {

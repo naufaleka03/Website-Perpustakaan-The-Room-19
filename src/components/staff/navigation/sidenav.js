@@ -3,19 +3,28 @@
 import NavLinks from './nav-links';
 import { IoLogOut } from "react-icons/io5";
 import { clsx } from 'clsx';
-import Link from 'next/link';
 import { createClient } from '@/app/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function SideNav({ isExpanded, profilePicture }) {
   const router = useRouter();
   const supabase = createClient();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [userName, setUserName] = useState('');
-  const [memberStatus, setMemberStatus] = useState('guest');
+  const [staffName, setStaffName] = useState('');
+  const [position, setPosition] = useState('');
+  const [error, setError] = useState(null);
+  const [localProfilePicture, setLocalProfilePicture] = useState(profilePicture);
+
+  // Update local profile picture when prop changes
+  useEffect(() => {
+    if (profilePicture) {
+      setLocalProfilePicture(profilePicture);
+    }
+  }, [profilePicture]);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -32,29 +41,32 @@ export default function SideNav({ isExpanded, profilePicture }) {
   }, []);
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const fetchStaffInfo = async () => {
       if (userId) {
         try {
-          const { data, error } = await supabase
-            .from('visitors')
-            .select('name, member_status')
-            .eq('id', userId)
-            .single();
-            
+          // Fetch staff info including profile picture
+          const { data, error } = await supabase.from('staffs').select('name, position, profile_picture').eq('id', userId).single();
           if (error) throw error;
           
           if (data) {
-            setUserName(data.name || 'User');
-            setMemberStatus(data.member_status || 'guest');
+            setStaffName(data.name || 'Staff');
+            setPosition(data.position || 'Staff');
+            
+            // Update profile picture if it exists in DB and differs from current
+            if (data.profile_picture && (!localProfilePicture || data.profile_picture !== localProfilePicture)) {
+              setLocalProfilePicture(data.profile_picture);
+            }
           }
         } catch (err) {
-          console.error('Error fetching user info:', err.message);
-          setUserName('User');
+          console.error('Error fetching staff info:', err.message);
+          // Don't show error to user - use default values
+          setStaffName('Staff');
+          setPosition('Staff');
         }
       }
     };
 
-    fetchUserInfo();
+    fetchStaffInfo();
   }, [userId]);
 
   const handleLogout = async () => {
@@ -66,7 +78,7 @@ export default function SideNav({ isExpanded, profilePicture }) {
       // Redirect to login page
       router.replace('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error logging out:', error.message);
     } finally {
       setIsLoggingOut(false);
     }
@@ -81,12 +93,12 @@ export default function SideNav({ isExpanded, profilePicture }) {
         
         {isExpanded && (
           <>
-            <Link href="/user/dashboard/profile">
+            <Link href="/staff/dashboard/profile">
               <div className="flex items-center gap-3 mb-4 mt-2 cursor-pointer">
                 <div className="w-12 h-12 flex-shrink-0">
-                  {profilePicture ? (
+                  {localProfilePicture ? (
                     <Image
-                      src={profilePicture}
+                      src={localProfilePicture}
                       alt="Profile"
                       width={48}
                       height={48}
@@ -94,17 +106,20 @@ export default function SideNav({ isExpanded, profilePicture }) {
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-lg font-semibold text-gray-600">
-                      {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                      {staffName ? staffName.charAt(0).toUpperCase() : 'S'}
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <div className="text-[#5d7285] text-xs font-semibold truncate">{userName || 'User Name'}</div>
+                  <div className="text-[#5d7285] text-xs font-semibold truncate">{staffName || 'Staff Name'}</div>
                   <div className="flex items-center mt-1">
-                    <div className={`rounded-full px-3 pb-0.5 ${memberStatus === 'member' ? 'bg-[#2e3105]' : 'bg-gray-400'}`}>
-                      <span className="text-white text-xs">{memberStatus === 'member' ? 'Member' : 'Guest'}</span>
+                    <div className="bg-[#2e3105] rounded-full px-3 pb-0.5">
+                      <span className="text-white text-xs">Staff</span>
                     </div>
                   </div>
+                  {position && (
+                    <div className="text-[#5d7285] text-xs mt-1">{position}</div>
+                  )}
                 </div>
               </div>
             </Link>
@@ -129,34 +144,4 @@ export default function SideNav({ isExpanded, profilePicture }) {
       </div>
     </nav>
   )
-}
-
-function NavItem({ icon, label, isActive = false, collapsed = false, onClick, disabled = false }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={clsx(
-        'w-full flex items-center gap-3 px-3 py-2 rounded cursor-pointer hover:bg-gray-100 transition-colors',
-        {
-          'bg-[#eff0c3] text-[#52570d]': isActive,
-          'text-[#5d7285]': !isActive,
-          'justify-center': collapsed,
-          'opacity-50 cursor-not-allowed': disabled,
-          'hover:bg-gray-100': !disabled
-        }
-      )}
-    >
-      {icon}
-      {!collapsed && <span className="font-medium">{label}</span>}
-    </button>
-  );
-}
-
-function SubNavItem({ label }) {
-  return (
-    <div className="ml-12 text-[#5d7285] py-2">
-      {label}
-    </div>
-  )
-}
+} 
