@@ -18,6 +18,7 @@ export async function POST(request) {
     }
 
     // Get all active reservations for the given date and shift
+    // Only count non-canceled sessions
     const existingReservations = await sql`
       SELECT 
         CASE 
@@ -33,16 +34,16 @@ export async function POST(request) {
       AND status != 'canceled'
     `;
 
-    // Hitung total orang yang sudah terdaftar
+    // Calculate total people already registered
     const totalExistingPeople = existingReservations.reduce(
       (sum, res) => sum + res.total_people,
       0
     );
 
-    // Hitung sisa slot yang tersedia
+    // Calculate remaining available slots
     const availableSlots = MAX_PEOPLE_PER_SHIFT - totalExistingPeople;
 
-    // Cek apakah masih tersedia slot untuk jumlah orang yang akan reservasi
+    // Check if there are enough slots for the requested reservation
     const requestedSlots = reservation_type === "group" ? group_size : 1;
     const isAvailable = availableSlots >= requestedSlots;
 

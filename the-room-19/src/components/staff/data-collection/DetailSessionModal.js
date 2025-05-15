@@ -60,78 +60,49 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
         ) : (
           <>
             {/* Full Name Field */}
-            <div className="space-y-1 mb-4">
+            <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Full Name
+                Full Name:
               </label>
-              <input
-                type="text"
-                value={sessionData.full_name}
-                readOnly
-                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
+              <p className="text-sm text-[#666666]">{sessionData.full_name}</p>
             </div>
 
             {/* Category Field */}
-            <div className="space-y-1 mb-4">
+            <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Category
+                Category:
               </label>
-              <input
-                value={sessionData.category}
-                readOnly
-                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
+              <p className="text-sm text-[#666666]">{sessionData.category}</p>
             </div>
 
             {/* Arrival Date Field */}
-            <div className="space-y-1 mb-4">
+            <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Arrival Date
+                Arrival Date:
               </label>
-              <div className="relative">
-                <input 
-                  type="text"
-                  value={sessionData.arrival_date ? formatDate(sessionData.arrival_date) : ''}
-                  readOnly
-                  className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-                />
-              </div>
+              <p className="text-sm text-[#666666]">{sessionData.arrival_date ? formatDate(sessionData.arrival_date) : ''}</p>
             </div>
 
             {/* Shift Field */}
-            <div className="space-y-1 mb-4">
+            <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Shift
+                Shift:
               </label>
-              <input
-                value={sessionData.shift_name}
-                readOnly
-                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
+              <p className="text-sm text-[#666666]">{sessionData.shift_name}</p>
             </div>
 
             {/* Group Members Field - Optional */}
             {sessionData.group_member1 && (
-              <div className="space-y-1 mb-4">
+              <div className="mb-4">
                 <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                  Group Members
+                  Group Members:
                 </label>
                 <div className="space-y-2">
-                  {[
-                    sessionData.group_member1,
-                    sessionData.group_member2,
-                    sessionData.group_member3,
-                    sessionData.group_member4
-                  ].filter(Boolean).map((member, index) => (
-                    <input
-                      key={index}
-                      type="text"
-                      value={member}
-                      readOnly
-                      className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-                    />
-                  ))}
+                  {[sessionData.group_member1, sessionData.group_member2, sessionData.group_member3, sessionData.group_member4]
+                    .filter(Boolean)
+                    .map((member, index) => (
+                      <p key={index} className="text-sm text-[#666666]">{member}</p>
+                    ))}
                 </div>
               </div>
             )}
@@ -140,4 +111,4 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
       </div>
     </div>
   );
-} 
+}

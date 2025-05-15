@@ -1,7 +1,31 @@
 "use server";
 import postgres from "postgres";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
+
+// Schema validation for session data
+const SessionSchema = z.object({
+  id: z.string(),
+  category: z.string(),
+  arrival_date: z.string(),
+  shift_name: z.string(),
+  full_name: z.string(),
+  group_member1: z.string().nullable(),
+  group_member2: z.string().nullable(),
+  group_member3: z.string().nullable(),
+  group_member4: z.string().nullable(),
+  status: z.enum(["not attended", "attended", "canceled"]),
+  payment_id: z.string().nullable(),
+  payment_status: z.string().nullable(),
+  payment_method: z.string().nullable(),
+  amount: z.number().nullable(),
+});
+
+// Schema for updating session status
+const UpdateSessionStatus = SessionSchema.pick({ status: true });
 
 export async function submitSessionReservation(formData) {
   try {
@@ -245,5 +269,121 @@ export async function submitEventUpdate(eventId, formData) {
   } catch (error) {
     console.error("Error updating event:", error);
     return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Updates a session's status and handles slot availability
+ */
+export async function updateSessionStatus(id, formData) {
+  const { status } = UpdateSessionStatus.parse({
+    status: formData.get("status"),
+  });
+
+  try {
+    // Get current session data to calculate slots to return if canceling
+    const currentSession = await sql`
+      SELECT * FROM sessions WHERE id = ${id}
+    `;
+
+    if (!currentSession || currentSession.length === 0) {
+      throw new Error("Session not found");
+    }
+
+    // Update the session status
+    const updatedSession = await sql`
+      UPDATE sessions 
+      SET status = ${status}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    // If canceling, calculate and log returned slots
+    if (status === "canceled") {
+      const slotsToReturn =
+        1 + // Main person
+        (currentSession[0].group_member1 ? 1 : 0) +
+        (currentSession[0].group_member2 ? 1 : 0) +
+        (currentSession[0].group_member3 ? 1 : 0) +
+        (currentSession[0].group_member4 ? 1 : 0);
+
+      console.log(`Returning ${slotsToReturn} slots to availability`);
+    }
+
+    // Revalidate the sessions page to show updated data
+    revalidatePath("/staff/dashboard/data-collection");
+
+    return {
+      success: true,
+      data: updatedSession[0],
+      // Message shown when session status is successfully updated
+      message: `Session status updated to ${status} successfully`,
+    };
+  } catch (error) {
+    console.error("Error updating session status:", error);
+    throw new Error(error.message || "Failed to update session status");
+  }
+}
+
+/**
+ * Checks session availability for a given date and shift
+ */
+export async function checkSessionAvailability(formData) {
+  const data = {
+    arrival_date: formData.get("arrival_date"),
+    shift_name: formData.get("shift_name"),
+    reservation_type: formData.get("reservation_type"),
+    group_size: parseInt(formData.get("group_size") || "1"),
+  };
+
+  if (!data.arrival_date || !data.shift_name) {
+    throw new Error("Arrival date and shift name are required");
+  }
+
+  try {
+    const MAX_PEOPLE_PER_SHIFT = 18;
+
+    // Get all active reservations for the given date and shift
+    const existingReservations = await sql`
+      SELECT 
+        CASE 
+          WHEN group_member1 IS NOT NULL THEN 
+            1 + (CASE WHEN group_member2 IS NOT NULL THEN 1 ELSE 0 END) +
+            (CASE WHEN group_member3 IS NOT NULL THEN 1 ELSE 0 END) +
+            (CASE WHEN group_member4 IS NOT NULL THEN 1 ELSE 0 END)
+          ELSE 1
+        END as total_people
+      FROM sessions 
+      WHERE arrival_date = ${data.arrival_date}
+      AND shift_name = ${data.shift_name}
+      AND status != 'canceled'
+    `;
+
+    // Calculate total people already registered
+    const totalExistingPeople = existingReservations.reduce(
+      (sum, res) => sum + res.total_people,
+      0
+    );
+
+    // Calculate remaining available slots
+    const availableSlots = MAX_PEOPLE_PER_SHIFT - totalExistingPeople;
+
+    // Check if there are enough slots for the requested reservation
+    const requestedSlots =
+      data.reservation_type === "group" ? data.group_size : 1;
+    const isAvailable = availableSlots >= requestedSlots;
+
+    return {
+      available: isAvailable,
+      current_people: totalExistingPeople,
+      available_slots: availableSlots,
+      max_people: MAX_PEOPLE_PER_SHIFT,
+      message: isAvailable
+        ? `Available ${availableSlots} slots out of a total of ${MAX_PEOPLE_PER_SHIFT} slots`
+        : `Sorry, only ${availableSlots} slots remaining out of a total of ${MAX_PEOPLE_PER_SHIFT} slots`,
+    };
+  } catch (error) {
+    console.error("Error checking availability:", error);
+    throw new Error("Failed to check session availability");
   }
 }
