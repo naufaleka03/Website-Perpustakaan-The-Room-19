@@ -9,21 +9,22 @@ export const createClient = () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
+        async get(name) {
+          const cookie = cookieStore.get(name)
+          return cookie?.value
         },
         set(name, value, options) {
           try {
             cookieStore.set({ name, value, ...options })
           } catch (error) {
-            // Handle cookie errors
+            // Mungkin akan error jika headers sudah dikirim
           }
         },
         remove(name, options) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            cookieStore.delete({ name, ...options })
           } catch (error) {
-            // Handle cookie errors
+            // Mungkin akan error jika headers sudah dikirim
           }
         },
       },

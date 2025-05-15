@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { createClient } from '@/app/supabase/client';
 
 const Detail = () => {
   const router = useRouter();
@@ -13,8 +14,39 @@ const Detail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isBorrowing, setIsBorrowing] = useState(false);
+  const [borrowResult, setBorrowResult] = useState(null);
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Ambil data visitor (member)
+          const { data: visitorData, error: visitorError } = await supabase
+            .from('visitors')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (visitorError) {
+            console.error('Error fetching visitor data:', visitorError);
+            return;
+          }
+          
+          setUser({
+            id: user.id,
+            ...visitorData
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    };
+
     const fetchBookDetails = async () => {
       if (!bookId) {
         setError("Book ID is missing");
@@ -40,8 +72,71 @@ const Detail = () => {
       }
     };
 
+    fetchUserData();
     fetchBookDetails();
   }, [bookId]);
+
+  const handleBorrowBook = async () => {
+    if (!user) {
+      // Jika pengguna belum login, redirect ke halaman login
+      router.push('/login');
+      return;
+    }
+
+    if (!book) {
+      setError('Book data not available');
+      return;
+    }
+
+    try {
+      setIsBorrowing(true);
+      setBorrowResult(null);
+
+      // Gunakan fungsi fetch standar untuk menghindari masalah dengan server-side cookies
+      const loanData = {
+        user_id: user.id,
+        book_id1: book.id,
+        book_title1: book.book_title,
+        full_name: user.name,
+        email: user.email,
+        phone_number: user.phone_number || '-'
+      };
+
+      const response = await fetch('/api/loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loanData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to borrow book');
+      }
+
+      setBorrowResult({
+        success: true,
+        message: 'Buku berhasil dipinjam! Tanggal pengembalian: ' + 
+                 new Date(result.loan.loan_due).toLocaleDateString('id-ID'),
+      });
+
+      // Setelah berhasil meminjam, tunggu beberapa detik dan redirect ke halaman katalog buku
+      setTimeout(() => {
+        router.push('/user/dashboard/books/catalog');
+      }, 3000);
+
+    } catch (err) {
+      console.error('Error borrowing book:', err);
+      setBorrowResult({
+        success: false,
+        message: err.message || 'Gagal meminjam buku. Silakan coba lagi nanti.',
+      });
+    } finally {
+      setIsBorrowing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -210,9 +305,19 @@ const Detail = () => {
                 </span>
               </div>
 
+              {borrowResult && (
+                <div className={`my-4 p-2 rounded text-xs text-center ${borrowResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {borrowResult.message}
+                </div>
+              )}
+
               <div className="space-y-3 mt-6">
-                <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
-                  Borrow Book
+                <button 
+                  className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing ? 'bg-gray-400' : 'bg-[#2e3105]'}`}
+                  onClick={handleBorrowBook}
+                  disabled={isBorrowing}
+                >
+                  {isBorrowing ? 'Processing...' : 'Borrow Book'}
                 </button>
                 <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">
                   Cart
