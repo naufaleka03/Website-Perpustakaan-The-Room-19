@@ -876,7 +876,17 @@ export default function DataCollection() {
                             {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
                           </td>
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.book}</td>
+                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
+                            {item.book1}
+                            {item.book2 && (
+                              <span
+                                title="2 books total"
+                                className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
+                              >
+                                +1
+                              </span>
+                            )}
+                          </td>
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
                           <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
