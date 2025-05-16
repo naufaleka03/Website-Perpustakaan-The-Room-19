@@ -4,7 +4,6 @@ import { FaSearch, FaPlus, FaEllipsisV, FaSort } from 'react-icons/fa';
 import { membershipData } from './data/membershipData';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
-import { borrowingBookData as initialBorrowingBookData } from './data/borrowingBookData';
 import CancelConfirmationModal from './CancelConfirmationModal';
 import { useRouter } from 'next/navigation';
 import DetailSessionModal from './DetailSessionModal';
@@ -57,7 +56,7 @@ export default function DataCollection() {
   const [borrowingBookSearchQuery, setBorrowingBookSearchQuery] = useState('');
   const [selectedBorrowingData, setSelectedBorrowingData] = useState(null);
   const [isDetailBorrowingModalOpen, setIsDetailBorrowingModalOpen] = useState(false);
-  const [borrowingBookData, setBorrowingBookData] = useState(initialBorrowingBookData);
+  const [borrowingBookData, setBorrowingBookData] = useState([]);
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
@@ -276,12 +275,13 @@ export default function DataCollection() {
     return sessionData.slice(startIndex, endIndex);
   };
 
-  // Update filterDataByName function to handle book search
+  // Update filterDataByName function untuk mencari berdasarkan nama dan judul buku
   const filterDataByName = (data, query) => {
     if (data === borrowingBookData) {
       return data.filter(item => 
-        item.name?.toLowerCase().includes(query.toLowerCase()) ||
-        item.book?.toLowerCase().includes(query.toLowerCase())
+        item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
+        item.book_title1?.toLowerCase().includes(query.toLowerCase()) ||
+        item.book_title2?.toLowerCase().includes(query.toLowerCase())
       );
     }
     return data.filter(item => 
@@ -333,37 +333,99 @@ export default function DataCollection() {
     setSessionCurrentPage(1);
   };
 
-  // Fungsi untuk mengecek status peminjaman
+  // Update fungsi getBorrowingStatus untuk menggunakan loan_due
   const getBorrowingStatus = (returnDate, status) => {
-    if (status === 'returned') return 'returned';
+    if (status === 'Returned') return 'returned';
     
     const today = new Date();
     const returnDateObj = new Date(returnDate);
     
-    if (today > returnDateObj) {
-      return 'overdue';
-    }
+    if (today > returnDateObj) return 'overdue';
     return 'ongoing';
   };
 
-  // Fungsi untuk menangani pengembalian buku
-  const handleReturnBook = async (bookId) => {
-    try {
-      // Update status buku menjadi returned
-      const updatedData = borrowingBookData.map(item => {
-        if (item.id === bookId) {
-          return { ...item, status: 'returned' };
+  // Update useEffect untuk mengambil data peminjaman dari API
+  useEffect(() => {
+    const fetchLoans = async () => {
+      try {
+        const response = await fetch('/api/loans');
+        const data = await response.json();
+        
+        if (data && data.loans) {
+          // Sortir data berdasarkan created_at (terbaru terlebih dahulu)
+          const sortedData = data.loans.sort((a, b) => {
+            const dateA = new Date(a.created_at);
+            const dateB = new Date(b.created_at);
+            return dateB - dateA;
+          });
+          
+          setBorrowingBookData(sortedData);
         }
-        return item;
+      } catch (error) {
+        console.error('Error fetching loans data:', error);
+      }
+    };
+    
+    if (activeTab === 'borrowing') {
+      fetchLoans();
+    }
+  }, [activeTab]);
+
+  // Update fungsi handleDetailBorrowing untuk menggunakan struktur data baru
+  const handleDetailBorrowing = (borrowingId) => {
+    const borrowingData = borrowingBookData.find(data => data.id === borrowingId);
+    
+    if (borrowingData) {
+      // Transformasi data sesuai format yang diharapkan DetailBorrowingModal
+      const formattedData = {
+        id: borrowingData.id,
+        name: borrowingData.full_name,
+        book1: borrowingData.book_title1,
+        book2: borrowingData.book_title2 || null,
+        borrowing_date: borrowingData.loan_start,
+        return_date: borrowingData.loan_due,
+        status: borrowingData.status,
+        email: borrowingData.email,
+        phone: borrowingData.phone_number
+      };
+
+      setSelectedBorrowingData(formattedData);
+      setIsDetailBorrowingModalOpen(true);
+    }
+    
+    setActiveDropdown(null);
+  };
+
+  // Update fungsi handleReturnBook untuk menggunakan API
+ // ... existing code ...
+ const handleReturnBook = async (bookId) => {
+    try {
+      const response = await fetch(`/api/loans/${bookId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'Returned' }),
       });
-      
-      // Update state
-      setBorrowingBookData(updatedData);
-      setIsDetailBorrowingModalOpen(false);
+
+      if (response.ok) {
+        // Update status di state lokal
+        setBorrowingBookData(prevData =>
+          prevData.map(book =>
+            book.id === bookId ? { ...book, status: 'Returned' } : book
+          )
+        );
+        
+        // Tutup modal
+        setIsDetailBorrowingModalOpen(false);
+      } else {
+        console.error('Failed to update book status');
+      }
     } catch (error) {
-      console.error('Error returning book:', error);
+      console.error('Error updating book status:', error);
     }
   };
+  // ... existing code ...
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -866,7 +928,7 @@ export default function DataCollection() {
                   </thead>
                   <tbody>
                     {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).map((item, index) => {
-                      const status = getBorrowingStatus(item.return_date, item.status);
+                      const status = getBorrowingStatus(item.loan_due, item.status);
                       return (
                         <tr 
                           key={item.id} 
@@ -875,10 +937,10 @@ export default function DataCollection() {
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
                             {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
                           </td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
+                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.full_name}</td>
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
-                            {item.book1}
-                            {item.book2 && (
+                            {item.book_title1}
+                            {item.book_title2 && (
                               <span
                                 title="2 books total"
                                 className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
@@ -888,7 +950,7 @@ export default function DataCollection() {
                             )}
                           </td>
                           <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
+                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
                           <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
                             <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
                               status === 'returned'
@@ -905,16 +967,15 @@ export default function DataCollection() {
                             </span>
                           </td>
                           <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
-                          <button 
+                            <button 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedBorrowingData(item);
-                                setActiveDropdown(item.id); // Tampilkan dropdown untuk item ini
+                                setActiveDropdown(activeDropdown === item.id ? null : item.id);
                               }}
                               className="text-[#666666] hover:text-[#111010] dropdown-trigger"
                             >
                               <FaEllipsisV size={14} />
-                          </button>
+                            </button>
                                                         
                             {activeDropdown === item.id && (
                               <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
@@ -922,8 +983,7 @@ export default function DataCollection() {
                                   className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedBorrowingData(item);
-                                    setIsDetailBorrowingModalOpen(true); // Baru buka modal di sini
+                                    handleDetailBorrowing(item.id);
                                     setActiveDropdown(null);
                                   }}
                                 >

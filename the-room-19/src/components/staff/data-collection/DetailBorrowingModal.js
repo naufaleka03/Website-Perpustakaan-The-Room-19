@@ -11,7 +11,7 @@ const formatDate = (dateString) => {
 };
 
 const getBorrowingStatus = (returnDate, status) => {
-  if (status === 'returned') return 'returned';
+  if (status === 'Returned') return 'returned';
   const today = new Date();
   const returnDateObj = new Date(returnDate);
   if (today > returnDateObj) return 'overdue';
@@ -23,9 +23,50 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
 
   const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
 
-  const handleReturn = () => {
-    if (onReturnBook) onReturnBook(borrowingData.id);
+  const handleReturn = async () => {
+    try {
+      console.log('Attempting to update loan status for ID:', borrowingData.id);
+      
+      // Panggil API untuk mengupdate status di database
+      const response = await fetch(`/api/loans/${borrowingData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'Returned',
+          loan_id: borrowingData.id
+        }),
+      });
+
+      // Periksa apakah respons adalah JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Log response untuk debugging
+      console.log('Response status:', response.status);
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
+      if (response.ok) {
+        console.log('Successfully updated loan status');
+        // Jika berhasil, panggil onReturnBook untuk update state di parent component
+        if (onReturnBook) {
+          onReturnBook(borrowingData.id);
+          onClose(); // Tutup modal setelah berhasil
+        }
+      } else {
+        console.error('Failed to update book status:', responseData.error || 'Unknown error');
+        alert('Gagal memperbarui status buku. Silakan coba lagi.'); // Tampilkan pesan error ke user
+      }
+    } catch (error) {
+      console.error('Error updating book status:', error);
+      alert('Terjadi kesalahan saat memperbarui status buku. Silakan coba lagi.'); // Tampilkan pesan error ke user
+    }
   };
+
 
   const handleOutsideClick = (e) => {
     if (e.target.classList.contains('modal-overlay')) {
@@ -97,14 +138,14 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
           {status !== 'returned' && (
             <button
               onClick={handleReturn}
-              className="px-4 py-2 bg-black text-white rounded-lg"
+              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               Mark as Returned
             </button>
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Close
           </button>
