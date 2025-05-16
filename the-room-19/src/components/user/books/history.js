@@ -123,7 +123,7 @@ const History = () => {
                       className="w-full px-4 py-2 text-left text-xs font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
                       onClick={() => handleSelectOption("Borrowed")}
                     >
-                      Borrowed
+                      On Going
                     </button>
                     <button
                       className="w-full px-4 py-2 text-left text-xs font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
@@ -142,13 +142,24 @@ const History = () => {
             {filteredLoans.map((loan) => (
               <div key={loan.id} className="w-full h-[161px] bg-white rounded-2xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.15)] border border-[#cdcdcd] p-4 flex items-center">
                 <div className="flex items-center h-full">
-                  <img
-                    className="w-[84px] h-[120px] rounded-xl"
-                    src={loan.cover_image1 || "https://placehold.co/84x120"}
-                    alt={`${loan.book_title1} Cover`}
-                  />
+                {loan.cover_image1 ? (
+                    <img
+                      className="w-[84px] h-[120px] rounded-xl object-cover"
+                      src={loan.cover_image1}
+                      alt={`${loan.book_title1} Cover`}
+                    />
+                  ) : (
+                    <div className="w-[84px] h-[120px] rounded-xl bg-[#eff0c3] flex items-center justify-center">
+                      <span className="text-[#52570d] font-bold text-xl font-manrope">
+                        {loan.book_title1
+                          .split(" ")
+                          .slice(0, 2)
+                          .map(word => word[0].toUpperCase())
+                          .join("")}
+                      </span>
+                    </div>
+                  )}
                 </div>
-
                 <div className="flex-1 ml-6">
                   <h3 className="text-black text-sm font-semibold font-manrope">
                     {loan.book_title1}

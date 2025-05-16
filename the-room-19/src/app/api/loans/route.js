@@ -41,7 +41,7 @@ export async function POST(request) {
     const requestData = await request.json();
 
     // Validasi input yang wajib ada
-    const requiredFields = ['user_id', 'book_id1', 'book_title1', 'genre1', 'cover_image1', 'price1', 'full_name', 'email', 'phone_number'];
+    const requiredFields = ['user_id', 'book_id1', 'book_title1', 'genre1', 'price1', 'full_name', 'email', 'phone_number'];
     const missingFields = requiredFields.filter(field => !requestData[field]);
     
     if (missingFields.length > 0) {
@@ -60,7 +60,7 @@ export async function POST(request) {
       book_title2: requestData.book_title2 || null,
       genre1: requestData.genre1,
       genre2: requestData.genre2 || null,
-      cover_image1: requestData.cover_image1,
+      cover_image1: requestData.cover_image1 || null,
       cover_image2: requestData.cover_image2 || null,
       price1: requestData.price1,
       price2: requestData.price2 || null,

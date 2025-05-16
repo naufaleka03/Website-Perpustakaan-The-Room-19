@@ -22,7 +22,7 @@ async function fixLoansTable() {
         book_title2 VARCHAR(255),
         genre1 VARCHAR(100) NOT NULL,
         genre2 VARCHAR(100),
-        cover_image1 TEXT NOT NULL,
+        cover_image1 TEXT,
         cover_image2 TEXT,
         price1 NUMERIC(10, 2) NOT NULL,
         price2 NUMERIC(10, 2),
