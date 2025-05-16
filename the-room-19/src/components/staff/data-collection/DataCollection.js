@@ -51,7 +51,9 @@ export default function DataCollection() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' atau 'oldest'
+  const [sortOrder, setSortOrder] = useState("newest"); // 'newest' atau 'oldest'
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = "") => {
@@ -286,11 +288,12 @@ export default function DataCollection() {
     return sessionData.slice(startIndex, endIndex);
   };
 
-  // Update filterDataByName function to handle book search
+  // Fungsi untuk memfilter data berdasarkan nama
   const filterDataByName = (data, query) => {
-    return data.filter(item => 
-      item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
-      item.name?.toLowerCase().includes(query.toLowerCase())
+    return data.filter(
+      (item) =>
+        item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
+        item.name?.toLowerCase().includes(query.toLowerCase())
     );
   };
 
@@ -335,38 +338,6 @@ export default function DataCollection() {
 
     setSessionData(sortedData);
     setSessionCurrentPage(1);
-  };
-
-  // Fungsi untuk mengecek status peminjaman
-  const getBorrowingStatus = (returnDate, status) => {
-    if (status === 'returned') return 'returned';
-    
-    const today = new Date();
-    const returnDateObj = new Date(returnDate);
-    
-    if (today > returnDateObj) {
-      return 'overdue';
-    }
-    return 'ongoing';
-  };
-
-  // Fungsi untuk menangani pengembalian buku
-  const handleReturnBook = async (bookId) => {
-    try {
-      // Update status buku menjadi returned
-      const updatedData = borrowingBookData.map(item => {
-        if (item.id === bookId) {
-          return { ...item, status: 'returned' };
-        }
-        return item;
-      });
-      
-      // Update state
-      setBorrowingBookData(updatedData);
-      setIsDetailBorrowingModalOpen(false);
-    } catch (error) {
-      console.error('Error returning book:', error);
-    }
   };
 
   return (
@@ -418,16 +389,6 @@ export default function DataCollection() {
             }`}
           >
             Membership
-          </button>
-          <button
-            onClick={() => setActiveTab('borrowing')}
-            className={`px-6 py-3 text-sm transition-all relative ${
-              activeTab === 'borrowing'
-                ? 'text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]'
-                : 'text-[#666666]'
-            }`}
-          >
-            Borrowing Book
           </button>
         </div>
 
@@ -501,13 +462,27 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Category</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        No
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Name
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Date
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Shift
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Category
+                      </th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Status
+                      </th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -674,13 +649,27 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Event</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        No
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Name
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Event
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Date
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Shift
+                      </th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Status
+                      </th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -869,13 +858,27 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date Join</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone</th>
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        No
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Name
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Date Join
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Email
+                      </th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Phone
+                      </th>
+                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Status
+                      </th>
+                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1002,116 +1005,6 @@ export default function DataCollection() {
               />
             </>
           )}
-
-          {activeTab === 'borrowing' && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by name or book title"
-                    value={borrowingBookSearchQuery}
-                    onChange={(e) => handleSearch(e, setBorrowingBookSearchQuery)}
-                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
-                </div>
-              </div>
-              <div className="min-w-[768px] overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).map((item, index) => {
-                      const status = getBorrowingStatus(item.return_date, item.status);
-                      return (
-                        <tr 
-                          key={item.id} 
-                          className="border-b border-[#666666]/10 hover:bg-gray-100 transition-colors duration-200"
-                        >
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                            {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
-                          </td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
-                            {item.book1}
-                            {item.book2 && (
-                              <span
-                                title="2 books total"
-                                className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
-                              >
-                                +1
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
-                          <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
-                            <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
-                              status === 'returned'
-                                ? 'text-green-800 bg-green-100'
-                                : status === 'overdue'
-                                ? 'text-red-800 bg-red-100'
-                                : 'text-yellow-800 bg-yellow-100'
-                            }`}>
-                              {status === 'returned'
-                                ? 'Returned'
-                                : status === 'overdue'
-                                ? 'Over Due'
-                                : 'On Going'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
-                          <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedBorrowingData(item);
-                                setActiveDropdown(item.id); // Tampilkan dropdown untuk item ini
-                              }}
-                              className="text-[#666666] hover:text-[#111010] dropdown-trigger"
-                            >
-                              <FaEllipsisV size={14} />
-                          </button>
-                                                        
-                            {activeDropdown === item.id && (
-                              <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
-                                <button 
-                                  className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedBorrowingData(item);
-                                    setIsDetailBorrowingModalOpen(true); // Baru buka modal di sini
-                                    setActiveDropdown(null);
-                                  }}
-                                >
-                                  Detail
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationControls 
-                currentPage={borrowingBookCurrentPage}
-                setCurrentPage={setBorrowingBookCurrentPage}
-                data={borrowingBookData}
-                itemsPerPage={entriesPerPage}
-              />
-            </>
-          )}
         </div>
       </div>
       <CancelConfirmationModal
@@ -1125,6 +1018,11 @@ export default function DataCollection() {
         onClose={() => setIsDetailModalOpen(false)}
         sessionId={selectedSessionId}
       />
+      {successMessage && (
+        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
     </div>
   );
 }

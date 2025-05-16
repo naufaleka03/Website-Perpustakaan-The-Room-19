@@ -160,7 +160,6 @@ async function seedBookLoans(tx) {
             status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
-    const sql = tx ?? sql;
     
     await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   
