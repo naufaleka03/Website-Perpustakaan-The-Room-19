@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import React from 'react';
 import { FaCamera } from 'react-icons/fa'; // Import camera icon
 import { createClient } from '@/app/supabase/client'; // Updated import path
 import { useRouter } from 'next/navigation'; // Import useRouter
@@ -16,11 +15,8 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     fullName: '',
     gender: 'Male', // Default value
     phone: '',
-    address: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    memberStatus: 'guest', // Add member status
+    position: '', // Add staff position
+    hireDate: '', // Add hire date
   });
 
   const [accountSettings, setAccountSettings] = useState({
@@ -56,7 +52,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     const fetchProfilePicture = async () => {
       if (userId) {
         try {
-          const { data, error } = await supabase.from('visitors').select('profile_picture').eq('id', userId).single();
+          const { data, error } = await supabase.from('staffs').select('profile_picture').eq('id', userId).single();
           if (error) throw error;
           
           if (data && data.profile_picture) {
@@ -77,7 +73,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     const fetchPersonalInfo = async () => {
       if (userId) {
         try {
-          const { data, error } = await supabase.from('visitors').select('*').eq('id', userId).single();
+          const { data, error } = await supabase.from('staffs').select('*').eq('id', userId).single();
           if (error) throw error;
           
           if (data) {
@@ -85,11 +81,8 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               fullName: data.name || '',
               gender: data.gender || 'Male', 
               phone: data.phone_number || '', // Default to empty string if not set
-              address: data.address || '',
-              city: data.city || '',
-              state: data.state || '',
-              postalCode: data.postal_code || '',
-              memberStatus: data.member_status || 'guest', // Add member status
+              position: data.position || '', // Add staff position
+              hireDate: data.hire_date ? new Date(data.hire_date).toLocaleDateString() : '',
             });
           }
         } catch (error) {
@@ -114,7 +107,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             setLoading(true);
             
             // Fetch current profile picture URL
-            const { data: currentData, error: fetchError } = await supabase.from('visitors').select('profile_picture').eq('id', userId).single();
+            const { data: currentData, error: fetchError } = await supabase.from('staffs').select('profile_picture').eq('id', userId).single();
             if (fetchError) throw fetchError;
             
             // Delete previous image if it exists
@@ -132,7 +125,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             console.log('Image URL being set in database:', imageUrl);
 
             // Update the profile picture in the database
-            const { error: updateError } = await supabase.from('visitors').update({ profile_picture: imageUrl }).eq('id', userId);
+            const { error: updateError } = await supabase.from('staffs').update({ profile_picture: imageUrl }).eq('id', userId);
             if (updateError) throw updateError;
             
             setProfilePicture(imageUrl);
@@ -158,15 +151,12 @@ export default function Profile({ profilePicture, setProfilePicture }) {
       
       // Update the personal information in the database
       const { error } = await supabase
-        .from('visitors')
+        .from('staffs')
         .update({
           name: personalInfo.fullName,
           gender: personalInfo.gender,
           phone_number: personalInfo.phone,
-          address: personalInfo.address,
-          city: personalInfo.city,
-          state: personalInfo.state,
-          postal_code: personalInfo.postalCode,
+          position: personalInfo.position,
         })
         .eq('id', userId);
 
@@ -237,7 +227,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
         </div>
         <div className="p-6">
           <div className="space-y-4 px-2">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i}>
                 <div className="h-4 bg-gray-300 rounded w-20 mb-1"></div>
                 <div className="h-5 bg-gray-300 rounded w-full"></div>
@@ -274,7 +264,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
               />
             ) : (
               <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-2xl font-semibold text-gray-600">
-                {personalInfo.fullName ? personalInfo.fullName.charAt(0).toUpperCase() : ''}
+                {personalInfo.fullName ? personalInfo.fullName.charAt(0).toUpperCase() : 'S'}
               </div>
             )}
             <label htmlFor="profilePictureUpload" className="absolute inset-0 cursor-pointer flex items-center justify-center transition duration-300 hover:bg-black hover:bg-opacity-50 rounded-full">
@@ -290,17 +280,10 @@ export default function Profile({ profilePicture, setProfilePicture }) {
           </div>
           <h2 className="text-md font-semibold text-[#111010]">{personalInfo.fullName}</h2>
           <div className="flex flex-col items-center mt-1">
-            <div className={`rounded-full px-3 pb-0.5 ${personalInfo.memberStatus === 'member' ? 'bg-[#2e3105]' : 'bg-gray-400'}`}>
-              <span className="text-white text-xs">{personalInfo.memberStatus === 'member' ? 'Member' : 'Guest'}</span>
+            <div className="rounded-full px-3 pb-0.5 bg-[#2e3105]">
+              <span className="text-white text-xs">Staff</span>
             </div>
-            {personalInfo.memberStatus !== 'member' && (
-              <Link 
-                href="/user/dashboard/membership"
-                className="mt-2 text-sm text-[#2e3105] hover:underline"
-              >
-                Join our membership to borrow a book
-              </Link>
-            )}
+            <p className="mt-1 text-sm text-gray-600">{personalInfo.position || 'Position not set'}</p>
           </div>
         </div>
       </div>
@@ -339,6 +322,10 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                 <p className="text-[#111010] font-medium text-sm">{personalInfo.fullName}</p>
               </div>
               <div>
+                <label className="text-sm text-[#666666]">Position</label>
+                <p className="text-[#111010] font-medium text-sm">{personalInfo.position || 'Not set'}</p>
+              </div>
+              <div>
                 <label className="text-sm text-[#666666]">Gender</label>
                 <p className="text-[#111010] font-medium text-sm">{personalInfo.gender}</p>
               </div>
@@ -347,21 +334,14 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                 <p className="text-[#111010] font-medium text-sm">{personalInfo.phone}</p>
               </div>
               <div>
-                <label className="text-sm text-[#666666]">Address</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.address}</p>
-              </div>
-              <div>
-                <label className="text-sm text-[#666666]">City/State</label>
-                <p className="text-[#111010] font-medium text-sm">{`${personalInfo.city}, ${personalInfo.state}`}</p>
-              </div>
-              <div>
-                <label className="text-sm text-[#666666]">Postal Code</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.postalCode}</p>
-              </div>
-              <div>
-                <label className="text-sm text-[#666666]">Membership Status</label>
+                <label className="text-sm text-[#666666]">Hire Date</label>
                 <p className="text-[#111010] font-medium text-sm">
-                  {personalInfo.memberStatus === 'member' ? 'Active Member' : 'Guest'}
+                  {personalInfo.hireDate || 'Not available'}
+                  {personalInfo.hireDate && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({Math.floor((new Date() - new Date(personalInfo.hireDate)) / (1000 * 60 * 60 * 24 * 30))} months of service)
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -384,6 +364,16 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                     />
                   </div>
                   <div>
+                    <label className="text-sm text-[#666666] font-medium">Position</label>
+                    <input
+                      type="text"
+                      value={personalInfo.position}
+                      onChange={(e) => setPersonalInfo({ ...personalInfo, position: e.target.value })}
+                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
+                      placeholder="Enter your staff position"
+                    />
+                  </div>
+                  <div>
                     <label className="text-sm text-[#666666] font-medium">Gender</label>
                     <select
                       value={personalInfo.gender}
@@ -402,48 +392,6 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your phone number"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-[#666666] font-medium">Address</label>
-                    <input
-                      type="text"
-                      value={personalInfo.address}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                      placeholder="Enter your address"
-                    />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="text-sm text-[#666666] font-medium">State</label>
-                      <input
-                        type="text"
-                        value={personalInfo.state}
-                        onChange={(e) => setPersonalInfo({ ...personalInfo, state: e.target.value })}
-                        className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                        placeholder="Enter your state"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-sm text-[#666666] font-medium">City</label>
-                      <input
-                        type="text"
-                        value={personalInfo.city}
-                        onChange={(e) => setPersonalInfo({ ...personalInfo, city: e.target.value })}
-                        className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                        placeholder="Enter your city"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-[#666666] font-medium">Postal Code</label>
-                    <input
-                      type="text"
-                      value={personalInfo.postalCode}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, postalCode: e.target.value })}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 mb-2 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                      placeholder="Enter your postal code"
                     />
                   </div>
                   <button
@@ -515,18 +463,6 @@ export default function Profile({ profilePicture, setProfilePicture }) {
           )}
         </div>
       </div>
-
-      {/* Preferences Card */}
-      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mt-6">
-        <Link href="/user/dashboard/profile/questionnaire" className="block">
-          <div className="flex flex-col items-center text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors duration-200">
-            <h3 className="text-lg font-semibold text-[#111010] mb-2">User Preferences</h3>
-            <p className="text-sm text-[#666666] max-w-md">
-              Want to know more about your interest? Help us tailor a recommendation for you!
-            </p>
-          </div>
-        </Link>
-      </div>
     </div>
   );
-} 
+}

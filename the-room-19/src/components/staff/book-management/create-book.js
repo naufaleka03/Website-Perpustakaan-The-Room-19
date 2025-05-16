@@ -8,22 +8,110 @@ import { IoIosArrowDown } from "react-icons/io";
 
 const bookTypes = ["Local Books", "International Books"];
 const contentTypes = ["Fiction", "Nonfiction"];
-const genres = [
-  "Arts & Architecture",
-  "Business",
-  "Children's Books",
-  "Crime & Mystery",
-  "Fantasy & Sci-Fi",
-  "Historical Fiction",
-  "Psychology & Self Help",
-  "Romance",
-  "Science",
-  // Add more genres as needed
-];
-
 const languages = ["Indonesian", "English", "Chinese", "Japanese", "More"];
 const coverTypes = ["Hardcover", "Paperback", "E-Book"];
 const usageOptions = ["On-site Only", "On-site Only and For Rent"];
+
+// Add this component before the main CreateBook component
+function CreateBookSkeleton() {
+  const skeletonClass = "bg-[#f0f0f0] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[#f8f8f8] before:to-transparent";
+
+  return (
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <div className="w-full h-full relative bg-white p-8">
+        <div className="max-w-[1200px] mx-auto">
+          <div className={`h-8 ${skeletonClass} rounded w-1/4 mb-6`}></div>
+          
+          <div className="flex gap-8">
+            {/* Left side - Book Cover Upload Skeleton */}
+            <div className="w-[200px] flex flex-col">
+              <div className="w-[200px] h-[280px] rounded-2xl overflow-hidden border border-[#cdcdcd] flex-shrink-0 bg-white p-2">
+                <div className={`w-full h-full ${skeletonClass} rounded-lg`}></div>
+              </div>
+              <div className={`mt-2 ${skeletonClass} rounded-lg h-[80px] w-full`}></div>
+            </div>
+
+            {/* Right side - Book Form Skeleton */}
+            <div className="flex-1 space-y-4">
+              {/* Book Details Section */}
+              <div className="bg-white rounded-xl p-6 border border-[#cdcdcd]/50">
+                <div className={`h-6 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+                
+                <div className="space-y-4">
+                  {/* Title */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                  </div>
+
+                  {/* Book Type Fields */}
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i}>
+                        <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                        <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className={`h-[100px] ${skeletonClass} rounded-lg w-full`}></div>
+                  </div>
+
+                  {/* Themes */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className="flex gap-2 mb-2">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className={`h-[30px] ${skeletonClass} rounded-full w-[100px]`}></div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg flex-1`}></div>
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg w-[80px]`}></div>
+                    </div>
+                  </div>
+
+                  {/* Usage and Price */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {[1, 2].map(i => (
+                      <div key={i}>
+                        <div className={`h-4 ${skeletonClass} rounded w-1/4 mb-2`}></div>
+                        <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Book Metadata Section */}
+              <div className="bg-white rounded-xl p-6 border border-[#cdcdcd]/50">
+                <div className={`h-6 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+                
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i}>
+                      <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2">
+                <div className={`h-[40px] ${skeletonClass} rounded-3xl w-[100px]`}></div>
+                <div className={`h-[40px] ${skeletonClass} rounded-3xl w-[100px]`}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CreateBook = () => {
   const router = useRouter();
@@ -33,6 +121,7 @@ const CreateBook = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formErrors, setFormErrors] = useState({});
+  const [genres, setGenres] = useState([]);
   const [formData, setFormData] = useState({
     book_title: "",
     isbn_code: "",
@@ -48,6 +137,28 @@ const CreateBook = () => {
     content_type: "",
     genre: ""
   });
+
+  const [themes, setThemes] = useState([]);
+  const [themeInput, setThemeInput] = useState('');
+
+  // Fetch genres from database
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const { data, error } = await supabase.from('genres').select('genre_name');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const genreNames = data.map(genre => genre.genre_name);
+          setGenres(genreNames);
+        }
+      } catch (error) {
+        console.error('Error fetching genres:', error.message);
+      }
+    };
+    
+    fetchGenres();
+  }, []);
 
   // If usage is "On-site Only", set price to "On-site Only"
   useEffect(() => {
@@ -197,6 +308,18 @@ const CreateBook = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleThemeSubmit = (e) => {
+    e.preventDefault();
+    if (themeInput.trim() && !themes.includes(themeInput.trim())) {
+      setThemes([...themes, themeInput.trim()]);
+      setThemeInput('');
+    }
+  };
+
+  const removeTheme = (themeToRemove) => {
+    setThemes(themes.filter(theme => theme !== themeToRemove));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -237,7 +360,8 @@ const CreateBook = () => {
         book_type: formData.book_type || null,
         content_type: formData.content_type || null,
         genre: formData.genre || null,
-        cover_image: coverImageUrl
+        cover_image: coverImageUrl,
+        themes: themes.length > 0 ? themes : null
       };
       
       console.log('Sending book data to API:', bookData);
@@ -277,6 +401,11 @@ const CreateBook = () => {
       setLoading(false);
     }
   };
+
+  // Update the loading state to use the skeleton
+  if (loading) {
+    return <CreateBookSkeleton />;
+  }
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -478,6 +607,51 @@ const CreateBook = () => {
                       className="w-full h-[100px] rounded-lg border border-[#666666]/30 px-4 py-2 text-sm text-[#666666] resize-none transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">Provide a brief summary or description of the book.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#666666] mb-1">
+                      Themes
+                    </label>
+                    <div className="space-y-2">
+                      {themes.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {themes.map((theme) => (
+                            <div
+                              key={theme}
+                              className="flex items-center gap-1 bg-[#2e3105]/10 px-2 py-1 rounded-full text-sm text-[#666666]"
+                            >
+                              <span>{theme}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeTheme(theme)}
+                                className="text-[#666666] hover:text-[#2e3105]"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={themeInput}
+                          onChange={(e) => setThemeInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleThemeSubmit(e)}
+                          placeholder="Add a theme and press Enter"
+                          className="flex-1 h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleThemeSubmit}
+                          className="h-[35px] bg-[#2e3105] text-white rounded-lg px-3 text-sm transition-all duration-300 hover:bg-[#3e4310]"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Add themes that represent this book. Press Enter or click Add after each theme.</p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

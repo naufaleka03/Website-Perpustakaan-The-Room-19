@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { BiSearch } from "react-icons/bi";
-import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import { IoChevronBackOutline, IoChevronForwardOutline, IoClose } from "react-icons/io5";
 import { AiFillStar } from "react-icons/ai";
 import { BsCart3 } from "react-icons/bs";
 import Link from "next/link";
@@ -17,6 +17,10 @@ const Catalog = () => {
     local: false,
     international: false,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const booksPerPage = 12;
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   // Data genre
   const allGenres = [
@@ -57,6 +61,9 @@ const Catalog = () => {
           params.append('minRating', '4');
         }
         
+        params.append('page', currentPage);
+        params.append('limit', booksPerPage);
+        
         const response = await fetch(`/api/books?${params.toString()}`);
         
         if (!response.ok) {
@@ -65,6 +72,7 @@ const Catalog = () => {
         
         const data = await response.json();
         setBooks(data.books || []);
+        setTotalPages(Math.ceil((data.total || 0) / booksPerPage));
       } catch (err) {
         console.error('Error fetching books:', err);
         setError('Failed to load books. Please try again later.');
@@ -74,7 +82,202 @@ const Catalog = () => {
     };
 
     fetchBooks();
-  }, [searchQuery, selectedGenres, highRatingOnly, bookType]);
+  }, [searchQuery, selectedGenres, highRatingOnly, bookType, currentPage]);
+
+  // Function to get book title initials
+  const getBookInitials = (title) => {
+    if (!title) return "";
+    return title
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+  
+  // Load skeleton component
+  const LoadingSkeleton = () => (
+    <>
+      {[...Array(8)].map((_, index) => (
+        <div key={index} className="animate-pulse">
+          <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] bg-gray-200"></div>
+          <div className="h-3 bg-gray-200 rounded mt-2 w-3/4 mx-auto"></div>
+          <div className="h-2 bg-gray-200 rounded mt-2 w-1/2 mx-auto"></div>
+          <div className="flex justify-center items-center mt-2">
+            <div className="h-3 bg-gray-200 rounded w-12"></div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+
+  // Simpler GenreSelectModal without external dependencies
+  const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredGenres, setFilteredGenres] = useState(genres);
+    const [localSelected, setLocalSelected] = useState([...selectedGenres]);
+
+    // Close modal on ESC key
+    useEffect(() => {
+      const handleEsc = (e) => {
+        if (e.key === 'Escape') onClose();
+      };
+      
+      if (isOpen) {
+        window.addEventListener('keydown', handleEsc);
+      }
+      
+      return () => {
+        window.removeEventListener('keydown', handleEsc);
+      };
+    }, [isOpen, onClose]);
+
+    // Prevent scrolling when modal is open
+    useEffect(() => {
+      if (isOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+      
+      return () => {
+        document.body.style.overflow = 'auto';
+      };
+    }, [isOpen]);
+
+    // Reset filtered genres when genres prop changes
+    useEffect(() => {
+      setFilteredGenres(genres);
+    }, [genres]);
+
+    // Update local selection when selectedGenres prop changes
+    useEffect(() => {
+      setLocalSelected([...selectedGenres]);
+    }, [selectedGenres]);
+
+    // Filter genres based on search query
+    useEffect(() => {
+      if (!searchQuery.trim()) {
+        setFilteredGenres(genres);
+        return;
+      }
+
+      const query = searchQuery.toLowerCase().trim();
+      const filtered = genres.filter(genre => 
+        genre.toLowerCase().includes(query)
+      );
+      setFilteredGenres(filtered);
+    }, [searchQuery, genres]);
+
+    const handleGenreToggle = (genre) => {
+      setLocalSelected(prev => {
+        if (prev.includes(genre)) {
+          return prev.filter(g => g !== genre);
+        } else {
+          return [...prev, genre];
+        }
+      });
+    };
+
+    const handleClearAll = () => {
+      setLocalSelected([]);
+    };
+
+    const handleApply = () => {
+      onChange(localSelected);
+      onClose();
+    };
+    
+    // Stop propagation on modal content click to prevent closing
+    const handleModalContentClick = (e) => {
+      e.stopPropagation();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"
+        onClick={onClose}
+      >
+        <div 
+          className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+          onClick={handleModalContentClick}
+        >
+          <div className="flex items-center justify-between border-b p-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              {title}
+            </h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+              <IoClose size={24} />
+            </button>
+          </div>
+
+          {/* Search Box */}
+          <div className="p-4 border-b">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search genres"
+                className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] pl-10 pr-4 text-xs text-gray-400"
+              />
+              <BiSearch
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+            </div>
+          </div>
+
+          {/* Genres List */}
+          <div className="max-h-[350px] overflow-y-auto p-4">
+            {filteredGenres.length === 0 ? (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                No genres found.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {filteredGenres.map((genre) => (
+                  <label
+                    key={genre}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={localSelected.includes(genre)}
+                      onChange={() => handleGenreToggle(genre)}
+                      className="w-4 h-4 rounded-sm border-[#cdcdcd]"
+                      style={{ accentColor: "#2e3105" }}
+                    />
+                    <span className="text-black text-xs font-medium truncate">
+                      {genre}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center border-t p-4">
+            <button
+              onClick={handleClearAll}
+              className="px-4 py-2 border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl"
+            >
+              Reset
+            </button>
+            <button
+              onClick={handleApply}
+              className="px-4 py-2 bg-[#2e3105] text-white text-xs rounded-2xl"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-white p-8">
@@ -103,7 +306,7 @@ const Catalog = () => {
         {/* Grid Buku */}
         <div className="flex-1 grid grid-cols-4 gap-4">
           {loading ? (
-            <div className="col-span-4 text-center py-10">Loading books...</div>
+            <LoadingSkeleton />
           ) : error ? (
             <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
           ) : books.length === 0 ? (
@@ -115,11 +318,17 @@ const Catalog = () => {
               <Link href={`/user/dashboard/books/catalog/detail?id=${book.id}`} key={book.id}>
                 <div className="relative">
                   <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] overflow-hidden">
-                    <img
-                      src={book.cover_image || "https://placehold.co/219x312"}
-                      alt={book.book_title}
-                      className="w-full h-full object-cover"
-                    />
+                    {book.cover_image ? (
+                      <img
+                        src={book.cover_image}
+                        alt={book.book_title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-500">
+                        {getBookInitials(book.book_title)}
+                      </div>
+                    )}
                   </div>
                   <h3 className="text-center text-black text-xs font-bold mt-1 line-clamp-1">
                     {book.book_title}
@@ -163,8 +372,8 @@ const Catalog = () => {
             {/* Genres */}
             <div>
               <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
-              <div className="max-h-[100px] overflow-y-auto pr-2">
-                {allGenres.map((genre) => (
+              <div className="max-h-[220px] overflow-y-auto pr-2">
+                {allGenres.slice(0, 10).map((genre) => (
                   <label key={genre} className="flex items-center gap-3 mb-3">
                     <input
                       type="checkbox"
@@ -186,6 +395,14 @@ const Catalog = () => {
                     </span>
                   </label>
                 ))}
+                {allGenres.length > 10 && (
+                  <button 
+                    onClick={() => setIsGenreModalOpen(true)}
+                    className="text-[#2e3105] text-xs hover:underline font-medium"
+                  >
+                    View more genres
+                  </button>
+                )}
               </div>
             </div>
 
@@ -261,31 +478,67 @@ const Catalog = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-8">
-        <div className="flex items-center gap-2">
-          <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
-            <IoChevronBackOutline size={16} />
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+          >
+            <IoChevronBackOutline />
           </button>
-          <button className="w-8 h-8 flex items-center justify-center text-white bg-[#2e3105] rounded text-xs">
-            1
-          </button>
-          {[2, 3, 4, 5, 6, 7].map((num) => (
-            <button
-              key={num}
-              className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 text-xs"
-            >
-              {num}
-            </button>
-          ))}
-          <span className="px-1 text-gray-600 text-xs">...</span>
-          <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 text-xs">
-            15
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600">
-            <IoChevronForwardOutline size={16} />
+          
+          {[...Array(totalPages)].map((_, index) => {
+            const pageNumber = index + 1;
+            // Show current page, first, last, and pages around current
+            if (
+              pageNumber === 1 || 
+              pageNumber === totalPages || 
+              (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+            ) {
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${
+                    currentPage === pageNumber
+                      ? 'bg-[#2e3105] text-white'
+                      : 'text-black hover:bg-gray-100'
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            } else if (
+              (pageNumber === currentPage - 2 && currentPage > 3) ||
+              (pageNumber === currentPage + 2 && currentPage < totalPages - 2)
+            ) {
+              return <span key={pageNumber} className="mx-1">...</span>;
+            }
+            return null;
+          })}
+          
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+          >
+            <IoChevronForwardOutline />
           </button>
         </div>
-      </div>
+      )}
+
+      {/* Genre Modal */}
+      {isGenreModalOpen && (
+        <GenreSelectModal
+          isOpen={isGenreModalOpen}
+          onClose={() => setIsGenreModalOpen(false)}
+          genres={allGenres}
+          selectedGenres={selectedGenres}
+          onChange={setSelectedGenres}
+          title="Select Genres"
+        />
+      )}
     </main>
   );
 };

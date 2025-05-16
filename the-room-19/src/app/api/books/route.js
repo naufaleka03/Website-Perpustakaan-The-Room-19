@@ -3,6 +3,32 @@ import postgres from 'postgres';
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 
+// Helper function to update genre book counts
+async function updateGenreBookCount(genreName) {
+  if (!genreName) return;
+  
+  try {
+    // Get the current count of books with this genre
+    const books = await sql`
+      SELECT COUNT(*) as count FROM books 
+      WHERE genre = ${genreName}
+    `;
+    
+    const count = books[0]?.count || 0;
+    
+    // Update the genre count in the genres table
+    await sql`
+      UPDATE genres 
+      SET number_of_books = ${count}
+      WHERE genre_name = ${genreName}
+    `;
+    
+    console.log(`Updated book count for genre ${genreName}: ${count}`);
+  } catch (error) {
+    console.error(`Error updating genre count for ${genreName}:`, error);
+  }
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -61,11 +87,12 @@ export async function POST(request) {
       book_type, 
       content_type,
       genre,
-      cover_image
+      cover_image,
+      themes
     } = body;
     
     // Validate required fields
-    if (!book_title || !isbn_code || !author || !publisher || !content_type) {
+    if (!book_title || !author || !publisher || !usage) {
       return NextResponse.json(
         { error: 'Missing required fields' }, 
         { status: 400 }
@@ -87,7 +114,8 @@ export async function POST(request) {
         book_type, 
         content_type,
         genre,
-        cover_image
+        cover_image,
+        themes
       ) VALUES (
         ${book_title}, 
         ${isbn_code}, 
@@ -102,9 +130,15 @@ export async function POST(request) {
         ${book_type}, 
         ${content_type},
         ${genre},
-        ${cover_image}
+        ${cover_image},
+        ${themes || []}
       ) RETURNING *
     `;
+    
+    // Update genre book count
+    if (genre) {
+      await updateGenreBookCount(genre);
+    }
     
     return NextResponse.json({ book: result[0] }, { status: 201 });
   } catch (error) {

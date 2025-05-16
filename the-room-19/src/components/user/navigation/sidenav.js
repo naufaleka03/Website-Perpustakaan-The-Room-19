@@ -15,30 +15,46 @@ export default function SideNav({ isExpanded, profilePicture }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('');
+  const [memberStatus, setMemberStatus] = useState('guest');
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUserId(session.user.id);
+        }
+      } catch (err) {
+        console.error('Error getting session:', err.message);
       }
     };
     fetchUserId();
   }, []);
 
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserInfo = async () => {
       if (userId) {
-        const { data, error } = await supabase.from('visitors').select('name').eq('id', userId).single();
-        if (data) {
-          setUserName(data.name);
-        } else {
-          console.error('Error fetching user name:', error);
+        try {
+          const { data, error } = await supabase
+            .from('visitors')
+            .select('name, member_status')
+            .eq('id', userId)
+            .single();
+            
+          if (error) throw error;
+          
+          if (data) {
+            setUserName(data.name || 'User');
+            setMemberStatus(data.member_status || 'guest');
+          }
+        } catch (err) {
+          console.error('Error fetching user info:', err.message);
+          setUserName('User');
         }
       }
     };
 
-    fetchUserName();
+    fetchUserInfo();
   }, [userId]);
 
   const handleLogout = async () => {
@@ -77,16 +93,16 @@ export default function SideNav({ isExpanded, profilePicture }) {
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
-                      {/* Grey background when no profile picture is set */}
+                    <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-lg font-semibold text-gray-600">
+                      {userName ? userName.charAt(0).toUpperCase() : 'U'}
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="text-[#5d7285] text-xs font-semibold truncate">{userName || 'User Name'}</div>
                   <div className="flex items-center mt-1">
-                    <div className="bg-[#2e3105] rounded-full px-3 pb-0.5">
-                      <span className="text-white text-xs">Member</span>
+                    <div className={`rounded-full px-3 pb-0.5 ${memberStatus === 'member' ? 'bg-[#2e3105]' : 'bg-gray-400'}`}>
+                      <span className="text-white text-xs">{memberStatus === 'member' ? 'Member' : 'Guest'}</span>
                     </div>
                   </div>
                 </div>

@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import React from 'react';
 import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Fragment } from 'react';
 import { createClient } from '@/app/supabase/client';
 
 const Detail = () => {
@@ -14,6 +16,8 @@ const Detail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lendCount, setLendCount] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
   const [user, setUser] = useState(null);
   const [isBorrowing, setIsBorrowing] = useState(false);
   const [borrowResult, setBorrowResult] = useState(null);
@@ -64,6 +68,20 @@ const Detail = () => {
         
         const data = await response.json();
         setBook(data.book || null);
+        
+        // Fetch lend count
+        const lendResponse = await fetch(`/api/books/${bookId}/lend-count`);
+        if (lendResponse.ok) {
+          const lendData = await lendResponse.json();
+          setLendCount(lendData.count || 0);
+        }
+        
+        // Fetch rating count
+        const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
+        if (ratingResponse.ok) {
+          const ratingData = await ratingResponse.json();
+          setRatingCount(ratingData.count || 0);
+        }
       } catch (err) {
         console.error('Error fetching book details:', err);
         setError('Failed to load book details. Please try again later.');
@@ -146,12 +164,101 @@ const Detail = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
-        <p>Loading book details...</p>
+  // Loading skeleton for the detail page
+  const DetailLoadingSkeleton = () => (
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <div className="w-full h-full relative bg-white">
+        <div className="w-full mx-auto px-12 py-8">
+          <div className="flex gap-8 animate-pulse">
+            {/* Book Cover Skeleton */}
+            <div className="w-[180px] h-[250px] rounded-2xl bg-gray-200"></div>
+
+            {/* Book Details Skeleton */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center">
+                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+              </div>
+
+              {/* Themes Skeleton */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                ))}
+              </div>
+
+              {/* Condition Skeleton */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3].map(i => (
+                    <Fragment key={i}>
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tabs Skeleton */}
+              <div className="border-b border-[#767676]/40 mt-4">
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
+              </div>
+
+              {/* Description Skeleton */}
+              <div className="py-4">
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </div>
+
+              {/* Details Skeleton */}
+              <div className="mb-6">
+                <div className="border-b border-[#767676]/40">
+                  <div className="h-8 bg-gray-200 rounded w-24"></div>
+                </div>
+                <div className="py-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                      <Fragment key={i}>
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                      </Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Book Status Card Skeleton */}
+            <div className="w-[280px] h-fit bg-white rounded-2xl border border-[#cdcdcd] p-6">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+              <hr className="border-[#767676]/40 mb-4" />
+
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+              </div>
+
+              <div className="space-y-3 mt-6">
+                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    );
+    </div>
+  );
+
+  if (loading) {
+    return <DetailLoadingSkeleton />;
   }
 
   if (error || !book) {
@@ -191,28 +298,66 @@ const Detail = () => {
             {/* Book Cover */}
             <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
               <img
-                src={book.cover_image || "https://placehold.co/180x250"}
+                src={book.cover_image && book.cover_image.trim() !== '' 
+                  ? book.cover_image 
+                  : "https://placehold.co/180x250"}
                 alt={`${book.book_title} Cover`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error(`Error loading image:`, e);
+                  e.target.src = "https://placehold.co/180x250";
+                }}
               />
             </div>
 
             {/* Book Details */}
             <div className="flex-1">
-              <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
-                {book.book_title}
-              </h1>
-              <h2 className="text-black text-base font-medium font-manrope mb-4">
-                {book.author}
-              </h2>
-
-              {/* Rating */}
-              <div className="flex items-center gap-2 mb-6">
-                {renderStars()}
-                <span className="text-[#666666] text-xs ml-2">
-                  {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
-                </span>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
+                    {book.book_title}
+                  </h1>
+                  
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center">
+                      <AiFillStar className="text-[#ECB43C] text-lg" />
+                      <span className="text-[#666666] text-xs ml-1">
+                        {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
+                      </span>
+                      <span className="text-[#666666] text-xs ml-1">
+                        ({ratingCount} reviews)
+                      </span>
+                    </div>
+                    
+                    <div className="text-[#666666] text-xs">
+                      Borrowed {lendCount} times
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Price - Moved to upper section */}
+                {book.price && (
+                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
+                    <p className="text-[#2e3105] text-lg font-bold">
+                      Rp {parseInt(book.price).toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Themes */}
+              {book.themes && book.themes.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {book.themes.map((theme) => (
+                    <span 
+                      key={theme} 
+                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666]"
+                    >
+                      {theme}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Tabs */}
               <div className="border-b border-[#767676]/40">
@@ -224,7 +369,38 @@ const Detail = () => {
               </div>
 
               {/* Description */}
-              <div className="py-6 text-xs font-manrope leading-relaxed">
+              
+              {/* Book Condition */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <h3 className="text-black text-sm font-medium mb-2">Book Condition</h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-black font-medium">Status</span>
+                  </div>
+                  <div className="text-black">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      book.condition === 'Pristine' ? 'bg-green-100 text-green-800' :
+                      book.condition === 'Good' ? 'bg-blue-100 text-blue-800' :
+                      book.condition === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-200 text-gray-800'
+                    }`}>
+                      {book.condition || "Not specified"}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <span className="text-black font-medium">Description</span>
+                  </div>
+                  <div className="text-black">{book.condition_description || "No description available"}</div>
+                  
+                  <div>
+                    <span className="text-black font-medium">Last Updated</span>
+                  </div>
+                  <div className="text-black">{book.condition_updated_at || "Not available"}</div>
+                </div>
+              </div>
+
+              <div className="py-4 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
                   {book.description 
                     ? (isExpanded 
@@ -254,42 +430,57 @@ const Detail = () => {
                   </div>
                 </div>
 
-                <div className="py-6">
+                <div className="py-4">
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-black font-medium">Author</span>
                     </div>
-                    <div className="text-black">{book.author}</div>
+                    <div className="text-black">{book.author || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Publisher</span>
                     </div>
-                    <div className="text-black">{book.publisher}</div>
+                    <div className="text-black">{book.publisher || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Published Year</span>
                     </div>
-                    <div className="text-black">{book.published_year}</div>
+                    <div className="text-black">{book.published_year || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Language</span>
                     </div>
-                    <div className="text-black">{book.language}</div>
+                    <div className="text-black">{book.language || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">ISBN</span>
                     </div>
-                    <div className="text-black">{book.isbn_code}</div>
+                    <div className="text-black">{book.isbn_code || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Genre</span>
                     </div>
-                    <div className="text-black">{book.genre}</div>
+                    <div className="text-black">{book.genre || "Not set"}</div>
                     
                     <div>
                       <span className="text-black font-medium">Book Type</span>
                     </div>
-                    <div className="text-black">{book.book_type}</div>
+                    <div className="text-black">{book.book_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Content Type</span>
+                    </div>
+                    <div className="text-black">{book.content_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Cover Type</span>
+                    </div>
+                    <div className="text-black">{book.cover_type || "Not set"}</div>
+                    
+                    <div>
+                      <span className="text-black font-medium">Usage</span>
+                    </div>
+                    <div className="text-black">{book.usage || "Not set"}</div>
                   </div>
                 </div>
               </div>
@@ -338,9 +529,9 @@ const Detail = () => {
                 Return Policy
               </h3>
               <p className="text-black text-xs text-justify font-medium font-manrope leading-relaxed">
-                Book returns are automatic 7 days after borrowing. You can
-                extend the loan period by following certain terms and
-                conditions.
+              Once a book is borrowed, a 7-day loan period begins. 
+              If the book is not returned after this period, a late fee will be applied. 
+              Borrowers may request a loan extension before or after the initial due date.
               </p>
             </div>
           </div>

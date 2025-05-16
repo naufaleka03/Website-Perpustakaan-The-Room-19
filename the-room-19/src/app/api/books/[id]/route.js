@@ -3,6 +3,32 @@ import postgres from 'postgres';
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 
+// Helper function to update genre book counts
+async function updateGenreBookCount(genreName) {
+  if (!genreName) return;
+  
+  try {
+    // Get the current count of books with this genre
+    const books = await sql`
+      SELECT COUNT(*) as count FROM books 
+      WHERE genre = ${genreName}
+    `;
+    
+    const count = books[0]?.count || 0;
+    
+    // Update the genre count in the genres table
+    await sql`
+      UPDATE genres 
+      SET number_of_books = ${count}
+      WHERE genre_name = ${genreName}
+    `;
+    
+    console.log(`Updated book count for genre ${genreName}: ${count}`);
+  } catch (error) {
+    console.error(`Error updating genre count for ${genreName}:`, error);
+  }
+}
+
 export async function GET(request, { params }) {
   try {
     const { id } = params;
@@ -29,9 +55,9 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = params;
 
-    // First, check if the book exists
+    // First, check if the book exists and get its genre
     const books = await sql`
-      SELECT id FROM books WHERE id = ${id}
+      SELECT id, genre FROM books WHERE id = ${id}
     `;
     
     if (books.length === 0) {
@@ -41,8 +67,15 @@ export async function DELETE(request, { params }) {
       );
     }
     
+    const bookGenre = books[0].genre;
+    
     // If book exists, delete it
     await sql`DELETE FROM books WHERE id = ${id}`;
+    
+    // Update genre book count if the book had a genre
+    if (bookGenre) {
+      await updateGenreBookCount(bookGenre);
+    }
     
     return NextResponse.json(
       { message: 'Book deleted successfully' }, 
@@ -62,9 +95,9 @@ export async function PUT(request, { params }) {
     const { id } = params;
     const body = await request.json();
     
-    // Check if book exists
+    // Check if book exists and get its current genre
     const existingBooks = await sql`
-      SELECT id FROM books WHERE id = ${id}
+      SELECT id, genre FROM books WHERE id = ${id}
     `;
     
     if (existingBooks.length === 0) {
@@ -73,6 +106,9 @@ export async function PUT(request, { params }) {
         { status: 404 }
       );
     }
+    
+    const oldGenre = existingBooks[0].genre;
+    const newGenre = body.genre;
     
     // Update the book
     const updatedBooks = await sql`
@@ -92,10 +128,21 @@ export async function PUT(request, { params }) {
         rating = ${body.rating},
         cover_type = ${body.cover_type},
         usage = ${body.usage},
-        price = ${body.price}
+        price = ${body.price},
+        themes = ${body.themes || []}
       WHERE id = ${id}
       RETURNING *
     `;
+    
+    // Update genre book counts if the genre has changed
+    if (oldGenre !== newGenre) {
+      if (oldGenre) {
+        await updateGenreBookCount(oldGenre);
+      }
+      if (newGenre) {
+        await updateGenreBookCount(newGenre);
+      }
+    }
     
     return NextResponse.json(
       { book: updatedBooks[0] }, 
