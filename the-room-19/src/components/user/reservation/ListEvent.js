@@ -45,7 +45,9 @@ export default function ListEvent() {
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
+    setCurrentSlide((prev) =>
+      prev === 0 ? carouselImages.length - 1 : prev - 1
+    );
   };
 
   const getPaginatedEvents = () => {
@@ -74,7 +76,7 @@ export default function ListEvent() {
     if (description.length <= maxLength) {
       return description;
     }
-    return description.substring(0, maxLength) + '...';
+    return description.substring(0, maxLength) + "...";
   };
 
   return (
@@ -161,19 +163,19 @@ export default function ListEvent() {
         <div className="max-w-[1200px] mx-2 grid grid-cols-2 gap-8 px-1">
           {/* Carousel Section */}
           <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-md">
-            <img 
+            <img
               src={carouselImages[currentSlide]}
               alt="Carousel"
               className="w-full h-full object-cover"
             />
             {/* Arrow Navigation */}
-            <button 
+            <button
               onClick={prevSlide}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
             >
               <FaChevronLeft className="text-[#111010] text-xl" />
             </button>
-            <button 
+            <button
               onClick={nextSlide}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full hover:bg-white"
             >
@@ -185,7 +187,7 @@ export default function ListEvent() {
                 <button
                   key={index}
                   className={`w-2 h-2 rounded-full ${
-                    currentSlide === index ? 'bg-white' : 'bg-white/50'
+                    currentSlide === index ? "bg-white" : "bg-white/50"
                   }`}
                   onClick={() => setCurrentSlide(index)}
                 />
@@ -200,7 +202,10 @@ export default function ListEvent() {
                 Collaboration Program
               </h2>
               <p className="text-[#666666] text-xs font-['Poppins']">
-                Let's collaborate! We welcome external partners to create impactful events and meaningful programs. Please fill out the form accordingly. For any questions, feel free to contact us through the available channels.
+                Let's collaborate! We welcome external partners to create
+                impactful events and meaningful programs. Please fill out the
+                form accordingly. For any questions, feel free to contact us
+                through the available channels.
               </p>
               <div className="flex gap-2 mt-12">
                 <button className="px-6 py-2 bg-[#111010] text-white rounded-2xl text-xs font-['Poppins'] w-[100px]">
