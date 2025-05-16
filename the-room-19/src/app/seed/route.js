@@ -158,6 +158,15 @@ async function seedBookLoans(tx) {
         book_id2 UUID REFERENCES books(id) ON DELETE SET NULL,
         book_title1 VARCHAR(255) NOT NULL,
         book_title2 VARCHAR(255),
+        genre1 VARCHAR(100),
+        genre2 VARCHAR(100),
+        cover_image1 TEXT,
+        cover_image2 TEXT,
+        price1 NUMERIC(10, 2),
+        price2 NUMERIC(10, 2),
+        total_price NUMERIC(10, 2) GENERATED ALWAYS AS (
+          COALESCE(price1, 0) + COALESCE(price2, 0)
+        ) STORED,
         full_name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
         phone_number VARCHAR(20) NOT NULL,

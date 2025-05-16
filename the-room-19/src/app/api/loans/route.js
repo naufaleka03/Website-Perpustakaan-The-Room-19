@@ -6,8 +6,24 @@ const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
 // Gunakan koneksi database langsung untuk menghindari masalah dengan cookies
 export async function GET(request) {
   try {
-    // Langsung query database tanpa menggunakan Supabase client
-    const loansData = await sql`SELECT * FROM loans`;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('user_id');
+
+    let loansData;
+    if (userId) {
+      // Jika ada user_id, ambil data peminjaman untuk user tersebut
+      loansData = await sql`
+        SELECT * FROM loans 
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+      `;
+    } else {
+      // Jika tidak ada user_id, ambil semua data peminjaman
+      loansData = await sql`
+        SELECT * FROM loans
+        ORDER BY created_at DESC
+      `;
+    }
     
     return Response.json({ loans: loansData });
   } catch (error) {
@@ -24,15 +40,15 @@ export async function POST(request) {
   try {
     const requestData = await request.json();
 
-    // Validasi input
-    const requiredFields = ['user_id', 'book_id1', 'book_title1', 'full_name', 'email', 'phone_number'];
-    for (const field of requiredFields) {
-      if (!requestData[field]) {
-        return Response.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
-      }
+    // Validasi input yang wajib ada
+    const requiredFields = ['user_id', 'book_id1', 'book_title1', 'genre1', 'cover_image1', 'price1', 'full_name', 'email', 'phone_number'];
+    const missingFields = requiredFields.filter(field => !requestData[field]);
+    
+    if (missingFields.length > 0) {
+      return Response.json(
+        { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // Buat record loan baru
@@ -42,6 +58,12 @@ export async function POST(request) {
       book_id2: requestData.book_id2 || null,
       book_title1: requestData.book_title1,
       book_title2: requestData.book_title2 || null,
+      genre1: requestData.genre1,
+      genre2: requestData.genre2 || null,
+      cover_image1: requestData.cover_image1,
+      cover_image2: requestData.cover_image2 || null,
+      price1: requestData.price1,
+      price2: requestData.price2 || null,
       full_name: requestData.full_name,
       email: requestData.email,
       phone_number: requestData.phone_number,
@@ -51,10 +73,11 @@ export async function POST(request) {
     };
 
     try {
-      // Gunakan PostgreSQL langsung daripada Supabase
+      // Gunakan PostgreSQL langsung
       const insertedLoan = await sql`
         INSERT INTO loans ${sql(newLoan, 
           'user_id', 'book_id1', 'book_id2', 'book_title1', 'book_title2', 
+          'genre1', 'genre2', 'cover_image1', 'cover_image2', 'price1', 'price2',
           'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status'
         )}
         RETURNING *

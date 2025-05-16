@@ -96,7 +96,15 @@ const Detail = () => {
       const loanData = {
         user_id: user.id,
         book_id1: book.id,
+        book_id2: null, // Hanya pinjam satu buku
         book_title1: book.book_title,
+        book_title2: null,
+        genre1: book.genre,
+        genre2: null,
+        cover_image1: book.cover_image,
+        cover_image2: null,
+        price1: book.price,
+        price2: null,
         full_name: user.name,
         email: user.email,
         phone_number: user.phone_number || '-'
