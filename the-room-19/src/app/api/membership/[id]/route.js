@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
     }
 
     const [application] = await sql`
-      SELECT * FROM membership_applications
+      SELECT * FROM memberships
       WHERE id = ${id}
     `;
 
@@ -43,7 +43,7 @@ export async function PUT(request, { params }) {
     // Check if the application exists
     const [existingApplication] = await sql`
       SELECT id, status, user_id 
-      FROM membership_applications
+      FROM memberships
       WHERE id = ${id}
     `;
 
@@ -64,14 +64,14 @@ export async function PUT(request, { params }) {
 
       // Update the application status
       const [updatedApplication] = await sql`
-        UPDATE membership_applications 
+        UPDATE memberships
         SET 
           status = ${body.status},
-          notes = ${body.notes || null},
-          reviewed_by = ${body.staff_id || null},
+          notes = ${body.notes},
+          staff_id = ${body.staff_id},
           updated_at = NOW()
         WHERE id = ${id}
-        RETURNING id, full_name, email, status, updated_at
+        RETURNING *
       `;
 
       // If application is verified, update the user's member_status

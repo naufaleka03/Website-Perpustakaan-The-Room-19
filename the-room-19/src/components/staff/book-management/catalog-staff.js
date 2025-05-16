@@ -92,6 +92,7 @@ const LoadingSkeleton = () => (
 const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGenres, setFilteredGenres] = useState(genres);
+  const [localSelected, setLocalSelected] = useState([...selectedGenres]);
 
   // Close modal on ESC key
   useEffect(() => {
@@ -126,6 +127,11 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
     setFilteredGenres(genres);
   }, [genres]);
 
+  // Update local selection when selectedGenres prop changes
+  useEffect(() => {
+    setLocalSelected([...selectedGenres]);
+  }, [selectedGenres]);
+
   // Filter genres based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -141,20 +147,21 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
   }, [searchQuery, genres]);
 
   const handleGenreToggle = (genre) => {
-    let newSelected;
-    if (selectedGenres.includes(genre)) {
-      newSelected = selectedGenres.filter(g => g !== genre);
+    setLocalSelected(prev => {
+      if (prev.includes(genre)) {
+        return prev.filter(g => g !== genre);
     } else {
-      newSelected = [...selectedGenres, genre];
+        return [...prev, genre];
     }
-    onChange(newSelected);
+    });
   };
 
   const handleClearAll = () => {
-    onChange([]);
+    setLocalSelected([]);
   };
 
   const handleApply = () => {
+    onChange(localSelected);
     onClose();
   };
   
@@ -167,7 +174,7 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div 
@@ -215,7 +222,7 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
                 >
                   <input
                     type="checkbox"
-                    checked={selectedGenres.includes(genre)}
+                    checked={localSelected.includes(genre)}
                     onChange={() => handleGenreToggle(genre)}
                     className="w-4 h-4 rounded-sm border-[#cdcdcd]"
                     style={{ accentColor: "#2e3105" }}
@@ -260,6 +267,7 @@ const CatalogStaff = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const booksPerPage = 12;
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   // Fetch all genres from database
   const fetchGenres = async () => {
@@ -448,8 +456,8 @@ const CatalogStaff = () => {
                       </button>
                     </Link>
                   </div>
-                  <div className="max-h-[150px] overflow-y-auto pr-2">
-                    {genres.map((genre) => (
+                  <div className="max-h-[220px] overflow-y-auto pr-2">
+                    {genres.slice(0, 10).map((genre) => (
                       <label key={genre.id} className="flex items-center gap-3 mb-3">
                         <input
                           type="checkbox"
@@ -463,6 +471,14 @@ const CatalogStaff = () => {
                         </span>
                       </label>
                     ))}
+                    {genres.length > 10 && (
+                      <button 
+                        onClick={() => setIsGenreModalOpen(true)}
+                        className="text-[#2e3105] text-xs hover:underline font-medium"
+                      >
+                        View more genres
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -552,6 +568,21 @@ const CatalogStaff = () => {
           )}
         </div>
       </div>
+
+      {/* Genre Modal */}
+      {isGenreModalOpen && (
+        <GenreSelectModal
+          isOpen={isGenreModalOpen}
+          onClose={() => setIsGenreModalOpen(false)}
+          genres={genres.map(genre => genre.genre_name)}
+          selectedGenres={selectedGenres}
+          onChange={selectedGenres => {
+            setSelectedGenres(selectedGenres);
+            setCurrentPage(1);
+          }}
+          title="Select Genres"
+        />
+      )}
     </div>
   );
 };

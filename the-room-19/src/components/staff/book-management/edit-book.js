@@ -13,6 +13,107 @@ const languages = ["Indonesian", "English", "Chinese", "Japanese", "More"];
 const coverTypes = ["Hardcover", "Paperback", "E-Book"];
 const usageOptions = ["On-site Only", "On-site Only and For Rent"];
 
+// Add this component before the main EditBook component
+function EditBookSkeleton() {
+  const skeletonClass = "bg-[#f0f0f0] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[#f8f8f8] before:to-transparent";
+
+  return (
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <div className="w-full h-full relative bg-white p-8">
+        <div className="max-w-[1200px] mx-auto">
+          <div className={`h-8 ${skeletonClass} rounded w-1/4 mb-6`}></div>
+          
+          <div className="flex gap-8">
+            {/* Left side - Book Cover Upload Skeleton */}
+            <div className="w-[200px] flex flex-col">
+              <div className="w-[200px] h-[280px] rounded-2xl overflow-hidden border border-[#cdcdcd] flex-shrink-0 bg-white p-2">
+                <div className={`w-full h-full ${skeletonClass} rounded-lg`}></div>
+              </div>
+              <div className={`mt-2 ${skeletonClass} rounded-lg h-[80px] w-full`}></div>
+            </div>
+
+            {/* Right side - Book Form Skeleton */}
+            <div className="flex-1 space-y-4">
+              {/* Book Details Section */}
+              <div className="bg-white rounded-xl p-6 border border-[#cdcdcd]/50">
+                <div className={`h-6 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+                
+                <div className="space-y-4">
+                  {/* Title */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                  </div>
+
+                  {/* Book Type Fields */}
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i}>
+                        <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                        <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className={`h-[100px] ${skeletonClass} rounded-lg w-full`}></div>
+                  </div>
+
+                  {/* Themes */}
+                  <div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                    <div className="flex gap-2 mb-2">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className={`h-[30px] ${skeletonClass} rounded-full w-[100px]`}></div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg flex-1`}></div>
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg w-[80px]`}></div>
+                    </div>
+                  </div>
+
+                  {/* Usage and Price */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {[1, 2].map(i => (
+                      <div key={i}>
+                        <div className={`h-4 ${skeletonClass} rounded w-1/4 mb-2`}></div>
+                        <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Book Metadata Section */}
+              <div className="bg-white rounded-xl p-6 border border-[#cdcdcd]/50">
+                <div className={`h-6 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+                
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i}>
+                      <div className={`h-4 ${skeletonClass} rounded w-1/6 mb-2`}></div>
+                      <div className={`h-[35px] ${skeletonClass} rounded-lg w-full`}></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2">
+                <div className={`h-[40px] ${skeletonClass} rounded-3xl w-[100px]`}></div>
+                <div className={`h-[40px] ${skeletonClass} rounded-3xl w-[100px]`}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const EditBook = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -316,12 +417,9 @@ const EditBook = () => {
     }
   };
 
+  // Update the loading state to use the skeleton
   if (loading && !formData.book_title) {
-    return (
-      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
-        <p>Loading book details...</p>
-      </div>
-    );
+    return <EditBookSkeleton />;
   }
 
   if (error && !formData.book_title) {

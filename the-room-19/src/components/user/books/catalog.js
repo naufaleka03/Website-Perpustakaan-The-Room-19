@@ -20,6 +20,7 @@ const Catalog = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const booksPerPage = 12;
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   // Data genre
   const allGenres = [
@@ -114,6 +115,7 @@ const Catalog = () => {
   const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredGenres, setFilteredGenres] = useState(genres);
+    const [localSelected, setLocalSelected] = useState([...selectedGenres]);
 
     // Close modal on ESC key
     useEffect(() => {
@@ -148,6 +150,11 @@ const Catalog = () => {
       setFilteredGenres(genres);
     }, [genres]);
 
+    // Update local selection when selectedGenres prop changes
+    useEffect(() => {
+      setLocalSelected([...selectedGenres]);
+    }, [selectedGenres]);
+
     // Filter genres based on search query
     useEffect(() => {
       if (!searchQuery.trim()) {
@@ -163,20 +170,21 @@ const Catalog = () => {
     }, [searchQuery, genres]);
 
     const handleGenreToggle = (genre) => {
-      let newSelected;
-      if (selectedGenres.includes(genre)) {
-        newSelected = selectedGenres.filter(g => g !== genre);
-      } else {
-        newSelected = [...selectedGenres, genre];
-      }
-      onChange(newSelected);
+      setLocalSelected(prev => {
+        if (prev.includes(genre)) {
+          return prev.filter(g => g !== genre);
+        } else {
+          return [...prev, genre];
+        }
+      });
     };
 
     const handleClearAll = () => {
-      onChange([]);
+      setLocalSelected([]);
     };
 
     const handleApply = () => {
+      onChange(localSelected);
       onClose();
     };
     
@@ -189,7 +197,7 @@ const Catalog = () => {
 
     return (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"
         onClick={onClose}
       >
         <div 
@@ -237,7 +245,7 @@ const Catalog = () => {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedGenres.includes(genre)}
+                      checked={localSelected.includes(genre)}
                       onChange={() => handleGenreToggle(genre)}
                       className="w-4 h-4 rounded-sm border-[#cdcdcd]"
                       style={{ accentColor: "#2e3105" }}
@@ -364,8 +372,8 @@ const Catalog = () => {
             {/* Genres */}
             <div>
               <h3 className="text-black text-sm font-medium mb-4">Genres</h3>
-              <div className="max-h-[100px] overflow-y-auto pr-2">
-                {allGenres.map((genre) => (
+              <div className="max-h-[220px] overflow-y-auto pr-2">
+                {allGenres.slice(0, 10).map((genre) => (
                   <label key={genre} className="flex items-center gap-3 mb-3">
                     <input
                       type="checkbox"
@@ -387,6 +395,14 @@ const Catalog = () => {
                     </span>
                   </label>
                 ))}
+                {allGenres.length > 10 && (
+                  <button 
+                    onClick={() => setIsGenreModalOpen(true)}
+                    className="text-[#2e3105] text-xs hover:underline font-medium"
+                  >
+                    View more genres
+                  </button>
+                )}
               </div>
             </div>
 
@@ -510,6 +526,18 @@ const Catalog = () => {
             <IoChevronForwardOutline />
           </button>
         </div>
+      )}
+
+      {/* Genre Modal */}
+      {isGenreModalOpen && (
+        <GenreSelectModal
+          isOpen={isGenreModalOpen}
+          onClose={() => setIsGenreModalOpen(false)}
+          genres={allGenres}
+          selectedGenres={selectedGenres}
+          onChange={setSelectedGenres}
+          title="Select Genres"
+        />
       )}
     </main>
   );

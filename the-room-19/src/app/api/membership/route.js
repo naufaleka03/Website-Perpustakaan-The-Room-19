@@ -8,7 +8,7 @@ export async function GET() {
       SELECT 
         ma.id, ma.full_name, ma.email, ma.phone_number, ma.status, 
         ma.created_at, ma.updated_at
-      FROM membership_applications ma
+      FROM memberships ma
       ORDER BY ma.created_at DESC
     `;
     return Response.json(applications);
@@ -34,7 +34,7 @@ export async function POST(request) {
     
     // Check if user already has a pending application
     const [existing] = await sql`
-      SELECT id FROM membership_applications 
+      SELECT id FROM memberships 
       WHERE user_id = ${body.user_id} AND status IN ('request', 'processing')
     `;
     
@@ -47,7 +47,7 @@ export async function POST(request) {
     
     // Insert new application
     const [newApplication] = await sql`
-      INSERT INTO membership_applications (
+      INSERT INTO memberships (
         user_id, full_name, email, phone_number, address,
         favorite_book_genre, emergency_contact_name, emergency_contact_number,
         id_card_url, status

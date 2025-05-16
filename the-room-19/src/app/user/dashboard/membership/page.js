@@ -36,15 +36,14 @@ export default function MembershipPage() {
           
           // If not a member, check if there's a pending application
           if (userData.member_status !== 'member') {
-            const { data: applicationData, error: applicationError } = await supabase
-              .from('membership_applications')
-              .select('status, created_at, updated_at, notes')
+            const { data: application, error } = await supabase
+              .from('memberships')
+              .select('*')
               .eq('user_id', session.user.id)
-              .order('created_at', { ascending: false })
-              .limit(1);
+              .single();
               
-            if (!applicationError && applicationData && applicationData.length > 0) {
-              setApplicationStatus(applicationData[0]);
+            if (!error && application) {
+              setApplicationStatus(application);
             }
           }
         }

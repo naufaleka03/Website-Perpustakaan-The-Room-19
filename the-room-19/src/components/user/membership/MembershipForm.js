@@ -6,7 +6,6 @@ import { createClient } from '@/app/supabase/client';
 import { useRouter } from 'next/navigation';
 import { FaUpload, FaInfoCircle, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { RiLoader4Line } from 'react-icons/ri';
-import { Dialog, Transition } from '@headlessui/react';
 import { BiSearch } from 'react-icons/bi';
 import { IoClose } from 'react-icons/io5';
 
@@ -14,6 +13,7 @@ import { IoClose } from 'react-icons/io5';
 const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredGenres, setFilteredGenres] = useState(genres);
+  const [localSelected, setLocalSelected] = useState([...selectedGenres]);
 
   // Close modal on ESC key
   useEffect(() => {
@@ -48,6 +48,11 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
     setFilteredGenres(genres);
   }, [genres]);
 
+  // Update local selection when selectedGenres prop changes
+  useEffect(() => {
+    setLocalSelected([...selectedGenres]);
+  }, [selectedGenres]);
+
   // Filter genres based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -63,20 +68,21 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
   }, [searchQuery, genres]);
 
   const handleGenreToggle = (genre) => {
-    let newSelected;
-    if (selectedGenres.includes(genre)) {
-      newSelected = selectedGenres.filter(g => g !== genre);
-    } else {
-      newSelected = [...selectedGenres, genre];
-    }
-    onChange(newSelected);
+    setLocalSelected(prev => {
+      if (prev.includes(genre)) {
+        return prev.filter(g => g !== genre);
+      } else {
+        return [...prev, genre];
+      }
+    });
   };
 
   const handleClearAll = () => {
-    onChange([]);
+    setLocalSelected([]);
   };
 
   const handleApply = () => {
+    onChange(localSelected);
     onClose();
   };
   
@@ -89,7 +95,7 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div 
@@ -137,7 +143,7 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
                 >
                   <input
                     type="checkbox"
-                    checked={selectedGenres.includes(genre)}
+                    checked={localSelected.includes(genre)}
                     onChange={() => handleGenreToggle(genre)}
                     className="w-4 h-4 rounded-sm border-[#cdcdcd]"
                     style={{ accentColor: "#2e3105" }}
@@ -180,7 +186,7 @@ export default function MembershipForm() {
     email: '',
     phone: '',
     address: '',
-    favoriteGenre: '',
+    favoriteGenre: [],
     emergencyContactName: '',
     emergencyContactNumber: '',
   });
@@ -276,7 +282,7 @@ export default function MembershipForm() {
           email: data.email || '',
           phone: data.phone_number || '',
           address: data.address ? `${data.address}, ${data.city || ''}, ${data.state || ''}` : '',
-          favoriteGenre: '',
+          favoriteGenre: [],
           emergencyContactName: '',
           emergencyContactNumber: '',
         });
@@ -302,10 +308,10 @@ export default function MembershipForm() {
     }
   };
 
-  const handleGenreSelect = (selectedGenre) => {
+  const handleGenreSelect = (selectedGenres) => {
     setFormData({
       ...formData,
-      favoriteGenre: selectedGenre.length > 0 ? selectedGenre[0] : '',
+      favoriteGenre: selectedGenres,
     });
     setIsGenreModalOpen(false);
   };
@@ -421,7 +427,6 @@ export default function MembershipForm() {
     e.preventDefault();
     
     if (!validateForm()) {
-      // Scroll to the first error
       const firstErrorField = Object.keys(errors)[0];
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
       if (errorElement) {
@@ -434,49 +439,86 @@ export default function MembershipForm() {
     setSubmitStatus(null);
     
     try {
-      // 1. Upload ID card to verification-ids bucket
+      // 1. Verify authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('You must be logged in to apply for membership');
+      }
+      
+      // 2. Upload ID card
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}_${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      
+      console.log(`Uploading file: ${fileName}`);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('verification-ids')
-        .upload(fileName, file, {
+        .upload(`${userId}/${fileName}`, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw new Error(`Failed to upload ID card: ${uploadError.message}`);
+      }
       
-      const idCardUrl = uploadData.path;
+      const filePath = uploadData.path;
+      console.log('File uploaded successfully:', filePath);
       
-      // 2. Insert membership application into the database
-      const { error: insertError } = await supabase
-        .from('membership_applications')
-        .insert({
-          user_id: userId,
-          full_name: formData.fullName,
-          email: formData.email,
-          phone_number: formData.phone,
-          address: formData.address,
-          favorite_book_genre: formData.favoriteGenre,
-          emergency_contact_name: formData.emergencyContactName,
-          emergency_contact_number: formData.emergencyContactNumber,
-          id_card_url: idCardUrl,
-          status: 'request',
-        });
+      // 3. Submit membership application
+      const applicationData = {
+        user_id: userId,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone_number: formData.phone,
+        address: formData.address,
+        favorite_book_genre: formData.favoriteGenre.join(', '),
+        emergency_contact_name: formData.emergencyContactName,
+        emergency_contact_number: formData.emergencyContactNumber,
+        id_card_url: filePath,
+        status: 'request',
+        created_at: new Date().toISOString()
+      };
       
-      if (insertError) throw insertError;
+      // Try API endpoint first
+      const response = await fetch('/api/membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(applicationData)
+      });
       
-      // Success! Show success message
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit application');
+      }
+      
+      // 4. Update visitor status
+      const { error: visitorError } = await supabase
+        .from('visitors')
+        .update({ 
+          membership_applied: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+      
+      if (visitorError) {
+        console.warn('Warning: Failed to update visitor status:', visitorError);
+        // Don't throw, continue with success flow
+      }
+      
+      // Show success state
       setSubmitStatus('success');
       
-      // Reset form after 3 seconds and redirect to dashboard
+      // Redirect after showing success message
       setTimeout(() => {
-        router.push('/user/dashboard');
+        router.push('/user/dashboard/membership');
       }, 3000);
       
     } catch (error) {
-      console.error('Error submitting application:', error);
+      console.error('Application error:', error);
+      setErrors({
+        submit: error.message || 'Failed to submit application. Please try again.'
+      });
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -630,7 +672,7 @@ export default function MembershipForm() {
                   <input 
                     type="text"
                     name="favoriteGenre"
-                    value={formData.favoriteGenre}
+                    value={formData.favoriteGenre.join(', ')}
                     onChange={handleChange}
                     className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
                     placeholder="E.g., Science Fiction, Mystery, Biography"
@@ -836,7 +878,7 @@ export default function MembershipForm() {
         isOpen={isGenreModalOpen}
         onClose={() => setIsGenreModalOpen(false)}
         genres={genres.length > 0 ? genres : allGenres}
-        selectedGenres={formData.favoriteGenre ? [formData.favoriteGenre] : []}
+        selectedGenres={formData.favoriteGenre}
         onChange={handleGenreSelect}
         title="Select Your Favorite Genre"
       />
@@ -845,54 +887,74 @@ export default function MembershipForm() {
 }
 
 function MembershipFormSkeleton() {
+  const skeletonClass = "bg-[#f0f0f0] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[#f8f8f8] before:to-transparent";
+
   return (
-    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20 animate-pulse">
+    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       {/* Hero Section Skeleton */}
       <div className="relative mb-8 mt-0">
-        <div className="w-full h-[240px] bg-gray-300" />
+        <div className="w-full h-[240px] bg-gradient-to-r from-[#e9eacd] to-[#f0f0f0]" />
+        <div className="absolute inset-0 flex items-center w-full mx-auto px-4 lg:px-8">
+          <div className="max-w-[1200px] mx-auto w-full">
+            <div className={`h-12 ${skeletonClass} rounded w-1/3 mb-2`}></div>
+            <div className={`h-4 ${skeletonClass} rounded w-1/2`}></div>
+          </div>
+        </div>
       </div>
 
       {/* Form Section Skeleton */}
       <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-          <div className="h-8 bg-gray-300 rounded w-1/3 mb-6"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-8"></div>
+          <div className={`h-8 ${skeletonClass} rounded w-1/3 mb-6`}></div>
+          <div className={`h-4 ${skeletonClass} rounded w-full mb-8`}></div>
 
           <div className="space-y-6">
             {/* Personal Information Section */}
-            <div className="pb-4 border-b border-gray-200">
-              <div className="h-5 bg-gray-300 rounded w-1/4 mb-4"></div>
+            <div className="pb-4 border-b border-[#f0f0f0]">
+              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
               
               <div className="space-y-6">
                 {[1, 2, 3, 4].map(i => (
                   <div key={i}>
-                    <div className="h-4 bg-gray-300 rounded w-1/5 mb-2"></div>
-                    <div className="h-10 bg-gray-200 rounded w-full mb-1"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/5 mb-2`}></div>
+                    <div className={`h-10 ${skeletonClass} rounded-lg w-full mb-1`}></div>
+                    <div className={`h-3 ${skeletonClass} rounded w-2/3`}></div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Additional Sections */}
-            {[1, 2, 3].map(section => (
-              <div key={section} className="pb-4 border-b border-gray-200">
-                <div className="h-5 bg-gray-300 rounded w-1/4 mb-4"></div>
-                
-                <div className="space-y-6">
-                  {[1, 2].map(i => (
-                    <div key={i}>
-                      <div className="h-4 bg-gray-300 rounded w-1/5 mb-2"></div>
-                      <div className="h-10 bg-gray-200 rounded w-full mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                    </div>
-                  ))}
-                </div>
+            {/* Emergency Contact Section */}
+            <div className="pb-4 border-b border-[#f0f0f0]">
+              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+              
+              <div className="space-y-6">
+                {[1, 2].map(i => (
+                  <div key={i}>
+                    <div className={`h-4 ${skeletonClass} rounded w-1/5 mb-2`}></div>
+                    <div className={`h-10 ${skeletonClass} rounded-lg w-full mb-1`}></div>
+                    <div className={`h-3 ${skeletonClass} rounded w-2/3`}></div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
 
-            {/* Button Skeleton */}
-            <div className="h-12 bg-gray-300 rounded-3xl w-full mt-8"></div>
+            {/* ID Card Upload Section */}
+            <div className="pb-4 border-b border-[#f0f0f0]">
+              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
+              <div className={`h-[200px] ${skeletonClass} rounded-lg w-full mb-2`}></div>
+              <div className={`h-3 ${skeletonClass} rounded w-2/3 mb-1`}></div>
+              <div className={`h-3 ${skeletonClass} rounded w-1/2`}></div>
+            </div>
+
+            {/* Terms and Notice Section */}
+            <div className="space-y-4">
+              <div className={`h-6 ${skeletonClass} rounded w-3/4`}></div>
+              <div className={`h-[120px] ${skeletonClass} rounded-lg w-full`}></div>
+            </div>
+
+            {/* Submit Button Skeleton */}
+            <div className={`h-[45px] ${skeletonClass} rounded-3xl w-full mt-8`}></div>
           </div>
         </div>
       </div>
