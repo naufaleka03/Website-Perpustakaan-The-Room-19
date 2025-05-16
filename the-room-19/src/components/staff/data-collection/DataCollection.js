@@ -1,12 +1,12 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { FaSearch, FaPlus, FaEllipsisV, FaSort } from 'react-icons/fa';
-import { membershipData } from './data/membershipData';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
 import CancelConfirmationModal from './CancelConfirmationModal';
 import { useRouter } from 'next/navigation';
 import DetailSessionModal from './DetailSessionModal';
+import DetailMembershipModal from './DetailMembershipModal';
 
 const formatDate = (dateString) => {
   if (!dateString) return ''; // Handle empty date
@@ -51,6 +51,14 @@ export default function DataCollection() {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState('newest'); // 'newest' atau 'oldest'
+  const [membershipData, setMembershipData] = useState([]);
+  const [isDetailMembershipModalOpen, setIsDetailMembershipModalOpen] = useState(false);
+  const [selectedMembershipId, setSelectedMembershipId] = useState(null);
+  const [membershipStats, setMembershipStats] = useState({
+    totalMembers: 0,
+    totalRequests: 0,
+    totalRevisions: 0
+  });
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
@@ -318,6 +326,33 @@ export default function DataCollection() {
     
     setSessionData(sortedData);
     setSessionCurrentPage(1);
+  };
+
+  // Update fetch function for membership data
+  useEffect(() => {
+    const fetchMemberships = async () => {
+      try {
+        const response = await fetch('/api/memberships');
+        if (!response.ok) {
+          throw new Error('Failed to fetch memberships');
+        }
+        const data = await response.json();
+        setMembershipData(data.memberships);
+        setMembershipStats(data.stats);
+      } catch (error) {
+        console.error('Error fetching memberships:', error);
+      }
+    };
+
+    if (activeTab === 'membership') {
+      fetchMemberships();
+    }
+  }, [activeTab]);
+
+  const handleMembershipDetail = (membershipId) => {
+    setSelectedMembershipId(membershipId);
+    setIsDetailMembershipModalOpen(true);
+    setActiveDropdown(null);
   };
 
   return (
@@ -664,15 +699,15 @@ export default function DataCollection() {
               <div className="flex justify-center gap-4 mb-6">
                 <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
                   <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Member</p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">100</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">{membershipStats.totalMembers}</p>
                 </div>
                 <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
                   <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Request</p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">20</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">{membershipStats.totalRequests}</p>
                 </div>
                 <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
                   <p className="text-xs text-[#666666] font-['Poppins'] mb-1">Total Revision</p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">10</p>
+                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">{membershipStats.totalRevisions}</p>
                 </div>
               </div>
 
@@ -700,85 +735,67 @@ export default function DataCollection() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date Join</th>
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone</th>
-                      <th className="first:rounded-tl-xl last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Submitted At</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
                       <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {getTableData(membershipData, currentPage, entriesPerPage, membershipSearchQuery).map((item, index) => (
                       <tr 
-                        key={item.id} 
-                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                        key={item.id}
+                        className="border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
                         onClick={() => setSelectedRow(item.id)}
                         onMouseLeave={() => setSelectedRow(null)}
                       >
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
                           {(currentPage - 1) * entriesPerPage + index + 1}
                         </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.name}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.dateJoined}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.full_name}</td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.created_at)}</td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          <select
-                            value={membershipStatuses.find(status => status.id === item.id)?.status || 'request'}
-                            onChange={(e) => handleMembershipStatusChange(item.id, e.target.value)}
-                            className={`px-2 py-1 rounded-lg text-xs ${
-                              membershipStatuses.find(status => status.id === item.id)?.status === 'verified'
-                                ? 'text-green-800 bg-green-100'
-                                : membershipStatuses.find(status => status.id === item.id)?.status === 'request'
-                                ? 'text-yellow-800 bg-yellow-100'
-                                : 'text-red-800 bg-red-100'
-                            }`}
-                          >
-                            <option value="request" className="text-yellow-800 bg-white">Request</option>
-                            <option value="verified" className="text-green-800 bg-white">Verified</option>
-                            <option value="revision" className="text-red-800 bg-white">Revision</option>
-                          </select>
+                          <span className={`px-2 py-1 rounded-lg text-xs ${
+                            item.status === 'request' ? 'bg-yellow-100 text-yellow-800' :
+                            item.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                            item.status === 'verified' ? 'bg-green-100 text-green-800' :
+                            item.status === 'revision' ? 'bg-orange-100 text-orange-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {item.status === 'request' ? 'Pending Review' :
+                             item.status === 'processing' ? 'Under Review' :
+                             item.status === 'verified' ? 'Approved' :
+                             item.status === 'revision' ? 'Needs Revision' :
+                             'Rejected'}
+                          </span>
                         </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                              handleMembershipDetail(item.id);
                             }}
-                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                            className="hover:bg-gray-100 p-2 rounded-full"
                           >
-                            <FaEllipsisV size={14} />
+                            <FaEllipsisV className="text-[#666666]" />
                           </button>
-                          
-                          {activeDropdown === item.id && (
-                            <div 
-                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
-                              style={{
-                                top: selectedRow === item.id ? 'auto' : '100%',
-                                bottom: selectedRow === item.id ? '100%' : 'auto',
-                                transform: selectedRow === item.id ? 'translateY(0)' : 'translateY(-100%)'
-                              }}
-                            >
-                              <button 
-                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDetail(item.id);
-                                }}
-                              >
-                                Detail
-                              </button>
-                            </div>
-                          )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <PaginationControls currentPage={currentPage} setCurrentPage={setCurrentPage} data={membershipData} itemsPerPage={entriesPerPage} />
+              <PaginationControls 
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                data={membershipData}
+                itemsPerPage={entriesPerPage}
+              />
             </>
           )}
         </div>
@@ -794,6 +811,33 @@ export default function DataCollection() {
         onClose={() => setIsDetailModalOpen(false)}
         sessionId={selectedSessionId}
       />
+      {/* Membership Detail Modal */}
+      {isDetailMembershipModalOpen && (
+        <DetailMembershipModal
+          isOpen={isDetailMembershipModalOpen}
+          onClose={(shouldRefresh) => {
+            setIsDetailMembershipModalOpen(false);
+            if (shouldRefresh) {
+              // Refresh membership data if changes were made
+              const fetchMemberships = async () => {
+                try {
+                  const response = await fetch('/api/memberships');
+                  if (!response.ok) {
+                    throw new Error('Failed to fetch memberships');
+                  }
+                  const data = await response.json();
+                  setMembershipData(data.memberships);
+                  setMembershipStats(data.stats);
+                } catch (error) {
+                  console.error('Error fetching memberships:', error);
+                }
+              };
+              fetchMemberships();
+            }
+          }}
+          membershipId={selectedMembershipId}
+        />
+      )}
     </div>
   );
 }

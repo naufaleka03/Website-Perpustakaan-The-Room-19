@@ -11,9 +11,14 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
     }
 
+    // Get single membership with staff details
     const [application] = await sql`
-      SELECT * FROM memberships
-      WHERE id = ${id}
+      SELECT 
+        m.*,
+        s.name as staff_name
+      FROM memberships m
+      LEFT JOIN staffs s ON m.reviewed_by = s.id
+      WHERE m.id = ${id}
     `;
 
     if (!application) {
@@ -35,7 +40,6 @@ export async function PUT(request, { params }) {
     const { id } = params;
     const body = await request.json();
     
-    // Validate the request
     if (!id) {
       return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
     }
@@ -53,11 +57,11 @@ export async function PUT(request, { params }) {
 
     // Update the application status
     if (body.status) {
-      const validStatuses = ['request', 'processing', 'verified', 'revision', 'rejected'];
+      const validStatuses = ['verified', 'revision'];
       
       if (!validStatuses.includes(body.status)) {
         return NextResponse.json(
-          { error: 'Invalid status value. Must be one of: request, processing, verified, revision, rejected' },
+          { error: 'Invalid status value. Must be one of: verified, revision' },
           { status: 400 }
         );
       }
@@ -68,7 +72,7 @@ export async function PUT(request, { params }) {
         SET 
           status = ${body.status},
           notes = ${body.notes},
-          staff_id = ${body.staff_id},
+          reviewed_by = ${body.staff_id},
           updated_at = NOW()
         WHERE id = ${id}
         RETURNING *
