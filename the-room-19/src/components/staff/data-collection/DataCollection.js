@@ -60,6 +60,11 @@ export default function DataCollection() {
     totalRequests: 0,
     totalRevisions: 0
   });
+  const [borrowingBookData, setBorrowingBookData] = useState([]);
+  const [borrowingBookSearchQuery, setBorrowingBookSearchQuery] = useState('');
+  const [borrowingBookCurrentPage, setBorrowingBookCurrentPage] = useState(1);
+  const [isDetailBorrowingModalOpen, setIsDetailBorrowingModalOpen] = useState(false);
+  const [selectedBorrowingData, setSelectedBorrowingData] = useState(null);
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
@@ -280,7 +285,9 @@ export default function DataCollection() {
 
   // Update filterDataByName function untuk mencari berdasarkan nama dan judul buku
   const filterDataByName = (data, query) => {
-    if (data === borrowingBookData) {
+    if (!data) return [];
+    
+    if (activeTab === 'borrowing') {
       return data.filter(item => 
         item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
         item.book_title1?.toLowerCase().includes(query.toLowerCase()) ||
@@ -427,8 +434,7 @@ export default function DataCollection() {
   };
 
   // Update fungsi handleReturnBook untuk menggunakan API
- // ... existing code ...
- const handleReturnBook = async (bookId) => {
+  const handleReturnBook = async (bookId) => {
     try {
       const response = await fetch(`/api/loans/${bookId}`, {
         method: 'PUT',
@@ -455,7 +461,6 @@ export default function DataCollection() {
       console.error('Error updating book status:', error);
     }
   };
-  // ... existing code ...
 
   return (
     <div className="w-full min-h-screen bg-white">

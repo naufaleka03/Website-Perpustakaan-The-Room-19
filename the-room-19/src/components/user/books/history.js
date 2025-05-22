@@ -5,6 +5,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { useState, useEffect } from "react";
 import { createClient } from '@/app/supabase/client';
 import { useRouter } from "next/navigation";
+import DetailBorrowingModal from "./detail-borrowing-modal";
 
 const History = () => {
   const router = useRouter();
@@ -14,19 +15,20 @@ const History = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchLoans = async () => {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           router.push('/login');
           return;
         }
 
-        // Fetch loans data for the logged in user
         const response = await fetch(`/api/loans?user_id=${user.id}`);
         const data = await response.json();
 
@@ -51,18 +53,38 @@ const History = () => {
     setIsDropdownOpen(false);
   };
 
-  // Filter loans based on search and status
-  const filteredLoans = loans.filter(loan => {
-    const matchesSearch = searchQuery.toLowerCase() === '' || 
+  const handleCardClick = (loan) => {
+    setSelectedLoan(loan);
+    setIsModalOpen(true);
+  };
+
+  const filteredLoans = loans.filter((loan) => {
+    const matchesSearch =
+      searchQuery.toLowerCase() === "" ||
       loan.book_title1.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (loan.book_title2 && loan.book_title2.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesStatus = selectedOption === "All Book" || 
+    const matchesStatus =
+      selectedOption === "All Book" ||
       (selectedOption === "Borrowed" && loan.status === "On Going") ||
+      (selectedOption === "Over Due" && loan.status === "Over Due") ||
       (selectedOption === "Returned" && loan.status === "Returned");
 
     return matchesSearch && matchesStatus;
   });
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Returned":
+        return "bg-green-100 text-green-800";
+      case "On Going":
+        return "bg-yellow-100 text-yellow-800";
+      case "Over Due":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   if (loading) {
     return (
@@ -76,73 +98,55 @@ const History = () => {
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
-          {/* Header */}
-          <h1 className="text-black text-lg font-bold font-manrope mb-6">
-            History
-          </h1>
+          <h1 className="text-black text-lg font-bold font-manrope mb-6">History</h1>
 
-          {/* Search and Filter */}
           <div className="flex gap-4 mb-6">
-            {/* Search Bar */}
             <div className="flex-1 relative">
-              <BiSearch
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <BiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666]/50 text-xs font-normal font-manrope"
+                className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666] text-xs font-normal font-manrope"
               />
             </div>
 
-            {/* Filter Dropdown */}
             <div className="w-[383px] relative">
               <div
                 className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] px-4 flex items-center justify-between cursor-pointer"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
-                <span className="text-black text-xs font-normal font-manrope">
-                  {selectedOption}
-                </span>
+                <span className="text-black text-xs font-normal font-manrope">{selectedOption}</span>
                 <IoIosArrowDown className="text-gray-400" size={18} />
               </div>
-              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute w-full mt-2 bg-white rounded-xl border border-[#cdcdcd] shadow-lg overflow-hidden z-10">
                   <div className="py-2">
-                    <button
-                      className="w-full px-4 py-2 text-left text-xs font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
-                      onClick={() => handleSelectOption("All Book")}
-                    >
-                      All Book
-                    </button>
-                    <button
-                      className="w-full px-4 py-2 text-left text-xs font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
-                      onClick={() => handleSelectOption("Borrowed")}
-                    >
-                      On Going
-                    </button>
-                    <button
-                      className="w-full px-4 py-2 text-left text-xs font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
-                      onClick={() => handleSelectOption("Returned")}
-                    >
-                      Returned
-                    </button>
+                    {["All Book", "Borrowed", "Over Due", "Returned"].map((opt) => (
+                      <button
+                        key={opt}
+                        className="w-full px-4 py-2 text-left text-xs text-[#666666] font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
+                        onClick={() => handleSelectOption(opt)}
+                      >
+                        {opt === "Borrowed" ? "On Going" : opt}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* History Cards */}
           <div className="space-y-4">
             {filteredLoans.map((loan) => (
-              <div key={loan.id} className="w-full h-[161px] bg-white rounded-2xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.15)] border border-[#cdcdcd] p-4 flex items-center">
+              <div
+                key={loan.id}
+                onClick={() => handleCardClick(loan)}
+                className="w-full h-[161px] bg-white rounded-2xl shadow-md border border-[#cdcdcd] p-4 flex items-center cursor-pointer hover:bg-neutral-50 transition"
+              >
                 <div className="flex items-center h-full">
-                {loan.cover_image1 ? (
+                  {loan.cover_image1 ? (
                     <img
                       className="w-[84px] h-[120px] rounded-xl object-cover"
                       src={loan.cover_image1}
@@ -154,46 +158,38 @@ const History = () => {
                         {loan.book_title1
                           .split(" ")
                           .slice(0, 2)
-                          .map(word => word[0].toUpperCase())
+                          .map((word) => word[0].toUpperCase())
                           .join("")}
                       </span>
                     </div>
                   )}
                 </div>
+
                 <div className="flex-1 ml-6">
                   <h3 className="text-black text-sm font-semibold font-manrope">
                     {loan.book_title1}
                   </h3>
+
                   {loan.book_title2 && (
-                    <div className="flex items-center mb-16">
+                    <div className="flex items-center mb-2">
                       <p className="text-[#666666] text-[11px] font-medium font-manrope">
                         1 other book
                       </p>
                       <IoIosArrowDown className="text-[#666666] ml-1" size={10} />
                     </div>
                   )}
+
+                  <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(loan.status)}`}>
+                    {loan.status}
+                  </div>
                 </div>
 
                 <div className="flex flex-col items-end">
                   <div className="text-right mb-6 pt-[15px]">
-                    <p className="text-[#666666] text-xs font-semibold font-manrope">
-                      Total Cost
-                    </p>
+                    <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
                     <p className="text-black text-sm font-semibold font-manrope">
                       Rp{loan.total_price?.toLocaleString('id-ID')}
                     </p>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    {loan.status === 'On Going' && (
-                      <button className="w-[138px] h-[34px] bg-white rounded-lg border border-[#2e3105] text-[#2e3105] text-xs font-medium">
-                        Extend
-                      </button>
-                    )}
-                    {loan.status === 'Returned' && (
-                      <button className="w-[138px] h-[34px] bg-[#2e3105] rounded-lg text-white text-xs font-medium">
-                        Give a review
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -201,6 +197,32 @@ const History = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <DetailBorrowingModal
+        isOpen={isModalOpen}
+        borrowingData={selectedLoan ? {
+          id: selectedLoan.id,
+          borrowing_date: selectedLoan.loan_start,
+          return_date: selectedLoan.loan_due,
+          status: selectedLoan.status,
+          price: selectedLoan.total_price,
+          books: [
+            {
+              title: selectedLoan.book_title1,
+              cover: selectedLoan.cover_image1
+            },
+            selectedLoan.book_title2 ? {
+              title: selectedLoan.book_title2,
+              cover: selectedLoan.cover_image2
+            } : null
+          ].filter(Boolean),
+        } : null}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedLoan(null);
+        }}
+      />
     </div>
   );
 };
