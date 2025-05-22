@@ -21,6 +21,8 @@ const Detail = () => {
   const [user, setUser] = useState(null);
   const [isBorrowing, setIsBorrowing] = useState(false);
   const [borrowResult, setBorrowResult] = useState(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -96,13 +98,29 @@ const Detail = () => {
 
   const handleBorrowBook = async () => {
     if (!user) {
-      // Jika pengguna belum login, redirect ke halaman login
       router.push('/login');
       return;
     }
 
     if (!book) {
       setError('Book data not available');
+      return;
+    }
+
+    // CEK JUMLAH PEMINJAMAN ON GOING
+    try {
+      // Ambil data peminjaman user
+      const response = await fetch(`/api/loans?user_id=${user.id}`);
+      const data = await response.json();
+      if (response.ok) {
+        const onGoingLoans = (data.loans || []).filter(l => l.status === 'On Going');
+        if (onGoingLoans.length >= 2) {
+          setShowLimitModal(true);
+          return;
+        }
+      }
+    } catch (err) {
+      setShowLimitModal(true);
       return;
     }
 
@@ -144,14 +162,10 @@ const Detail = () => {
 
       setBorrowResult({
         success: true,
-        message: 'Buku berhasil dipinjam! Tanggal pengembalian: ' + 
+        message: 'Book borrowed successfully! Return date: ' + 
                  new Date(result.loan.loan_due).toLocaleDateString('id-ID'),
       });
-
-      // Setelah berhasil meminjam, tunggu beberapa detik dan redirect ke halaman katalog buku
-      setTimeout(() => {
-        router.push('/user/dashboard/books/catalog');
-      }, 3000);
+      setShowSuccessModal(true);
 
     } catch (err) {
       console.error('Error borrowing book:', err);
@@ -292,6 +306,42 @@ const Detail = () => {
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      {/* Modal Limit Peminjaman */}
+      {showLimitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-xs text-center shadow-lg relative">
+            <h2 className="text-lg font-bold mb-2 text-[#e53e3e]">Warning</h2>
+            <p className="text-sm text-gray-700 mb-4">
+            You cannot borrow additional books. The maximum allowed is 2 books at a time.
+            </p>
+            <button
+              className="px-4 py-2 bg-[#2e3105] text-white rounded-lg hover:bg-[#222] transition-colors text-xs"
+              onClick={() => setShowLimitModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Modal Success Peminjaman */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-xs text-center shadow-lg relative">
+            <h2 className="text-lg font-bold mb-2 text-[#2e3105]">Success</h2>
+            <p className="text-sm text-gray-700 mb-4">{borrowResult?.message || 'Book borrowed successfully'}</p>
+            <button
+              className="px-4 py-2 bg-[#2e3105] text-white rounded-lg hover:bg-[#222] transition-colors text-xs"
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push('/user/dashboard/books/catalog');
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
