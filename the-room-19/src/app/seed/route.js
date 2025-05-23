@@ -94,7 +94,7 @@ async function seedEvents(tx) {
         CREATE TABLE IF NOT EXISTS events (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             event_name VARCHAR(255) NOT NULL,
-            description TEXT,
+            description TEXT NOT NULL,
             event_date DATE NOT NULL,
             shift_name VARCHAR(255) NOT NULL,
             shift_start TIME NOT NULL,
@@ -174,8 +174,6 @@ async function seedBookGenres(tx) {
         CREATE TABLE IF NOT EXISTS genres (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             genre_name VARCHAR(100) NOT NULL,
-            is_showed BOOLEAN DEFAULT true NOT NULL,
-            is_stored BOOLEAN DEFAULT true NOT NULL,
             number_of_books INTEGER DEFAULT 0 NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
@@ -195,6 +193,26 @@ async function seedBookLoans(tx) {
             status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
+    
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  
+    await sql`
+      CREATE TABLE IF NOT EXISTS loans (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID REFERENCES visitors(id) ON DELETE CASCADE,
+        book_id1 UUID REFERENCES books(id) ON DELETE SET NULL NOT NULL,
+        book_id2 UUID REFERENCES books(id) ON DELETE SET NULL,
+        book_title1 VARCHAR(255) NOT NULL,
+        book_title2 VARCHAR(255),
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone_number VARCHAR(20) NOT NULL,
+        loan_start DATE NOT NULL DEFAULT CURRENT_DATE,
+        loan_due DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '7 days'),
+        status VARCHAR(50) DEFAULT 'On Going' NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+      )
+    `;
 }
 
 async function seedUserPreferences(tx) {
@@ -274,3 +292,4 @@ export async function GET() {
     );
   }
 }
+
