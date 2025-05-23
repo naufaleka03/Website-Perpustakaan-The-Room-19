@@ -2,19 +2,42 @@ import React from 'react';
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
+  let dateObj = null;
+  if (typeof dateString === 'string' && dateString.trim() !== '') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      dateObj = new Date(dateString + 'T00:00:00+07:00');
+    } else {
+      dateObj = new Date(dateString);
+    }
+  } else if (typeof dateString === 'number') {
+    dateObj = new Date(dateString);
+  } else if (dateString instanceof Date) {
+    dateObj = dateString;
+  } else {
+    return '';
+  }
+  if (!dateObj || isNaN(dateObj.getTime())) return '';
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
   return `${day}-${month}-${year}`;
 };
 
 const getBorrowingStatus = (returnDate, status) => {
   if (status === 'Returned') return 'returned';
-  const today = new Date();
-  const returnDateObj = new Date(returnDate);
-  if (today > returnDateObj) return 'overdue';
+  // Gunakan waktu WIB
+  const now = new Date();
+  const wibOffset = 7 * 60; // menit
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibNow = new Date(utc + (wibOffset * 60000));
+  let returnDateObj = null;
+  if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+    returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+  } else {
+    returnDateObj = new Date(returnDate);
+  }
+  // Status overdue jika hari setelah return date
+  if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'overdue';
   return 'ongoing';
 };
 

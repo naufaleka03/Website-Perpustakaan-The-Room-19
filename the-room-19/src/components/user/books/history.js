@@ -86,6 +86,23 @@ const History = () => {
     }
   };
 
+  const getBorrowingStatus = (returnDate, status) => {
+    if (status === 'Returned') return 'Returned';
+    // Gunakan waktu WIB
+    const now = new Date();
+    const wibOffset = 7 * 60; // menit
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wibNow = new Date(utc + (wibOffset * 60000));
+    let returnDateObj = null;
+    if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+      returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+    } else {
+      returnDateObj = new Date(returnDate);
+    }
+    if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'Over Due';
+    return 'On Going';
+  };
+
   if (loading) {
     return (
       <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
@@ -179,8 +196,8 @@ const History = () => {
                     </div>
                   )}
 
-                  <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(loan.status)}`}>
-                    {loan.status}
+                  <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(getBorrowingStatus(loan.loan_due || loan.return_date, loan.status))}`}>
+                    {getBorrowingStatus(loan.loan_due || loan.return_date, loan.status)}
                   </div>
                 </div>
 

@@ -10,19 +10,27 @@ import DetailMembershipModal from './DetailMembershipModal';
 import DetailBorrowingModal from './DetailBorrowingModal';
 
 const formatDate = (dateString) => {
-  if (!dateString) return ''; // Handle empty date
-  const date = new Date(dateString);
-  
-  // Check if date is valid
+  if (!dateString) return '';
+  let date;
+  if (typeof dateString === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      // Format hanya tanggal, tambahkan offset WIB
+      date = new Date(dateString + 'T00:00:00+07:00');
+    } else {
+      // Sudah ISO atau ada waktu, parse langsung
+      date = new Date(dateString);
+    }
+  } else {
+    date = new Date(dateString);
+  }
   if (isNaN(date.getTime())) {
     console.error('Invalid date:', dateString);
     return '';
   }
-
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return `${month}-${day}-${year}`;
+  return `${day}-${month}-${year}`;
 };
 
 export default function DataCollection() {
@@ -373,11 +381,18 @@ export default function DataCollection() {
   // Update fungsi getBorrowingStatus untuk menggunakan loan_due
   const getBorrowingStatus = (returnDate, status) => {
     if (status === 'Returned') return 'returned';
-    
-    const today = new Date();
-    const returnDateObj = new Date(returnDate);
-    
-    if (today > returnDateObj) return 'overdue';
+    // Gunakan waktu WIB
+    const now = new Date();
+    const wibOffset = 7 * 60; // menit
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wibNow = new Date(utc + (wibOffset * 60000));
+    let returnDateObj = null;
+    if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+      returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+    } else {
+      returnDateObj = new Date(returnDate);
+    }
+    if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'overdue';
     return 'ongoing';
   };
 

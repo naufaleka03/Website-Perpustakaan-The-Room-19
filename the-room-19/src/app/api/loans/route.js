@@ -51,6 +51,14 @@ export async function POST(request) {
       );
     }
 
+    // Gunakan waktu WIB (Asia/Jakarta) untuk tanggal
+    const now = new Date();
+    const wibOffset = 7 * 60; // WIB = UTC+7 dalam menit
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wibDate = new Date(utc + (wibOffset * 60000));
+    const loan_start = wibDate.toISOString().split('T')[0];
+    const loan_due = new Date(wibDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     // Buat record loan baru
     const newLoan = {
       user_id: requestData.user_id,
@@ -67,8 +75,8 @@ export async function POST(request) {
       full_name: requestData.full_name,
       email: requestData.email,
       phone_number: requestData.phone_number,
-      loan_start: new Date().toISOString().split('T')[0], // Format tanggal YYYY-MM-DD
-      loan_due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 hari dari sekarang
+      loan_start: loan_start, // Format tanggal YYYY-MM-DD WIB
+      loan_due: loan_due, // 7 hari dari sekarang (WIB)
       status: 'On Going'
     };
 
@@ -101,5 +109,28 @@ export async function POST(request) {
       { error: 'An unexpected error occurred' },
       { status: 500 }
     );
+  }
+}
+
+// PATCH handler untuk update status Over Due
+export async function PATCH(request) {
+  try {
+    // Hitung tanggal hari ini (WIB)
+    const now = new Date();
+    const wibOffset = 7 * 60; // WIB = UTC+7 dalam menit
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wibNow = new Date(utc + (wibOffset * 60000));
+    const todayWIB = wibNow.toISOString().split('T')[0];
+
+    // Update semua loan yang return_date < hari ini (WIB) dan status masih 'On Going'
+    const updated = await sql`
+      UPDATE loans
+      SET status = 'Over Due'
+      WHERE status = 'On Going' AND loan_due < ${todayWIB}
+      RETURNING *
+    `;
+    return Response.json({ success: true, updated_count: updated.length, updated });
+  } catch (error) {
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 } 

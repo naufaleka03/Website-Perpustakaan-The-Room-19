@@ -8,15 +8,27 @@ export async function PUT(request, context) {
   const { id } = await context.params;
 
   try {
-    const { status } = await request.json();
-
-    // Update status peminjaman di database
-    const result = await sql`
-      UPDATE loans
-      SET status = ${status}
-      WHERE id = ${id}
-      RETURNING *
-    `;
+    const body = await request.json();
+    let result;
+    if (body.loan_due) {
+      // Update loan_due dan status ke 'On Going'
+      result = await sql`
+        UPDATE loans
+        SET loan_due = ${body.loan_due}, status = 'On Going'
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (body.status) {
+      // Update status saja
+      result = await sql`
+        UPDATE loans
+        SET status = ${body.status}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else {
+      return NextResponse.json({ error: 'No valid field to update' }, { status: 400 });
+    }
 
     if (result.length > 0) {
       return NextResponse.json({ success: true, loan: result[0] }, { status: 200 });
@@ -24,7 +36,7 @@ export async function PUT(request, context) {
       return NextResponse.json({ error: 'Loan not found' }, { status: 404 });
     }
   } catch (error) {
-    console.error('Error updating loan status:', error);
-    return NextResponse.json({ error: 'Failed to update loan status' }, { status: 500 });
+    console.error('Error updating loan:', error);
+    return NextResponse.json({ error: 'Failed to update loan' }, { status: 500 });
   }
 }

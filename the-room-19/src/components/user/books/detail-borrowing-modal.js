@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IoMdClose } from 'react-icons/io';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
-  let dateObj;
-  if (typeof dateString === 'string' || typeof dateString === 'number') {
+  let dateObj = null;
+  if (typeof dateString === 'string' && dateString.trim() !== '') {
+    // Jika string hanya YYYY-MM-DD, tambahkan waktu dan offset WIB
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      dateObj = new Date(dateString + 'T00:00:00+07:00');
+    } else {
+      dateObj = new Date(dateString);
+    }
+  } else if (typeof dateString === 'number') {
     dateObj = new Date(dateString);
   } else if (dateString instanceof Date) {
     dateObj = dateString;
   } else {
     return '-';
   }
-  if (isNaN(dateObj.getTime())) return '-';
+  if (!dateObj || isNaN(dateObj.getTime())) return '-';
   const day = String(dateObj.getDate()).padStart(2, '0');
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
   const year = dateObj.getFullYear();
@@ -20,9 +27,19 @@ const formatDate = (dateString) => {
 
 const getBorrowingStatus = (returnDate, status) => {
   if (status === 'Returned') return 'returned';
-  const today = new Date();
-  const returnDateObj = new Date(returnDate);
-  if (today > returnDateObj) return 'overdue';
+  // Gunakan waktu WIB
+  const now = new Date();
+  const wibOffset = 7 * 60; // menit
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibNow = new Date(utc + (wibOffset * 60000));
+  let returnDateObj = null;
+  if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+    returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+  } else {
+    returnDateObj = new Date(returnDate);
+  }
+  // Status overdue jika hari setelah return date
+  if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'overdue';
   return 'ongoing';
 };
 
@@ -34,10 +51,12 @@ const Row = ({ label, value }) => (
 );
 
 const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) => {
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [charge, setCharge] = useState(0);
   if (!isOpen || !borrowingData) return null;
 
-  const status = borrowingData.status === 'Returned' ? 'returned' :
-    (new Date() > new Date(borrowingData.return_date) ? 'overdue' : 'ongoing');
+  // Gunakan fungsi getBorrowingStatus yang sudah benar
+  const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
 
   const showExtend = status === 'ongoing' || status === 'overdue';
 
@@ -66,6 +85,58 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Terjadi kesalahan saat memperbarui status.');
+    }
+  };
+
+  const handleExtend = async () => {
+    try {
+      // Hitung tanggal baru (WIB)
+      let returnDateObj = null;
+      if (typeof borrowingData.return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(borrowingData.return_date)) {
+        returnDateObj = new Date(borrowingData.return_date + 'T00:00:00+07:00');
+      } else {
+        returnDateObj = new Date(borrowingData.return_date);
+      }
+      // Hitung charge jika overdue
+      let chargeAmount = 0;
+      if (status === 'overdue') {
+        // Hitung selisih hari antara hari ini (WIB) dan return date
+        const now = new Date();
+        const wibOffset = 7 * 60;
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const wibNow = new Date(utc + (wibOffset * 60000));
+        const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
+        chargeAmount = daysLate * 5000;
+        setCharge(chargeAmount);
+      } else {
+        setCharge(0);
+      }
+      const newReturnDate = new Date(returnDateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+      // Format YYYY-MM-DD
+      const newReturnDateStr = newReturnDate.toISOString().split('T')[0];
+      const response = await fetch(`/api/loans/${borrowingData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loan_due: newReturnDateStr }),
+      });
+      if (!response.ok) throw new Error('Gagal extend tanggal');
+      const data = await response.json();
+      if (onReturnBook) {
+        onReturnBook(borrowingData.id); // trigger refresh parent
+      }
+      // Update tampilan modal (local)
+      borrowingData.return_date = newReturnDateStr;
+      borrowingData.status = 'On Going';
+      // Tampilkan notifikasi sukses/charge
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        if (typeof window !== 'undefined') {
+          window.location.href = '/user/dashboard/books/history';
+        }
+      }, 2000);
+    } catch (error) {
+      alert('Gagal memperpanjang masa pinjam.');
     }
   };
 
@@ -129,12 +200,12 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
         </div>
 
         <div className="mt-6 flex justify-end gap-2 text-xs font-['Poppins']">
-          {status !== 'returned' && (
+          {(status === 'overdue' || status === 'ongoing') && (
             <button
-              onClick={handleReturn}
-              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+              onClick={handleExtend}
+              className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {showExtend ? 'Extend' : 'Mark as Returned'}
+              Extend
             </button>
           )}
           <button
@@ -145,6 +216,20 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           </button>
         </div>
       </div>
+      {/* Notifikasi pop up sukses/charge */}
+      {showSuccess && (() => {
+        // Pastikan price dan charge bertipe number
+        let price = borrowingData.price;
+        if (typeof price === 'string') price = parseFloat(price.replace(/[^\d.-]/g, '')) || 0;
+        const total = price + (charge || 0);
+        return (
+          <div className="fixed left-1/2 bottom-8 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold animate-fade-in">
+            {charge > 0
+              ? `Perpanjangan Berhasil. Denda keterlambatan: Rp${charge.toLocaleString('id-ID')}. Total pembayaran: Rp${total.toLocaleString('id-ID')}`
+              : `Perpanjangan Berhasil. Total pembayaran: Rp${total.toLocaleString('id-ID')}`}
+          </div>
+        );
+      })()}
     </div>
   );
 };
