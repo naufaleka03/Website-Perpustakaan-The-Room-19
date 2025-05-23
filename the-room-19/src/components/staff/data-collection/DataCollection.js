@@ -36,13 +36,9 @@ export default function DataCollection() {
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [sessionData, setSessionData] = useState([]);
-  const [sessionStatuses, setSessionStatuses] = useState(
-    sessionData.map((item) => ({
-      id: item.id,
-      status: "not attended",
-      isCanceled: false,
-    }))
-  );
+  const [eventData, setEventData] = useState([]);
+  const [sessionStatuses, setSessionStatuses] = useState([]);
+  const [eventStatuses, setEventStatuses] = useState([]);
   const [sessionStatus, setSessionStatus] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [eventSearchQuery, setEventSearchQuery] = useState("");
@@ -51,7 +47,7 @@ export default function DataCollection() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState("newest"); // 'newest' atau 'oldest'
+  const [sortOrder, setSortOrder] = useState("newest");
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -59,13 +55,16 @@ export default function DataCollection() {
   const getTableData = (data, page, itemsPerPage, searchQuery = "") => {
     let filteredData = filterDataByName(data, searchQuery);
 
-    // Urutkan data berdasarkan sortOrder
-    if (data === sessionData) {
+    // Sort data based on sortOrder if it's sessions or events tab
+    if (data === sessionData || data === eventData) {
       filteredData = [...filteredData].sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+
         if (sortOrder === "newest") {
-          return b.id - a.id;
+          return dateB - dateA;
         }
-        return a.id - b.id;
+        return dateA - dateB;
       });
     }
 
@@ -144,31 +143,50 @@ export default function DataCollection() {
 
   // Update useEffect untuk fetch data
   useEffect(() => {
-    const fetchSessions = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/sessions");
-        const data = await response.json();
-        // Sort data berdasarkan created_at
-        const sortedData = data.sort((a, b) => {
+        // Fetch sessions
+        const sessionsResponse = await fetch("/api/sessions");
+        const sessionsData = await sessionsResponse.json();
+        const sortedSessionsData = sessionsData.sort((a, b) => {
           const dateA = new Date(a.created_at);
           const dateB = new Date(b.created_at);
-          return dateB - dateA; // Default newest first
+          return dateB - dateA;
         });
-
-        setSessionData(sortedData);
+        setSessionData(sortedSessionsData);
         setSessionStatuses(
-          sortedData.map((item) => ({
+          sortedSessionsData.map((item) => ({
+            id: item.id,
+            status: item.status || "not attended",
+            isCanceled: item.status === "canceled",
+          }))
+        );
+
+        // Fetch event reservations
+        const eventReservationsResponse = await fetch("/api/eventreservations");
+        const eventReservationsData = await eventReservationsResponse.json();
+        const sortedEventReservationsData = eventReservationsData.sort(
+          (a, b) => {
+            const dateA = new Date(a.created_at);
+            const dateB = new Date(b.created_at);
+            return dateB - dateA;
+          }
+        );
+        setEventData(sortedEventReservationsData);
+        setEventStatuses(
+          sortedEventReservationsData.map((item) => ({
             id: item.id,
             status: item.status || "not attended",
             isCanceled: item.status === "canceled",
           }))
         );
       } catch (error) {
-        console.error("Error fetching sessions:", error);
+        console.error("Error fetching data:", error);
+        setError("Failed to fetch data. Please try again.");
       }
     };
 
-    fetchSessions();
+    fetchData();
   }, [isModalOpen]);
 
   // Update handler untuk mengubah status session
@@ -190,23 +208,6 @@ export default function DataCollection() {
       console.error("Error updating session status:", error);
       setError("Failed to update session status. Please try again.");
     }
-  };
-
-  // Update state untuk event
-  const [eventStatuses, setEventStatuses] = useState(
-    eventData.map((item) => ({
-      id: item.id,
-      status: "not attended",
-      isCanceled: false,
-    }))
-  );
-
-  const handleEventStatusChange = (id, newStatus) => {
-    setEventStatuses((prevStatuses) =>
-      prevStatuses.map((status) =>
-        status.id === id ? { ...status, status: newStatus } : status
-      )
-    );
   };
 
   // Tambahkan state untuk membership status
@@ -232,35 +233,84 @@ export default function DataCollection() {
     setActiveDropdown(null);
   };
 
-  const handleCancelConfirm = async (sessionId) => {
+  const handleCancelConfirm = async (id, reason) => {
     try {
       const formData = new FormData();
       formData.append("status", "canceled");
+      formData.append("cancellationReason", reason);
 
-      const result = await updateSessionStatus(sessionId, formData);
+      let response;
+      if (activeTab === "session") {
+        response = await updateSessionStatus(id, formData);
+      } else if (activeTab === "event") {
+        // Get current event reservation data to calculate slots to return
+        const currentReservation = await fetch(`/api/eventreservations/${id}`);
+        const reservationData = await currentReservation.json();
 
-      if (result.success) {
-        // Update local state for session status
-        setSessionStatuses((prevStatuses) =>
-          prevStatuses.map((status) =>
-            status.id === sessionId
-              ? { ...status, status: "canceled", isCanceled: true }
-              : status
-          )
-        );
+        if (!currentReservation.ok) {
+          throw new Error("Failed to fetch event reservation data");
+        }
+
+        // Calculate slots to return
+        const slotsToReturn =
+          1 + // Main person
+          (reservationData.group_member1 ? 1 : 0) +
+          (reservationData.group_member2 ? 1 : 0) +
+          (reservationData.group_member3 ? 1 : 0) +
+          (reservationData.group_member4 ? 1 : 0);
+
+        console.log(`Returning ${slotsToReturn} slots to event availability`);
+
+        // Update the event reservation status
+        response = await fetch(`/api/eventreservations/${id}`, {
+          method: "PUT",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to cancel event reservation");
+        }
+
+        response = await response.json();
+      }
+
+      if (
+        (activeTab === "session" && response.success) ||
+        (activeTab === "event" && response.success)
+      ) {
+        // Update local state for status
+        if (activeTab === "session") {
+          setSessionStatuses((prevStatuses) =>
+            prevStatuses.map((status) =>
+              status.id === id
+                ? { ...status, status: "canceled", isCanceled: true }
+                : status
+            )
+          );
+        } else {
+          setEventStatuses((prevStatuses) =>
+            prevStatuses.map((status) =>
+              status.id === id
+                ? { ...status, status: "canceled", isCanceled: true }
+                : status
+            )
+          );
+        }
 
         // Close the modal
         setIsModalOpen(false);
 
         // Show success message
         setSuccessMessage(
-          "Session canceled successfully. Slots have been returned to availability."
+          `${
+            activeTab === "session" ? "Session" : "Event"
+          } canceled successfully. Slots have been returned to availability.`
         );
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
-      console.error("Error canceling session:", error);
-      setError("Failed to cancel session. Please try again.");
+      console.error(`Error canceling ${activeTab}:`, error);
+      setError(`Failed to cancel ${activeTab}. Please try again.`);
     }
   };
 
@@ -326,18 +376,63 @@ export default function DataCollection() {
     setSortOrder(order);
     setSortDropdownOpen(false);
 
-    const sortedData = [...sessionData].sort((a, b) => {
-      const dateA = new Date(a.created_at);
-      const dateB = new Date(b.created_at);
+    if (activeTab === "session") {
+      const sortedData = [...sessionData].sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
 
-      if (order === "newest") {
-        return dateB - dateA;
+        if (order === "newest") {
+          return dateB - dateA;
+        }
+        return dateA - dateB;
+      });
+
+      setSessionData(sortedData);
+      setSessionCurrentPage(1);
+    } else if (activeTab === "event") {
+      const sortedData = [...eventData].sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+
+        if (order === "newest") {
+          return dateB - dateA;
+        }
+        return dateA - dateB;
+      });
+
+      setEventData(sortedData);
+      setEventCurrentPage(1);
+    }
+  };
+
+  // Add handleEventStatusChange function
+  const handleEventStatusChange = async (eventId, newStatus) => {
+    try {
+      const formData = new FormData();
+      formData.append("status", newStatus);
+
+      const response = await fetch(`/api/eventreservations/${eventId}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update event status");
       }
-      return dateA - dateB;
-    });
 
-    setSessionData(sortedData);
-    setSessionCurrentPage(1);
+      // Update local state
+      setEventStatuses((prevStatuses) =>
+        prevStatuses.map((status) =>
+          status.id === eventId ? { ...status, status: newStatus } : status
+        )
+      );
+
+      setSuccessMessage("Event status updated successfully");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Error updating event status:", error);
+      setError("Failed to update event status. Please try again.");
+    }
   };
 
   return (
@@ -588,7 +683,13 @@ export default function DataCollection() {
                               }}
                             >
                               <button
-                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
+                                  sessionStatuses.find(
+                                    (status) => status.id === session.id
+                                  )?.status === "canceled"
+                                    ? "rounded-lg"
+                                    : "rounded-t-lg"
+                                }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDetail(session.id);
@@ -596,15 +697,19 @@ export default function DataCollection() {
                               >
                                 Detail
                               </button>
-                              <button
-                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCancelClick(session.id);
-                                }}
-                              >
-                                Cancel Booking
-                              </button>
+                              {sessionStatuses.find(
+                                (status) => status.id === session.id
+                              )?.status !== "canceled" && (
+                                <button
+                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelClick(session.id);
+                                  }}
+                                >
+                                  Cancel Booking
+                                </button>
+                              )}
                             </div>
                           )}
                         </td>
@@ -624,26 +729,55 @@ export default function DataCollection() {
 
           {activeTab === "event" && (
             <>
-              <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by name"
-                    value={eventSearchQuery}
-                    onChange={(e) => handleSearch(e, setEventSearchQuery)}
-                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by name"
+                      value={eventSearchQuery}
+                      onChange={(e) => handleSearch(e, setEventSearchQuery)}
+                      className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                  </div>
+
+                  {/* Sort Dropdown for Events */}
+                  <div className="relative sort-container">
+                    <button
+                      onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666]"
+                    >
+                      <FaSort />
+                      Sort
+                    </button>
+
+                    {sortDropdownOpen && (
+                      <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
+                        <button
+                          onClick={() => handleSort("newest")}
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                            sortOrder === "newest"
+                              ? "text-[#111010] font-medium"
+                              : "text-[#666666]"
+                          }`}
+                        >
+                          Newest First
+                        </button>
+                        <button
+                          onClick={() => handleSort("oldest")}
+                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                            sortOrder === "oldest"
+                              ? "text-[#111010] font-medium"
+                              : "text-[#666666]"
+                          }`}
+                        >
+                          Oldest First
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
-                  onClick={() =>
-                    router.push("/staff/dashboard/data-collection/create-event")
-                  }
-                >
-                  <FaPlus size={12} />
-                  Create
-                </button>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
                 <table className="w-full">
@@ -678,31 +812,32 @@ export default function DataCollection() {
                       eventCurrentPage,
                       entriesPerPage,
                       eventSearchQuery
-                    ).map((item, index) => (
+                    ).map((event, index) => (
                       <tr
-                        key={item.id}
+                        key={event.id}
                         className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
-                        onClick={() => setSelectedRow(item.id)}
+                        onClick={() => setSelectedRow(event.id)}
                         onMouseLeave={() => setSelectedRow(null)}
                       >
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
                           {(eventCurrentPage - 1) * entriesPerPage + index + 1}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.name}
+                          {event.full_name}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.event}
+                          {event.event_name}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {formatDate(item.arrival_date)}
+                          {formatDate(event.event_date)}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.shift}
+                          {event.shift_name}
                         </td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          {eventStatuses.find((status) => status.id === item.id)
-                            ?.isCanceled ? (
+                          {eventStatuses.find(
+                            (status) => status.id === event.id
+                          )?.status === "canceled" ? (
                             <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
                               Canceled
                             </span>
@@ -710,22 +845,25 @@ export default function DataCollection() {
                             <select
                               value={
                                 eventStatuses.find(
-                                  (status) => status.id === item.id
-                                )?.status || "not attended"
+                                  (status) => status.id === event.id
+                                )?.status || "not_attended"
                               }
                               onChange={(e) =>
-                                handleEventStatusChange(item.id, e.target.value)
+                                handleEventStatusChange(
+                                  event.id,
+                                  e.target.value
+                                )
                               }
                               className={`px-2 py-1 rounded-lg text-xs ${
                                 eventStatuses.find(
-                                  (status) => status.id === item.id
+                                  (status) => status.id === event.id
                                 )?.status === "attended"
                                   ? "text-green-800 bg-green-100"
                                   : "text-yellow-800 bg-yellow-100"
                               }`}
                             >
                               <option
-                                value="not attended"
+                                value="not_attended"
                                 className="text-yellow-800 bg-white"
                               >
                                 Not Attended
@@ -744,7 +882,7 @@ export default function DataCollection() {
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveDropdown(
-                                activeDropdown === item.id ? null : item.id
+                                activeDropdown === event.id ? null : event.id
                               );
                             }}
                             className="text-[#666666] hover:text-[#111010] dropdown-trigger"
@@ -752,37 +890,47 @@ export default function DataCollection() {
                             <FaEllipsisV size={14} />
                           </button>
 
-                          {activeDropdown === item.id && (
+                          {activeDropdown === event.id && (
                             <div
                               className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
                               style={{
-                                top: selectedRow === item.id ? "auto" : "100%",
+                                top: selectedRow === event.id ? "auto" : "100%",
                                 bottom:
-                                  selectedRow === item.id ? "100%" : "auto",
+                                  selectedRow === event.id ? "100%" : "auto",
                                 transform:
-                                  selectedRow === item.id
+                                  selectedRow === event.id
                                     ? "translateY(0)"
                                     : "translateY(-100%)",
                               }}
                             >
                               <button
-                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
+                                  eventStatuses.find(
+                                    (status) => status.id === event.id
+                                  )?.status === "canceled"
+                                    ? "rounded-lg"
+                                    : "rounded-t-lg"
+                                }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDetail(item.id);
+                                  handleDetail(event.id);
                                 }}
                               >
                                 Detail
                               </button>
-                              <button
-                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCancelClick(item.id);
-                                }}
-                              >
-                                Cancel Booking
-                              </button>
+                              {eventStatuses.find(
+                                (status) => status.id === event.id
+                              )?.status !== "canceled" && (
+                                <button
+                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelClick(event.id);
+                                  }}
+                                >
+                                  Cancel Booking
+                                </button>
+                              )}
                             </div>
                           )}
                         </td>
@@ -1017,6 +1165,7 @@ export default function DataCollection() {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         sessionId={selectedSessionId}
+        type={activeTab}
       />
       {successMessage && (
         <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">

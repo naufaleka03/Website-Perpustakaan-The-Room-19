@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { GoHomeFill } from 'react-icons/go';
 import { IoIdCard } from 'react-icons/io5';
-import { FaCalendarCheck, FaBook } from 'react-icons/fa';
+import { FaCalendarCheck, FaBook, FaCalendarPlus } from 'react-icons/fa';
 import { MdKeyboardArrowDown, MdInventory } from "react-icons/md";
 
 import Link from 'next/link';
@@ -27,6 +27,12 @@ const links = [
     name: 'Monitoring',
     href: '/staff/dashboard/data-collection',
     icon: FaCalendarCheck,
+  },
+  {
+    name: "Events",
+    href: "/staff/dashboard/reservation/event-list",
+    icon: FaCalendarPlus,
+    
   },
   {
     name: 'Book Management',

@@ -215,6 +215,10 @@ export default function SessionReservation() {
           Group
         </button>
       </div>
+      <p className="text-xs text-gray-500 text-center mb-4">
+        Select the reservation type that suits your needs. If you choose
+        "Group," you can add members.
+      </p>
 
       {/* Form Section */}
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
@@ -239,6 +243,9 @@ export default function SessionReservation() {
             <option value="Reguler">Reguler</option>
             <option value="Student">Student</option>
           </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select the category that matches your status.
+          </p>
         </div>
 
         {/* Arrival Date Field */}
@@ -263,6 +270,10 @@ export default function SessionReservation() {
               <IoCalendarOutline className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl" />
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Enter the date of your visit to the library. Make sure to select the
+            correct date.
+          </p>
         </div>
 
         {/* Shift Field */}
@@ -290,6 +301,9 @@ export default function SessionReservation() {
             </select>
             <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Choose your visit time slot according to the available schedule.
+          </p>
         </div>
 
         {/* Full Name Field */}
@@ -309,6 +323,9 @@ export default function SessionReservation() {
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Enter your full name as stated on your official ID.
+          </p>
         </div>
 
         {/* Group Members Section */}
@@ -346,6 +363,10 @@ export default function SessionReservation() {
                 <FaPlus size={12} />
                 <span>Add Member</span>
               </button>
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the names of group members if the reservation is for a
+                group.
+              </p>
             </div>
           </div>
         )}

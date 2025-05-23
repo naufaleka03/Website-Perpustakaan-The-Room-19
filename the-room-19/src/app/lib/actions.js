@@ -141,11 +141,11 @@ export async function submitEventCreation(formData) {
     const formattedDate = `${year}-${month}-${day}`;
 
     // Convert File object to base64 string if exists
-    let posterUrl = formData.activity_poster;
-    if (formData.activity_poster instanceof File) {
-      const buffer = await formData.activity_poster.arrayBuffer();
+    let posterUrl = formData.event_poster;
+    if (formData.event_poster instanceof File) {
+      const buffer = await formData.event_poster.arrayBuffer();
       const base64String = Buffer.from(buffer).toString("base64");
-      posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
+      posterUrl = `data:${formData.event_poster.type};base64,${base64String}`;
     }
 
     const dbFormData = {
@@ -156,7 +156,7 @@ export async function submitEventCreation(formData) {
       max_participants: parseInt(formData.max_participants),
       ticket_fee: parseInt(formData.ticket_fee),
       additional_notes: formData.additional_notes,
-      activity_poster: posterUrl,
+      event_poster: posterUrl,
     };
 
     // Validasi data
@@ -185,7 +185,7 @@ export async function submitEventCreation(formData) {
         max_participants,
         ticket_fee,
         additional_notes,
-        activity_poster,
+        event_poster,
         created_at
       ) VALUES (
         ${dbFormData.event_name},
@@ -197,7 +197,7 @@ export async function submitEventCreation(formData) {
         ${dbFormData.max_participants},
         ${dbFormData.ticket_fee},
         ${dbFormData.additional_notes},
-        ${dbFormData.activity_poster},
+        ${dbFormData.event_poster},
         NOW()
       ) RETURNING *
     `;
@@ -215,11 +215,11 @@ export async function submitEventUpdate(eventId, formData) {
     const formattedDate = `${year}-${month}-${day}`;
 
     // Convert File object to base64 string if exists
-    let posterUrl = formData.activity_poster;
-    if (formData.activity_poster instanceof File) {
-      const buffer = await formData.activity_poster.arrayBuffer();
+    let posterUrl = formData.event_poster;
+    if (formData.event_poster instanceof File) {
+      const buffer = await formData.event_poster.arrayBuffer();
       const base64String = Buffer.from(buffer).toString("base64");
-      posterUrl = `data:${formData.activity_poster.type};base64,${base64String}`;
+      posterUrl = `data:${formData.event_poster.type};base64,${base64String}`;
     }
 
     const dbFormData = {
@@ -230,7 +230,7 @@ export async function submitEventUpdate(eventId, formData) {
       max_participants: parseInt(formData.max_participants),
       ticket_fee: parseInt(formData.ticket_fee),
       additional_notes: formData.additional_notes,
-      activity_poster: posterUrl,
+      event_poster: posterUrl,
     };
 
     // Validasi data
@@ -260,7 +260,7 @@ export async function submitEventUpdate(eventId, formData) {
         max_participants = ${dbFormData.max_participants},
         ticket_fee = ${dbFormData.ticket_fee},
         additional_notes = ${dbFormData.additional_notes},
-        activity_poster = ${dbFormData.activity_poster}
+        event_poster = ${dbFormData.event_poster}
       WHERE id = ${eventId}
       RETURNING *
     `;
@@ -279,6 +279,7 @@ export async function updateSessionStatus(id, formData) {
   const { status } = UpdateSessionStatus.parse({
     status: formData.get("status"),
   });
+  const cancellationReason = formData.get("cancellationReason");
 
   try {
     // Get current session data to calculate slots to return if canceling
@@ -293,7 +294,12 @@ export async function updateSessionStatus(id, formData) {
     // Update the session status
     const updatedSession = await sql`
       UPDATE sessions 
-      SET status = ${status}
+      SET 
+        status = ${status},
+        cancellation_reason = CASE 
+          WHEN ${status} = 'canceled' THEN ${cancellationReason}
+          ELSE cancellation_reason
+        END
       WHERE id = ${id}
       RETURNING *
     `;
@@ -385,5 +391,96 @@ export async function checkSessionAvailability(formData) {
   } catch (error) {
     console.error("Error checking availability:", error);
     throw new Error("Failed to check session availability");
+  }
+}
+
+export async function submitEventReservation(formData) {
+  try {
+    console.log("Received form data:", formData);
+
+    // Convert camelCase to snake_case for database consistency
+    const dbFormData = {
+      event_name: formData.event_name,
+      description: formData.description,
+      event_date: formData.event_date,
+      shift_name: formData.shift_name,
+      shift_start: formData.shift_start,
+      shift_end: formData.shift_end,
+      max_participants: formData.max_participants,
+      ticket_fee: formData.ticket_fee,
+      additional_notes: formData.additional_notes,
+      full_name: formData.full_name,
+      members: formData.members || [],
+      status: "not_attended",
+      payment_id: formData.payment_id,
+      payment_status: formData.payment_status,
+      payment_method: formData.payment_method,
+    };
+
+    // Validation
+    if (!dbFormData.event_name) throw new Error("Event name is required");
+    if (!dbFormData.event_date) throw new Error("Event date is required");
+    if (!dbFormData.shift_name) throw new Error("Shift name is required");
+    if (!dbFormData.full_name) throw new Error("Full name is required");
+
+    // Insert reservation into database
+    const result = await sql`
+      INSERT INTO eventreservations (
+        event_name,
+        description,
+        event_date,
+        shift_name,
+        shift_start,
+        shift_end,
+        max_participants,
+        ticket_fee,
+        additional_notes,
+        full_name,
+        group_member1,
+        group_member2,
+        group_member3,
+        group_member4,
+        status,
+        payment_id,
+        payment_status,
+        payment_method,
+        created_at
+      )
+      VALUES (
+        ${dbFormData.event_name},
+        ${dbFormData.description},
+        ${dbFormData.event_date},
+        ${dbFormData.shift_name},
+        ${dbFormData.shift_start},
+        ${dbFormData.shift_end},
+        ${dbFormData.max_participants},
+        ${dbFormData.ticket_fee},
+        ${dbFormData.additional_notes},
+        ${dbFormData.full_name},
+        ${dbFormData.members[0] || null},
+        ${dbFormData.members[1] || null},
+        ${dbFormData.members[2] || null},
+        ${dbFormData.members[3] || null},
+        ${dbFormData.status},
+        ${dbFormData.payment_id},
+        ${dbFormData.payment_status},
+        ${dbFormData.payment_method},
+        NOW()
+      )
+      RETURNING *
+    `;
+
+    console.log("Event reservation created:", result);
+
+    return {
+      success: true,
+      data: result[0],
+    };
+  } catch (error) {
+    console.error("Event reservation submission error:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to submit event reservation",
+    };
   }
 }

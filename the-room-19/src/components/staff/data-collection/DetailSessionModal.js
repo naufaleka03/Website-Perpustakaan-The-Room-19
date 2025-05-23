@@ -1,39 +1,48 @@
-"use client"
-import { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect } from "react";
 import { IoCalendarOutline } from "react-icons/io5";
 
-export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
-  const [sessionData, setSessionData] = useState(null);
+export default function DetailSessionModal({
+  isOpen,
+  onClose,
+  sessionId,
+  type = "session",
+}) {
+  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const handleOutsideClick = (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
+    if (e.target.classList.contains("modal-overlay")) {
       onClose();
     }
   };
 
   useEffect(() => {
-    const fetchSessionData = async () => {
+    const fetchData = async () => {
       if (!sessionId) return;
       try {
-        const response = await fetch(`/api/sessions/${sessionId}`);
-        const data = await response.json();
-        setSessionData(data);
+        const endpoint =
+          type === "session"
+            ? `/api/sessions/${sessionId}`
+            : `/api/eventreservations/${sessionId}`;
+        const response = await fetch(endpoint);
+        const responseData = await response.json();
+        setData(responseData);
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching session data:', error);
+        console.error(`Error fetching ${type} data:`, error);
       }
     };
 
     if (isOpen) {
-      fetchSessionData();
+      fetchData();
     }
-  }, [sessionId, isOpen]);
+  }, [sessionId, isOpen, type]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${month}-${day}-${year}`;
   };
@@ -41,20 +50,22 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay"
       onClick={handleOutsideClick}
     >
       <div className="bg-white rounded-xl p-6 w-[750px] max-h-[90vh] overflow-y-auto relative">
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
         >
           ✕
         </button>
 
-        <h2 className="text-xl font-semibold text-[#111010] mb-6">Session Reservation Detail</h2>
-        
+        <h2 className="text-xl font-semibold text-[#111010] mb-6">
+          {type === "session" ? "Session" : "Event"} Reservation Detail
+        </h2>
+
         {isLoading ? (
           <div>Loading...</div>
         ) : (
@@ -64,23 +75,57 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
                 Full Name:
               </label>
-              <p className="text-sm text-[#666666]">{sessionData.full_name}</p>
+              <p className="text-sm text-[#666666]">{data.full_name}</p>
             </div>
 
-            {/* Category Field */}
-            <div className="mb-4">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Category:
-              </label>
-              <p className="text-sm text-[#666666]">{sessionData.category}</p>
-            </div>
+            {type === "session" && (
+              /* Category Field - Only for Sessions */
+              <div className="mb-4">
+                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                  Category:
+                </label>
+                <p className="text-sm text-[#666666]">{data.category}</p>
+              </div>
+            )}
 
-            {/* Arrival Date Field */}
+            {type === "event" && (
+              /* Event Specific Fields */
+              <>
+                <div className="mb-4">
+                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                    Event Name:
+                  </label>
+                  <p className="text-sm text-[#666666]">{data.event_name}</p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                    Description:
+                  </label>
+                  <p className="text-sm text-[#666666]">{data.description}</p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                    Ticket Fee:
+                  </label>
+                  <p className="text-sm text-[#666666]">
+                    Rp {data.ticket_fee?.toLocaleString()}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Date Field */}
             <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Arrival Date:
+                {type === "session" ? "Arrival Date:" : "Event Date:"}
               </label>
-              <p className="text-sm text-[#666666]">{sessionData.arrival_date ? formatDate(sessionData.arrival_date) : ''}</p>
+              <p className="text-sm text-[#666666]">
+                {formatDate(
+                  type === "session" ? data.arrival_date : data.event_date
+                )}
+              </p>
             </div>
 
             {/* Shift Field */}
@@ -88,22 +133,82 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
                 Shift:
               </label>
-              <p className="text-sm text-[#666666]">{sessionData.shift_name}</p>
+              <p className="text-sm text-[#666666]">{data.shift_name}</p>
             </div>
 
             {/* Group Members Field - Optional */}
-            {sessionData.group_member1 && (
+            {(data.group_member1 ||
+              (data.members && data.members.length > 0)) && (
               <div className="mb-4">
                 <label className="text-[#666666] text-sm font-medium font-['Poppins']">
                   Group Members:
                 </label>
                 <div className="space-y-2">
-                  {[sessionData.group_member1, sessionData.group_member2, sessionData.group_member3, sessionData.group_member4]
-                    .filter(Boolean)
-                    .map((member, index) => (
-                      <p key={index} className="text-sm text-[#666666]">{member}</p>
-                    ))}
+                  {type === "session"
+                    ? [
+                        data.group_member1,
+                        data.group_member2,
+                        data.group_member3,
+                        data.group_member4,
+                      ]
+                        .filter(Boolean)
+                        .map((member, index) => (
+                          <p key={index} className="text-sm text-[#666666]">
+                            {member}
+                          </p>
+                        ))
+                    : data.members?.map((member, index) => (
+                        <p key={index} className="text-sm text-[#666666]">
+                          {member}
+                        </p>
+                      ))}
                 </div>
+              </div>
+            )}
+
+            {/* Status Field */}
+            <div className="mb-4">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Status:
+              </label>
+              <p
+                className={`text-sm ${
+                  data.status === "canceled"
+                    ? "text-red-800"
+                    : data.status === "attended"
+                    ? "text-green-800"
+                    : "text-yellow-800"
+                }`}
+              >
+                {data.status}
+              </p>
+            </div>
+
+            {/* Cancellation Reason - Only show if status is canceled */}
+            {data.status === "canceled" && data.cancellation_reason && (
+              <div className="mb-4">
+                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                  Cancellation Reason:
+                </label>
+                <p className="text-sm text-red-800">
+                  {data.cancellation_reason}
+                </p>
+              </div>
+            )}
+
+            {/* Payment Information - Only show for event reservations */}
+            {type === "event" && data.payment_id && (
+              <div className="mb-4">
+                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                  Payment Information:
+                </label>
+                <p className="text-sm text-[#666666]">ID: {data.payment_id}</p>
+                <p className="text-sm text-[#666666]">
+                  Status: {data.payment_status}
+                </p>
+                <p className="text-sm text-[#666666]">
+                  Method: {data.payment_method}
+                </p>
               </div>
             )}
           </>
