@@ -2,11 +2,85 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function PaymentFinishPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order_id');
   const status = searchParams.get('transaction_status');
+  const paymentMethod = searchParams.get('payment_type');
+  const loanId = searchParams.get('loan_id');
+  const [loanSaved, setLoanSaved] = useState(false);
+  const [loanError, setLoanError] = useState('');
+  const [transactionSaved, setTransactionSaved] = useState(false);
+  const [transactionError, setTransactionError] = useState('');
+  const newReturnDate = typeof window !== 'undefined' ? localStorage.getItem('extendNewReturnDate') : null;
+
+  useEffect(() => {
+    // Proses simpan data loan jika ada data di localStorage dan payment sukses
+    const loanDataStr = typeof window !== 'undefined' ? localStorage.getItem('loanBookData') : null;
+    if (orderId && status && loanDataStr && !loanSaved) {
+      const loanData = JSON.parse(loanDataStr);
+      // Kirim ke /api/loans
+      fetch('/api/loans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...loanData,
+          payment_id: orderId,
+          payment_status: status,
+          payment_method: paymentMethod || null
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          setLoanSaved(true);
+          localStorage.removeItem('loanBookData');
+        } else {
+          setLoanError(res.error || 'Gagal menyimpan data peminjaman');
+        }
+      })
+      .catch(err => {
+        setLoanError(err.message || 'Gagal menyimpan data peminjaman');
+      });
+    }
+
+    // Jika extend: insert ke tabel transaction
+    if (loanId && orderId && status && paymentMethod && !transactionSaved) {
+      fetch('/api/transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loan_id: loanId,
+          payment_id: orderId,
+          payment_status: status,
+          payment_method: paymentMethod
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          setTransactionSaved(true);
+          // Setelah transaksi extend dicatat, update return date dan status pada loans LANGSUNG di sini
+          if (loanId && newReturnDate) {
+            fetch(`/api/loans/${loanId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ loan_due: newReturnDate, status: 'On Going' })
+            })
+            .then(res => res.json())
+            .then(() => {
+              localStorage.removeItem('extendNewReturnDate');
+            });
+          }
+        } else {
+          setTransactionError(res.error || 'Gagal menyimpan transaksi extend');
+        }
+      })
+      .catch(err => setTransactionError(err.message || 'Gagal menyimpan transaksi extend'));
+    }
+  }, [loanId, orderId, status, paymentMethod, transactionSaved, newReturnDate]);
 
   // Helper function to get status display info
   const getStatusInfo = (status) => {
@@ -72,17 +146,23 @@ export default function PaymentFinishPage() {
           </p>
           
           {/* Order ID */}
+          <p className="text-sm text-gray-500 mb-2">
+            Payment ID: {orderId}
+          </p>
+          <p className="text-sm text-gray-500 mb-2">
+            Payment Status: {status}
+          </p>
           <p className="text-sm text-gray-500 mb-6">
-            Order ID: {orderId}
+            Payment Method: {paymentMethod || '-'}
           </p>
 
           {/* Action Buttons */}
           <div className="space-y-3">
             <Link
-              href="/user/dashboard"
+              href="/user/dashboard/books/history"
               className="inline-block bg-[#111010] text-white px-6 py-2 rounded-lg w-full hover:bg-gray-900 transition-colors"
             >
-              View My Reservations
+              View History Page
             </Link>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { IoMdClose } from 'react-icons/io';
+import PaymentSummaryExtend from '@/components/payment/payment-summary-extend';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -53,6 +54,8 @@ const Row = ({ label, value }) => (
 const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [charge, setCharge] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [extendData, setExtendData] = useState(null);
   if (!isOpen || !borrowingData) return null;
 
   // Gunakan fungsi getBorrowingStatus yang sudah benar
@@ -88,56 +91,37 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
     }
   };
 
-  const handleExtend = async () => {
-    try {
-      // Hitung tanggal baru (WIB)
-      let returnDateObj = null;
-      if (typeof borrowingData.return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(borrowingData.return_date)) {
-        returnDateObj = new Date(borrowingData.return_date + 'T00:00:00+07:00');
-      } else {
-        returnDateObj = new Date(borrowingData.return_date);
-      }
-      // Hitung charge jika overdue
-      let chargeAmount = 0;
-      if (status === 'overdue') {
-        // Hitung selisih hari antara hari ini (WIB) dan return date
-        const now = new Date();
-        const wibOffset = 7 * 60;
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const wibNow = new Date(utc + (wibOffset * 60000));
-        const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
-        chargeAmount = daysLate * 5000;
-        setCharge(chargeAmount);
-      } else {
-        setCharge(0);
-      }
-      const newReturnDate = new Date(returnDateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
-      // Format YYYY-MM-DD
-      const newReturnDateStr = newReturnDate.toISOString().split('T')[0];
-      const response = await fetch(`/api/loans/${borrowingData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loan_due: newReturnDateStr }),
-      });
-      if (!response.ok) throw new Error('Gagal extend tanggal');
-      const data = await response.json();
-      if (onReturnBook) {
-        onReturnBook(borrowingData.id); // trigger refresh parent
-      }
-      // Update tampilan modal (local)
-      borrowingData.return_date = newReturnDateStr;
-      borrowingData.status = 'On Going';
-      // Tampilkan notifikasi sukses/charge
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        if (typeof window !== 'undefined') {
-          window.location.href = '/user/dashboard/books/history';
-        }
-      }, 2000);
-    } catch (error) {
-      alert('Gagal memperpanjang masa pinjam.');
+  const handleExtend = () => {
+    // Hitung tanggal baru (WIB)
+    let returnDateObj = null;
+    if (typeof borrowingData.return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(borrowingData.return_date)) {
+      returnDateObj = new Date(borrowingData.return_date + 'T00:00:00+07:00');
+    } else {
+      returnDateObj = new Date(borrowingData.return_date);
     }
+    // Hitung charge jika overdue
+    let chargeAmount = 0;
+    if (status === 'overdue') {
+      const now = new Date();
+      const wibOffset = 7 * 60;
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const wibNow = new Date(utc + (wibOffset * 60000));
+      const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
+      chargeAmount = daysLate * 5000;
+    }
+    const newReturnDate = new Date(returnDateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const newReturnDateStr = newReturnDate.toISOString().split('T')[0];
+    setExtendData({
+      bookTitle: borrowingData.books && borrowingData.books[0] ? borrowingData.books[0].title : '-',
+      price: borrowingData.price,
+      denda: chargeAmount,
+      newReturnDate: newReturnDateStr,
+      loanId: borrowingData.id
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('extendNewReturnDate', newReturnDateStr);
+    }
+    setShowPaymentModal(true);
   };
 
   return (
@@ -230,6 +214,17 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           </div>
         );
       })()}
+      {showPaymentModal && extendData && (
+        <PaymentSummaryExtend
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          bookTitle={extendData.bookTitle}
+          price={extendData.price}
+          denda={extendData.denda}
+          newReturnDate={extendData.newReturnDate}
+          loanId={extendData.loanId}
+        />
+      )}
     </div>
   );
 };

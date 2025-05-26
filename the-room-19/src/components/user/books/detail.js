@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from 'react';
 import { createClient } from '@/app/supabase/client';
+import PaymentSummaryModal from '@/components/payment/payment-summary-borrow';
 
 const Detail = () => {
   const router = useRouter();
@@ -23,6 +24,9 @@ const Detail = () => {
   const [borrowResult, setBorrowResult] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [borrowDate, setBorrowDate] = useState(null);
+  const [returnDate, setReturnDate] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -101,15 +105,12 @@ const Detail = () => {
       router.push('/login');
       return;
     }
-
     if (!book) {
       setError('Book data not available');
       return;
     }
-
     // CEK JUMLAH PEMINJAMAN ON GOING
     try {
-      // Ambil data peminjaman user
       const response = await fetch(`/api/loans?user_id=${user.id}`);
       const data = await response.json();
       if (response.ok) {
@@ -123,16 +124,26 @@ const Detail = () => {
       setShowLimitModal(true);
       return;
     }
+    // Tampilkan modal payment summary, set tanggal pinjam dan kembali
+    const today = new Date();
+    const returnDt = new Date();
+    returnDt.setDate(today.getDate() + 7);
+    setBorrowDate(today);
+    setReturnDate(returnDt);
+    setShowPaymentModal(true);
+  };
 
+  // Callback setelah pembayaran sukses
+  const handlePaymentSuccess = async (paymentResult) => {
+    setShowPaymentModal(false);
+    // Proses peminjaman buku setelah pembayaran sukses
     try {
       setIsBorrowing(true);
       setBorrowResult(null);
-
-      // Gunakan fungsi fetch standar untuk menghindari masalah dengan server-side cookies
       const loanData = {
         user_id: user.id,
         book_id1: book.id,
-        book_id2: null, // Hanya pinjam satu buku
+        book_id2: null,
         book_title1: book.book_title,
         book_title2: null,
         genre1: book.genre,
@@ -143,9 +154,11 @@ const Detail = () => {
         price2: null,
         full_name: user.name,
         email: user.email,
-        phone_number: user.phone_number || '-'
+        phone_number: user.phone_number || '-',
+        payment_id: paymentResult.order_id,
+        payment_status: paymentResult.transaction_status,
+        payment_method: paymentResult.payment_type
       };
-
       const response = await fetch('/api/loans', {
         method: 'POST',
         headers: {
@@ -153,22 +166,16 @@ const Detail = () => {
         },
         body: JSON.stringify(loanData),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.error || 'Failed to borrow book');
       }
-
       setBorrowResult({
         success: true,
-        message: 'Book borrowed successfully! Return date: ' + 
-                 new Date(result.loan.loan_due).toLocaleDateString('id-ID'),
+        message: 'Book borrowed successfully! Return date: ' + new Date(result.loan.loan_due).toLocaleDateString('id-ID'),
       });
       setShowSuccessModal(true);
-
     } catch (err) {
-      console.error('Error borrowing book:', err);
       setBorrowResult({
         success: false,
         message: err.message || 'Gagal meminjam buku. Silakan coba lagi nanti.',
@@ -340,6 +347,22 @@ const Detail = () => {
             </button>
           </div>
         </div>
+      )}
+      {showPaymentModal && (
+        <PaymentSummaryModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          book={{
+            ...book,
+            user_id: user?.id,
+            full_name: user?.name,
+            email: user?.email,
+            phone_number: user?.phone_number
+          }}
+          borrowDate={borrowDate}
+          returnDate={returnDate}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       )}
 
       <div className="w-full h-full relative bg-white">

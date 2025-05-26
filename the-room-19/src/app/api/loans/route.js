@@ -81,7 +81,7 @@ export async function POST(request) {
     };
 
     try {
-      // Gunakan PostgreSQL langsung
+      // Insert ke tabel loans
       const insertedLoan = await sql`
         INSERT INTO loans ${sql(newLoan, 
           'user_id', 'book_id1', 'book_id2', 'book_title1', 'book_title2', 
@@ -90,9 +90,23 @@ export async function POST(request) {
         )}
         RETURNING *
       `;
-      
+      let transactionRow = null;
+      if (insertedLoan && insertedLoan.length > 0 && (requestData.payment_id || requestData.payment_status || requestData.payment_method)) {
+        // Insert ke tabel transaction jika ada data payment
+        const transactionData = {
+          loan_id: insertedLoan[0].id,
+          payment_id: requestData.payment_id || null,
+          payment_status: requestData.payment_status || null,
+          payment_method: requestData.payment_method || null
+        };
+        const insertedTransaction = await sql`
+          INSERT INTO transaction ${sql(transactionData, 'loan_id', 'payment_id', 'payment_status', 'payment_method')}
+          RETURNING *
+        `;
+        transactionRow = insertedTransaction && insertedTransaction.length > 0 ? insertedTransaction[0] : null;
+      }
       if (insertedLoan && insertedLoan.length > 0) {
-        return Response.json({ success: true, loan: insertedLoan[0] }, { status: 201 });
+        return Response.json({ success: true, loan: insertedLoan[0], transaction: transactionRow }, { status: 201 });
       } else {
         throw new Error('Failed to insert loan record');
       }
