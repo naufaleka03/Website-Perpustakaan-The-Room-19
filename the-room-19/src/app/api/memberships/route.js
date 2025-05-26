@@ -103,4 +103,66 @@ export async function PUT(request) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    // Validate required fields
+    const requiredFields = [
+      'user_id',
+      'full_name',
+      'email',
+      'phone_number',
+      'address',
+      'emergency_contact_name',
+      'emergency_contact_number',
+      'id_card_url',
+      'status',
+      'created_at'
+    ];
+    const missing = requiredFields.filter(f => !body[f] || body[f].toString().trim() === '');
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `Missing required fields: ${missing.join(', ')}` }, { status: 400 });
+    }
+
+    // Insert into memberships table
+    const [newMembership] = await sql`
+      INSERT INTO memberships (
+        user_id,
+        full_name,
+        email,
+        phone_number,
+        address,
+        favorite_book_genre,
+        emergency_contact_name,
+        emergency_contact_number,
+        id_card_url,
+        status,
+        created_at,
+        updated_at
+      ) VALUES (
+        ${body.user_id},
+        ${body.full_name},
+        ${body.email},
+        ${body.phone_number},
+        ${body.address},
+        ${body.favorite_book_genre || null},
+        ${body.emergency_contact_name},
+        ${body.emergency_contact_number},
+        ${body.id_card_url},
+        ${body.status},
+        ${body.created_at},
+        NOW()
+      ) RETURNING *
+    `;
+
+    return NextResponse.json({ success: true, data: newMembership }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating membership application:', error);
+    return NextResponse.json(
+      { error: 'Failed to create membership application' },
+      { status: 500 }
+    );
+  }
 } 

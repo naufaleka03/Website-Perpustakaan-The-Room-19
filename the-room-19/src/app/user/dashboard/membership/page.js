@@ -9,6 +9,7 @@ export default function MembershipPage() {
   const [loading, setLoading] = useState(true);
   const [memberStatus, setMemberStatus] = useState('guest');
   const [applicationStatus, setApplicationStatus] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const supabase = createClient();
   const router = useRouter();
 
@@ -56,6 +57,9 @@ export default function MembershipPage() {
 
     checkMembershipStatus();
   }, [router]);
+
+  console.log('showForm:', showForm);
+  console.log('applicationStatus:', applicationStatus);
 
   if (loading) {
     return (
@@ -155,7 +159,7 @@ export default function MembershipPage() {
   }
 
   // If the user has a pending application, show the application status
-  if (applicationStatus) {
+  if (applicationStatus && !showForm) {
     return (
       <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
         <div className="relative mb-8 mt-0">
@@ -194,24 +198,6 @@ export default function MembershipPage() {
               </div>
             )}
             
-            {applicationStatus.status === 'processing' && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <div>
-                  <h3 className="font-semibold text-blue-800 mb-1">Under Review</h3>
-                  <p className="text-blue-700 text-sm">
-                    Your application is currently being reviewed by our staff. 
-                    We'll notify you once the review is complete.
-                  </p>
-                  <p className="text-blue-700 text-sm mt-2">
-                    Last updated: {new Date(applicationStatus.updated_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            )}
-            
             {applicationStatus.status === 'revision' && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -227,15 +213,14 @@ export default function MembershipPage() {
                     {applicationStatus.notes || "Please provide clearer photos of your ID or update your contact information."}
                   </div>
                   <button 
-                    onClick={() => window.location.reload()}
+                    onClick={() => setShowForm('revision')}
                     className="mt-4 px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition"
                   >
-                    Submit New Application
+                    Revise Application
                   </button>
                 </div>
               </div>
             )}
-            
             {applicationStatus.status === 'rejected' && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,10 +239,10 @@ export default function MembershipPage() {
                     or submit a new application after addressing the issues mentioned above.
                   </p>
                   <button 
-                    onClick={() => window.location.reload()}
+                    onClick={() => setShowForm('revision')}
                     className="mt-4 px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition"
                   >
-                    Submit New Application
+                    Revise Application
                   </button>
                 </div>
               </div>
@@ -268,7 +253,11 @@ export default function MembershipPage() {
     );
   }
 
-  // Otherwise, show the membership application form
-  return <MembershipForm />;
+  // If revising, pass previous application data for prefill
+  if (showForm === 'revision' && applicationStatus) {
+    return <MembershipForm application={applicationStatus} />;
+  }
+
+  return <MembershipForm application={showForm === 'revision' ? applicationStatus : undefined} />;
 }
   

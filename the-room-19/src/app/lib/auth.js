@@ -90,8 +90,8 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
       const { error: preferencesError } = await supabase
         .from('preferences')
         .insert([{ user_id: data.user.id }]);
-      if (preferencesError) {
-        console.error('Raw preferences error:', preferencesError);
+    if (preferencesError) {
+      console.error('Raw preferences error:', preferencesError);
         // Do not throw, just log
       }
     }

@@ -177,25 +177,27 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
   );
 };
 
-export default function MembershipForm() {
+export default function MembershipForm({ application }) {
+  console.log('MembershipForm application prop:', application);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [isAgreed, setIsAgreed] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    favoriteGenre: [],
-    emergencyContactName: '',
-    emergencyContactNumber: '',
+    fullName: application?.full_name || '',
+    email: application?.email || '',
+    phone: application?.phone_number || '',
+    address: application?.address || '',
+    favoriteGenre: application?.favorite_book_genre ? application.favorite_book_genre.split(',').map(g => g.trim()) : [],
+    emergencyContactName: application?.emergency_contact_name || '',
+    emergencyContactNumber: application?.emergency_contact_number || '',
   });
+  console.log('MembershipForm initial formData:', formData);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
+  const [filePreview, setFilePreview] = useState(application?.id_card_url ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/verification-ids/${application.id_card_url}` : null);
   const [dragActive, setDragActive] = useState(false);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
   const [genres, setGenres] = useState([]);
@@ -292,7 +294,24 @@ export default function MembershipForm() {
     }
   };
 
+  useEffect(() => {
+    if (application) {
+      setFormData({
+        fullName: application.full_name || '',
+        email: application.email || '',
+        phone: application.phone_number || '',
+        address: application.address || '',
+        favoriteGenre: application.favorite_book_genre ? application.favorite_book_genre.split(',').map(g => g.trim()) : [],
+        emergencyContactName: application.emergency_contact_name || '',
+        emergencyContactNumber: application.emergency_contact_number || '',
+      });
+      setFilePreview(application.id_card_url ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/verification-ids/${application.id_card_url}` : null);
+    }
+  }, [application]);
+
   const handleChange = (e) => {
+    console.log('handleChange event:', e);
+    if (!e || !e.target) return;
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -411,7 +430,7 @@ export default function MembershipForm() {
       newErrors.emergencyContactNumber = 'Emergency contact number is required';
     }
     
-    if (!file) {
+    if (!file && !application?.id_card_url) {
       newErrors.idCard = 'Please upload your ID card';
     }
     
@@ -425,7 +444,6 @@ export default function MembershipForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) {
       const firstErrorField = Object.keys(errors)[0];
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
@@ -434,37 +452,38 @@ export default function MembershipForm() {
       }
       return;
     }
-    
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
     try {
       // 1. Verify authentication
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('You must be logged in to apply for membership');
       }
-      
-      // 2. Upload ID card
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-      
-      console.log(`Uploading file: ${fileName}`);
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('verification-ids')
-        .upload(`${userId}/${fileName}`, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (uploadError) {
-        throw new Error(`Failed to upload ID card: ${uploadError.message}`);
+      let filePath = application?.id_card_url || null;
+      // 1a. Delete previous ID card image if exists and a new file is uploaded
+      if (file) {
+        if (application?.id_card_url) {
+          await supabase.storage.from('verification-ids').remove([application.id_card_url]);
+        }
+        // 2. Upload ID card
+        if (!file.name) throw new Error('File name is missing');
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('verification-ids')
+          .upload(`${userId}/${fileName}`, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        if (uploadError) {
+          throw new Error(`Failed to upload ID card: ${uploadError.message}`);
+        }
+        filePath = uploadData.path;
       }
-      
-      const filePath = uploadData.path;
-      console.log('File uploaded successfully:', filePath);
-      
+      if (!filePath) {
+        throw new Error('No ID card file available. Please upload your ID card.');
+      }
       // 3. Submit membership application
       const applicationData = {
         user_id: userId,
@@ -477,21 +496,28 @@ export default function MembershipForm() {
         emergency_contact_number: formData.emergencyContactNumber,
         id_card_url: filePath,
         status: 'request',
-        created_at: new Date().toISOString()
+        created_at: application?.created_at || new Date().toISOString()
       };
-      
-      // Try API endpoint first
-      const response = await fetch('/api/membership', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(applicationData)
-      });
-      
+      let response;
+      if (application && application.id) {
+        // Update existing application
+        response = await fetch(`/api/memberships/${application.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(applicationData)
+        });
+      } else {
+        // Create new application
+        response = await fetch('/api/memberships', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(applicationData)
+        });
+      }
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to submit application');
       }
-      
       // 4. Update visitor status
       const { error: visitorError } = await supabase
         .from('visitors')
@@ -500,22 +526,14 @@ export default function MembershipForm() {
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);
-      
       if (visitorError) {
         console.warn('Warning: Failed to update visitor status:', visitorError);
-        // Don't throw, continue with success flow
       }
-      
-      // Show success state
       setSubmitStatus('success');
-      
-      // Redirect after showing success message
       setTimeout(() => {
         router.push('/user/dashboard/membership');
       }, 3000);
-      
     } catch (error) {
-      console.error('Application error:', error);
       setErrors({
         submit: error.message || 'Failed to submit application. Please try again.'
       });
@@ -524,6 +542,13 @@ export default function MembershipForm() {
       setIsSubmitting(false);
     }
   };
+
+  // Add this after submitStatus is defined
+  useEffect(() => {
+    if (submitStatus) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [submitStatus]);
 
   // Loading skeleton
   if (isLoading) {
@@ -770,7 +795,13 @@ export default function MembershipForm() {
                           className="object-cover rounded-md w-48 h-32" 
                         />
                       </div>
-                      <p className="text-sm text-[#666666]">{file.name}</p>
+                      <p className="text-sm text-[#666666]">
+                        {file && file.name
+                          ? file.name
+                          : application?.id_card_url
+                            ? application.id_card_url.split('/').pop() || 'Existing file'
+                            : ''}
+                      </p>
                       <button
                         type="button"
                         onClick={() => {
@@ -885,6 +916,10 @@ export default function MembershipForm() {
     </div>
   );
 }
+
+MembershipForm.defaultProps = {
+  application: undefined,
+};
 
 function MembershipFormSkeleton() {
   const skeletonClass = "bg-[#f0f0f0] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[#f8f8f8] before:to-transparent";

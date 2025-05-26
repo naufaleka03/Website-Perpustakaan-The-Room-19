@@ -128,7 +128,20 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
     }
   };
 
-    const generateSignedUrl = async () => {    if (!application?.id_card_url) return;        try {      const { data: { publicUrl }, error } = await supabase.storage        .from('public')        .getPublicUrl(application.id_card_url);              if (error) throw error;            window.open(publicUrl, '_blank');    } catch (error) {      console.error('Error generating public URL:', error);      alert('Failed to view ID card');    }  };
+  const generateSignedUrl = async () => {
+    if (!application?.id_card_url) return;
+    try {
+      // Use createSignedUrl for private buckets
+      const { data, error } = await supabase.storage
+        .from('verification-ids')
+        .createSignedUrl(application.id_card_url, 60); // 60 seconds validity
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+      alert('Failed to view ID card');
+    }
+  };
 
   const handleStatusUpdate = async (newStatus) => {
     if (!membershipId || !staffId) return;
@@ -181,7 +194,24 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
     }
   };
 
-    const handleStatusUpdateClick = (newStatus) => {    if (newStatus === 'verified') {      setConfirmDialog({        isOpen: true,        action: () => handleStatusUpdate(newStatus),        title: 'Confirm Approval',        message: 'Are you sure you want to approve this membership application? This action cannot be undone.',        confirmText: 'Approve',        confirmButtonClass: 'px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700'      });    } else if (newStatus === 'revision') {      if (!statusUpdate.notes.trim()) {        alert('Please provide revision notes');        return;      }      handleStatusUpdate(newStatus);    }  };
+  const handleStatusUpdateClick = (newStatus) => {
+    if (newStatus === 'verified') {
+      setConfirmDialog({
+        isOpen: true,
+        action: () => handleStatusUpdate(newStatus),
+        title: <span className="text-[#666666]">Confirm Approval</span>,
+        message: 'Are you sure you want to approve this membership application? This action cannot be undone.',
+        confirmText: 'Approve',
+        confirmButtonClass: 'px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700'
+      });
+    } else if (newStatus === 'revision') {
+      if (!statusUpdate.notes.trim()) {
+        alert('Please provide revision notes');
+        return;
+      }
+      handleStatusUpdate(newStatus);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -210,7 +240,7 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
             <div className="mt-4">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h4 className="font-medium">{application.full_name}</h4>
+                  <h4 className="text-black">{application.full_name}</h4>
                   <p className="text-sm text-gray-500">Application ID: {application.id}</p>
                   <p className="text-sm text-gray-500">Submitted: {new Date(application.created_at).toLocaleString()}</p>
                   {application.updated_at && application.updated_at !== application.created_at && (
@@ -225,11 +255,12 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                     application.status === 'revision' ? 'bg-orange-100 text-orange-800' :
                     'bg-red-100 text-red-800'
                   }`}>
-                    {application.status === 'request' ? 'Pending Review' :
+                    {
+                     application.status === 'request' ? 'Pending Review' :
                      application.status === 'processing' ? 'Under Review' :
                      application.status === 'verified' ? 'Approved' :
-                     application.status === 'revision' ? 'Needs Revision' :
-                     'Rejected'}
+                     application.status === 'revision' ? 'Needs Revision' : ''
+                    }
                   </span>
                   {application.staff_id && (
                     <p className="text-xs text-gray-500">
@@ -247,7 +278,7 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
                     <p className="text-sm">
                       <span className="text-gray-600">Submitted on </span>
-                      <span className="font-medium">{new Date(application.created_at).toLocaleString()}</span>
+                      <span className="text-black">{new Date(application.created_at).toLocaleString()}</span>
                     </p>
                   </div>
                   
@@ -256,7 +287,7 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                       <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                       <p className="text-sm">
                         <span className="text-gray-600">Status changed to </span>
-                        <span className="font-medium">{
+                        <span className="text-black">{
                           application.status === 'processing' ? 'Under Review' :
                           application.status === 'verified' ? 'Approved' :
                           application.status === 'revision' ? 'Needs Revision' :
@@ -279,24 +310,24 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                 <div>
                   <h5 className="text-xs text-[#666666] font-medium mb-1">Contact Information</h5>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p><span className="font-medium">Email:</span> {application.email}</p>
-                    <p><span className="font-medium">Phone:</span> {application.phone_number}</p>
-                    <p><span className="font-medium">Address:</span> {application.address}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Email:</span> {application.email}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Phone:</span> {application.phone_number}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Address:</span> {application.address}</p>
                   </div>
                 </div>
                 
                 <div>
                   <h5 className="text-xs text-[#666666] font-medium mb-1">Emergency Contact</h5>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p><span className="font-medium">Name:</span> {application.emergency_contact_name}</p>
-                    <p><span className="font-medium">Phone:</span> {application.emergency_contact_number}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Name:</span> {application.emergency_contact_name}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Phone:</span> {application.emergency_contact_number}</p>
                   </div>
                 </div>
                 
                 <div>
                   <h5 className="text-xs text-[#666666] font-medium mb-1">Reading Preferences</h5>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p><span className="font-medium">Favorite Genre:</span> {application.favorite_book_genre || 'Not specified'}</p>
+                    <p className="text-gray-500"><span className="text-gray-500">Favorite Genre:</span> {application.favorite_book_genre || 'Not specified'}</p>
                   </div>
                 </div>
                 
@@ -344,37 +375,23 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
               {/* Status Update Form - Enhanced */}
               {application.status !== 'verified' && application.status !== 'rejected' && (
                 <div className="mt-6 border-t pt-4">
-                  <h5 className="text-sm font-medium mb-3">Update Application Status</h5>
+                  <h5 className="text-sm text-[#111010] font-medium mb-3">Update Application Status</h5>
                   
                   <div className="mb-4">
-                    <label className="block text-xs text-[#666666] font-medium mb-1">
+                    <label className="block text-xs text-gray-600 font-medium mb-1">
                       Review Notes {application.status === 'revision' || application.status === 'rejected' ? '(Required)' : '(Optional)'}
                     </label>
                     <textarea
                       value={statusUpdate.notes}
                       onChange={(e) => setStatusUpdate({...statusUpdate, notes: e.target.value})}
-                      className="w-full h-20 rounded-lg border border-gray-300 px-3 py-2 text-sm resize-none"
+                      className="w-full h-20 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-500 resize-none"
                       placeholder={application.status === 'revision' || application.status === 'rejected' ? 
-                        "Please provide a reason for revision/rejection..." :
+                        "Please provide a reason for revision..." :
                         "Add notes for the applicant or for internal reference..."}
                     ></textarea>
                   </div>
                   
                   <div className="flex flex-wrap gap-2 justify-end">
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs hover:bg-blue-200 transition-colors disabled:opacity-50"
-                      onClick={() => handleStatusUpdateClick('processing')}
-                      disabled={statusUpdate.isSubmitting}
-                    >
-                      {statusUpdate.isSubmitting ? (
-                        <FaSpinner className="animate-spin" size={12} />
-                      ) : (
-                        <FaPencilAlt size={12} />
-                      )}
-                      Mark as Processing
-                    </button>
-                    
                     <button
                       type="button"
                       className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs hover:bg-green-200 transition-colors disabled:opacity-50"
@@ -407,20 +424,6 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                         <FaPencilAlt size={12} />
                       )}
                       Request Revision
-                    </button>
-                    
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
-                      onClick={() => handleStatusUpdateClick('rejected')}
-                      disabled={statusUpdate.isSubmitting}
-                    >
-                      {statusUpdate.isSubmitting ? (
-                        <FaSpinner className="animate-spin" size={12} />
-                      ) : (
-                        <FaTimesCircle size={12} />
-                      )}
-                      Reject Application
                     </button>
                   </div>
                 </div>
