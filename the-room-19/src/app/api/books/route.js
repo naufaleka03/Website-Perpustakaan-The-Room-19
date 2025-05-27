@@ -115,7 +115,8 @@ export async function POST(request) {
         content_type,
         genre,
         cover_image,
-        themes
+        themes,
+        stock
       ) VALUES (
         ${book_title}, 
         ${isbn_code}, 
@@ -131,7 +132,8 @@ export async function POST(request) {
         ${content_type},
         ${genre},
         ${cover_image},
-        ${themes || []}
+        ${themes || []},
+        0
       ) RETURNING *
     `;
     

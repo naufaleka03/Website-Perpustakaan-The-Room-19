@@ -129,7 +129,8 @@ export async function PUT(request, { params }) {
         cover_type = ${body.cover_type},
         usage = ${body.usage},
         price = ${body.price},
-        themes = ${body.themes || []}
+        themes = ${body.themes || []},
+        stock = COALESCE(${body.stock}, stock)
       WHERE id = ${id}
       RETURNING *
     `;

@@ -162,7 +162,7 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
         </div>
 
         <div className="mt-4 text-xs font-['Poppins']">
-          <h3 className="text-[#111010] font-semibold mb-2">📦 Book(s) Borrowed</h3>
+          <h3 className="text-[#111010] font-semibold mb-2">📦 Book Borrowed</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {borrowingData.books && borrowingData.books.map((book, idx) => (
               <div key={idx} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-2">
@@ -183,21 +183,46 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-2 text-xs font-['Poppins']">
+        <div className="mt-6 text-xs font-['Poppins']">
           {(status === 'overdue' || status === 'ongoing') && (
-            <button
-              onClick={handleExtend}
-              className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Extend
-            </button>
+            <>
+              {borrowingData.extend_count >= 3 && (
+                <div className="mb-2 text-red-500 font-semibold">
+                  Extension limit reached (maximum of 3 extensions allowed).
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleExtend}
+                  className={`px-4 py-2 rounded-lg transition-colors text-white ${
+                    borrowingData.extend_count >= 3
+                      ? 'bg-gray-300 cursor-not-allowed'
+                      : 'bg-blue-400 hover:bg-blue-700'
+                  }`}
+                  disabled={borrowingData.extend_count >= 3}
+                >
+                  Extend
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </>
           )}
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            Close
-          </button>
+
+          {(status !== 'overdue' && status !== 'ongoing') && (
+            <div className="flex justify-end">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {/* Notifikasi pop up sukses/charge */}

@@ -51,6 +51,17 @@ export async function POST(request) {
       );
     }
 
+    // Cek stok buku sebelum membuat loan
+    const bookStockResult = await sql`
+      SELECT stock FROM books WHERE id = ${requestData.book_id1}
+    `;
+    if (!bookStockResult[0] || bookStockResult[0].stock < 1) {
+      return Response.json(
+        { error: 'Stok buku tidak tersedia, tidak dapat melakukan peminjaman.' },
+        { status: 400 }
+      );
+    }
+
     // Gunakan waktu WIB (Asia/Jakarta) untuk tanggal
     const now = new Date();
     const wibOffset = 7 * 60; // WIB = UTC+7 dalam menit
@@ -77,7 +88,8 @@ export async function POST(request) {
       phone_number: requestData.phone_number,
       loan_start: loan_start, // Format tanggal YYYY-MM-DD WIB
       loan_due: loan_due, // 7 hari dari sekarang (WIB)
-      status: 'On Going'
+      status: 'On Going',
+      extend_count: 0
     };
 
     try {
@@ -86,7 +98,7 @@ export async function POST(request) {
         INSERT INTO loans ${sql(newLoan, 
           'user_id', 'book_id1', 'book_id2', 'book_title1', 'book_title2', 
           'genre1', 'genre2', 'cover_image1', 'cover_image2', 'price1', 'price2',
-          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status'
+          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count'
         )}
         RETURNING *
       `;
@@ -106,6 +118,10 @@ export async function POST(request) {
         transactionRow = insertedTransaction && insertedTransaction.length > 0 ? insertedTransaction[0] : null;
       }
       if (insertedLoan && insertedLoan.length > 0) {
+        // Kurangi stok buku setelah peminjaman berhasil
+        await sql`
+          UPDATE books SET stock = stock - 1 WHERE id = ${requestData.book_id1}
+        `;
         return Response.json({ success: true, loan: insertedLoan[0], transaction: transactionRow }, { status: 201 });
       } else {
         throw new Error('Failed to insert loan record');

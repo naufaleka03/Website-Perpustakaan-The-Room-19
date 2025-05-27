@@ -66,7 +66,7 @@ const History = () => {
 
     const matchesStatus =
       selectedOption === "All Book" ||
-      (selectedOption === "Borrowed" && loan.status === "On Going") ||
+      (selectedOption === "On Going" && loan.status === "On Going") ||
       (selectedOption === "Over Due" && loan.status === "Over Due") ||
       (selectedOption === "Returned" && loan.status === "Returned");
 
@@ -140,13 +140,13 @@ const History = () => {
               {isDropdownOpen && (
                 <div className="absolute w-full mt-2 bg-white rounded-xl border border-[#cdcdcd] shadow-lg overflow-hidden z-10">
                   <div className="py-2">
-                    {["All Book", "Borrowed", "Over Due", "Returned"].map((opt) => (
+                    {["All Book", "On Going", "Over Due", "Returned"].map((opt) => (
                       <button
                         key={opt}
                         className="w-full px-4 py-2 text-left text-xs text-[#666666] font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
                         onClick={() => handleSelectOption(opt)}
                       >
-                        {opt === "Borrowed" ? "On Going" : opt}
+                        {opt === "On Going" ? "On Going" : opt}
                       </button>
                     ))}
                   </div>
@@ -224,6 +224,7 @@ const History = () => {
           return_date: selectedLoan.loan_due,
           status: selectedLoan.status,
           price: selectedLoan.total_price,
+          extend_count: selectedLoan.extend_count,
           books: [
             {
               title: selectedLoan.book_title1,

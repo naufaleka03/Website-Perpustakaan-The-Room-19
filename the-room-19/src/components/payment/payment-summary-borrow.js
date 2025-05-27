@@ -74,6 +74,17 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
     }
   };
 
+  // Fungsi format tanggal ke DD-MM-YYYY
+  const formatDate = (date) => {
+    if (!date) return '-';
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) return '-';
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 w-[400px] max-h-[90vh] overflow-y-auto">
@@ -89,11 +100,11 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-[#666666]">Borrow Date</span>
-            <span className="text-sm font-medium text-[#666666]">{borrowDate ? borrowDate.toLocaleDateString('id-ID') : '-'}</span>
+            <span className="text-sm font-medium text-[#666666]">{formatDate(borrowDate)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-[#666666]">Return Date</span>
-            <span className="text-sm font-medium text-[#666666]">{returnDate ? returnDate.toLocaleDateString('id-ID') : '-'}</span>
+            <span className="text-sm font-medium text-[#666666]">{formatDate(returnDate)}</span>
           </div>
         </div>
         {error && (
@@ -112,7 +123,7 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
             disabled={isProcessing}
             className="px-4 py-2 text-sm text-white bg-[#111010] rounded-lg hover:bg-[#2a2a2a] disabled:bg-gray-400"
           >
-            {isProcessing ? 'Processing...' : 'Process To Payment'}
+            {isProcessing ? 'Processing...' : 'Proceed To Payment'}
           </button>
         </div>
       </div>

@@ -11,14 +11,18 @@ export async function PUT(request, context) {
     const body = await request.json();
     let result;
     if (body.loan_due) {
-      // Update loan_due dan status ke 'On Going'
+      // Update loan_due, status ke 'On Going', dan increment extend_count
       result = await sql`
         UPDATE loans
-        SET loan_due = ${body.loan_due}, status = 'On Going'
+        SET loan_due = ${body.loan_due}, status = 'On Going', extend_count = extend_count + 1
         WHERE id = ${id}
         RETURNING *
       `;
     } else if (body.status) {
+      // Ambil data loan sebelum update untuk dapatkan book_id1
+      const loanBefore = await sql`
+        SELECT book_id1, status FROM loans WHERE id = ${id}
+      `;
       // Update status saja
       result = await sql`
         UPDATE loans
@@ -26,6 +30,12 @@ export async function PUT(request, context) {
         WHERE id = ${id}
         RETURNING *
       `;
+      // Jika status berubah menjadi Returned dan sebelumnya bukan Returned, tambahkan stok buku
+      if (body.status === 'Returned' && loanBefore[0] && loanBefore[0].status !== 'Returned') {
+        await sql`
+          UPDATE books SET stock = stock + 1 WHERE id = ${loanBefore[0].book_id1}
+        `;
+      }
     } else {
       return NextResponse.json({ error: 'No valid field to update' }, { status: 400 });
     }

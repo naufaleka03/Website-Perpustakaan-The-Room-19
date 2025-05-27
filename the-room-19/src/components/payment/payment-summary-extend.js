@@ -8,6 +8,17 @@ export default function PaymentSummaryExtend({ isOpen, onClose, bookTitle, price
 
   const total = parseInt(price) + (denda ? parseInt(denda) : 0);
 
+  // Fungsi format tanggal ke DD-MM-YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const dateObj = new Date(dateString);
+    if (isNaN(dateObj.getTime())) return '-';
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   const handlePayment = async () => {
     setIsProcessing(true);
     setError('');
@@ -85,7 +96,7 @@ export default function PaymentSummaryExtend({ isOpen, onClose, bookTitle, price
           )}
           <div className="flex justify-between">
             <span className="text-sm text-[#666666]">New Return Date</span>
-            <span className="text-sm font-medium text-[#666666]">{newReturnDate}</span>
+            <span className="text-sm font-medium text-[#666666]">{formatDate(newReturnDate)}</span>
           </div>
           <div className="border-t border-gray-200 my-4"></div>
           <div className="flex justify-between">
@@ -109,7 +120,7 @@ export default function PaymentSummaryExtend({ isOpen, onClose, bookTitle, price
             disabled={isProcessing}
             className="px-4 py-2 text-sm text-white bg-[#111010] rounded-lg hover:bg-[#2a2a2a] disabled:bg-gray-400"
           >
-            {isProcessing ? 'Processing...' : 'Process To Payment'}
+            {isProcessing ? 'Processing...' : 'Proceed To Payment'}
           </button>
         </div>
       </div>

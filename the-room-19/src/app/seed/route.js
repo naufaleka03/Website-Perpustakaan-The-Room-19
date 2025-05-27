@@ -156,6 +156,7 @@ async function seedBooks(tx) {
             rating NUMERIC(3, 2) DEFAULT 0.00 NOT NULL,
             cover_image TEXT,
             themes TEXT[],
+            stock INTEGER DEFAULT 0 NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }
@@ -200,6 +201,7 @@ async function seedBookLoans(tx) {
         loan_start DATE NOT NULL DEFAULT CURRENT_DATE,
         loan_due DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '7 days'),
         status VARCHAR(50) DEFAULT 'On Going' NOT NULL,
+        extend_count INTEGER DEFAULT 0 NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `;

@@ -401,9 +401,8 @@ const Detail = () => {
                         ({ratingCount} reviews)
                       </span>
                     </div>
-                    
-                    <div className="text-[#666666] text-xs">
-                      Borrowed {lendCount} times
+                    <div className="text-[#666666] text-xs ml-4">
+                      Stok: <span className="font-bold">{book.stock ?? 0}</span>
                     </div>
                   </div>
                 </div>
@@ -567,27 +566,24 @@ const Detail = () => {
               <hr className="border-[#767676]/40 mb-4" />
 
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-[#c3efc3] rounded-full" />
+                <div className={`w-2 h-2 rounded-full ${book.stock > 0 ? 'bg-[#c3efc3]' : 'bg-red-400'}`} />
                 <span className="text-black text-xs font-normal">
-                  Available now
+                  {book.stock > 0 ? 'Available now' : 'Out of stock'}
                 </span>
                 <span className="text-black text-xs font-normal ml-auto">
-                  Total stock:{" "}
-                  <span className="text-[#ecb43c] font-normal">5 left</span>
+                  Total stock: <span className="text-[#ecb43c] font-normal">{book.stock ?? 0} left</span>
                 </span>
               </div>
-
-              {borrowResult && (
-                <div className={`my-4 p-2 rounded text-xs text-center ${borrowResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {borrowResult.message}
+              {book.stock === 0 && (
+                <div className="my-4 p-2 rounded text-xs text-center bg-red-100 text-red-800">
+                  Stok buku habis, tidak dapat dipinjam.
                 </div>
               )}
-
               <div className="space-y-3 mt-6">
                 <button 
-                  className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing ? 'bg-gray-400' : 'bg-[#2e3105]'}`}
+                  className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]'}`}
                   onClick={handleBorrowBook}
-                  disabled={isBorrowing}
+                  disabled={isBorrowing || book.stock === 0}
                 >
                   {isBorrowing ? 'Processing...' : 'Borrow Book'}
                 </button>
