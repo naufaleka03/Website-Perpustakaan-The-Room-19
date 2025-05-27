@@ -484,3 +484,111 @@ export async function submitEventReservation(formData) {
     };
   }
 }
+
+export async function createCategory(formData) {
+  try {
+    const categoryName = formData.get("category_name");
+
+    if (!categoryName) {
+      throw new Error("Category name is required");
+    }
+
+    // Check if category already exists
+    const existingCategory = await sql`
+      SELECT * FROM categories 
+      WHERE LOWER(category_name) = LOWER(${categoryName})
+    `;
+
+    if (existingCategory.length > 0) {
+      throw new Error("Category already exists");
+    }
+
+    // Insert new category
+    const result = await sql`
+      INSERT INTO categories (
+        category_name,
+        number_of_items
+      ) VALUES (
+        ${categoryName},
+        0
+      )
+      RETURNING *
+    `;
+
+    revalidatePath("/staff/dashboard/inventory/categorization-inventory");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error creating category:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateCategory(id, formData) {
+  try {
+    const categoryName = formData.get("category_name");
+
+    if (!categoryName) {
+      throw new Error("Category name is required");
+    }
+
+    // Check if category name already exists (excluding current category)
+    const existingCategory = await sql`
+      SELECT * FROM categories 
+      WHERE LOWER(category_name) = LOWER(${categoryName})
+      AND id != ${id}
+    `;
+
+    if (existingCategory.length > 0) {
+      throw new Error("Category name already exists");
+    }
+
+    // Update category
+    const result = await sql`
+      UPDATE categories
+      SET category_name = ${categoryName}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      throw new Error("Category not found");
+    }
+
+    revalidatePath("/staff/dashboard/inventory/categorization-inventory");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error updating category:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteCategory(id) {
+  try {
+    // Check if category has items
+    const category = await sql`
+      SELECT number_of_items FROM categories
+      WHERE id = ${id}
+    `;
+
+    if (category[0]?.number_of_items > 0) {
+      throw new Error("Cannot delete category with existing items");
+    }
+
+    // Delete category
+    const result = await sql`
+      DELETE FROM categories
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      throw new Error("Category not found");
+    }
+
+    revalidatePath("/staff/dashboard/inventory/categorization-inventory");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    return { success: false, error: error.message };
+  }
+}

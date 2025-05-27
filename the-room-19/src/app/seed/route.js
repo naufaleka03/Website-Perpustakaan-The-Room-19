@@ -167,6 +167,18 @@ async function seedBooks(tx) {
         )`;
 }
 
+async function seedCategories(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS categories (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            category_name VARCHAR(100) NOT NULL,
+            number_of_items INTEGER DEFAULT 0 NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedBookGenres(tx) {
   const sql = tx ?? sql;
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -267,6 +279,7 @@ export async function GET() {
       await seedBookLoans(tx);
       await seedUserPreferences(tx);
       await seedEventReservations(tx);
+      await seedCategories(tx);
     });
 
     return Response.json({

@@ -217,6 +217,10 @@ export default function EventReservation() {
           <span>Group</span>
         </button>
       </div>
+      <p className="text-xs text-gray-500 text-center mb-4">
+        Select the reservation type that suits your needs. If you choose
+        "Group," you can add members.
+      </p>
 
       {/* Form Section */}
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
@@ -231,6 +235,9 @@ export default function EventReservation() {
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            This field will be automatically filled based on your selection.
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -243,6 +250,9 @@ export default function EventReservation() {
             className="w-full rounded-md border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
             rows="3"
           ></textarea>
+          <p className="text-xs text-gray-500 mt-1">
+            This field will be automatically filled based on your selection.
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -255,6 +265,10 @@ export default function EventReservation() {
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            The event date is set automatically according to the chosen
+            schedule.
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -267,6 +281,9 @@ export default function EventReservation() {
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Shift timing is set automatically according to the chosen schedule.
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -279,6 +296,9 @@ export default function EventReservation() {
             disabled
             className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Ticket price will be displayed automatically.
+          </p>
         </div>
 
         {/* Full Name Field */}
@@ -293,6 +313,9 @@ export default function EventReservation() {
             className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
             placeholder="Enter your full name"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Enter your full name as stated on your official ID.
+          </p>
         </div>
 
         {/* Group Members Section */}
@@ -332,6 +355,10 @@ export default function EventReservation() {
                   <span>Add Member</span>
                 </button>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the names of group members if the reservation is for a
+                group.
+              </p>
             </div>
           </div>
         )}

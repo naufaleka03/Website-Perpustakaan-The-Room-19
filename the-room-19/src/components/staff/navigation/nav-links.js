@@ -52,6 +52,7 @@ const links = [
     subLinks: [
       { name: "Books", href: "/staff/dashboard/inventory/book" },
       { name: "Utilities", href: "/staff/dashboard/inventory/utility" },
+      { name: "Categorization", href: "/staff/dashboard/inventory/categorization-inventory" },
     ],
   },
 ];
