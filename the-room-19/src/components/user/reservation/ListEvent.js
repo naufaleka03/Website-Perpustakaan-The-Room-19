@@ -19,6 +19,13 @@ function EventDetailModal({ event, isOpen, onClose, onRegister }) {
         <p className="text-sm text-[#666666] mb-4 text-left leading-relaxed break-words">
           {event.description}
         </p>
+        <div className="mb-4">
+          <p className="text-sm text-[#666666] font-medium">
+            Available Slots:{" "}
+            {event.max_participants - (event.current_participants || 0)} of{" "}
+            {event.max_participants}
+          </p>
+        </div>
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
@@ -66,7 +73,38 @@ export default function ListEvent() {
           throw new Error("Failed to fetch events");
         }
         const data = await response.json();
-        setEvents(data);
+
+        // Fetch current participants for each event
+        const eventsWithParticipants = await Promise.all(
+          data.map(async (event) => {
+            const availabilityResponse = await fetch(
+              "/api/events/check-availability",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  event_id: event.id,
+                  reservation_type: "individual",
+                  group_size: 1,
+                }),
+              }
+            );
+
+            if (availabilityResponse.ok) {
+              const availabilityData = await availabilityResponse.json();
+              return {
+                ...event,
+                current_participants:
+                  availabilityData.current_participants || 0,
+              };
+            }
+            return event;
+          })
+        );
+
+        setEvents(eventsWithParticipants);
       } catch (error) {
         console.error("Error fetching events:", error);
       }
@@ -171,6 +209,12 @@ export default function ListEvent() {
                     </p>
                     <p className="text-[#111010] text-xs font-medium font-['Poppins']">
                       {formatRupiah(event.ticket_fee)}
+                    </p>
+                    <p className="text-[#666666] text-xs font-['Poppins']">
+                      Available:{" "}
+                      {event.max_participants -
+                        (event.current_participants || 0)}{" "}
+                      of {event.max_participants} slots
                     </p>
                   </div>
                 </div>
