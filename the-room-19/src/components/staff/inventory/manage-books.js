@@ -1,95 +1,74 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiSearch, FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
-import {
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "@/app/lib/actions";
+import { FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { updateBookStock, deleteBook } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 
-const CategorizationInventory = () => {
+const ManageBooks = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [categoryName, setCategoryName] = useState("");
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [categories, setCategories] = useState([]);
+  const [bookStock, setBookStock] = useState("");
+  const [editingBook, setEditingBook] = useState(null);
+  const [bookToDelete, setBookToDelete] = useState(null);
+  const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch categories from database
-  const fetchCategories = async () => {
+  // Fetch books from database
+  const fetchBooks = async () => {
     try {
-      const response = await fetch("/api/categories");
+      const response = await fetch("/api/books");
       const data = await response.json();
       if (data.success) {
-        setCategories(data.data);
+        setBooks(data.data);
       } else {
         setError(data.error);
       }
     } catch (error) {
-      setError("Failed to fetch categories");
+      setError("Failed to fetch books");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchBooks();
   }, []);
 
-  const handleOpenModal = (category = null) => {
-    if (category) {
-      setEditingCategory(category);
-      setCategoryName(category.category_name);
-    } else {
-      setEditingCategory(null);
-      setCategoryName("");
-    }
-    setIsModalOpen(true);
+  const handleOpenEditModal = (book) => {
+    setEditingBook(book);
+    setBookStock(book.stock.toString());
+    setIsEditModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCategoryName("");
-    setEditingCategory(null);
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setBookStock("");
+    setEditingBook(null);
   };
 
-  const handleOpenDeleteModal = (category) => {
-    setCategoryToDelete(category);
+  const handleOpenDeleteModal = (book) => {
+    setBookToDelete(book);
     setIsDeleteModalOpen(true);
   };
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setCategoryToDelete(null);
+    setBookToDelete(null);
   };
 
   const handleSubmit = async (formData) => {
     try {
-      let result;
-      if (editingCategory) {
-        result = await updateCategory(editingCategory.id, formData);
-        if (result.success) {
-          handleCloseModal();
-          await fetchCategories();
-          router.refresh();
-        } else {
-          setError(result.error);
-        }
+      const result = await updateBookStock(editingBook.id, formData);
+      if (result.success) {
+        handleCloseEditModal();
+        await fetchBooks();
+        router.refresh();
       } else {
-        result = await createCategory(formData);
-        if (result.success) {
-          handleCloseModal();
-          await fetchCategories();
-          router.refresh();
-        } else {
-          setError(result.error);
-        }
+        setError(result.error);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -99,9 +78,9 @@ const CategorizationInventory = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteCategory(id);
+      await deleteBook(id);
       handleCloseDeleteModal();
-      await fetchCategories();
+      await fetchBooks();
       router.refresh();
     } catch (error) {
       console.error("Error:", error);
@@ -109,18 +88,17 @@ const CategorizationInventory = () => {
     }
   };
 
-  const filteredCategories = categories.filter((category) =>
-    category.category_name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBooks = books.filter((book) =>
+    book.book_title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (isLoading) {
     return (
       <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
         <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-12 py-6">
-          {/* Search and Add Button Skeleton */}
+          {/* Search Bar Skeleton */}
           <div className="flex flex-wrap justify-between items-center mb-6">
             <div className="w-[300px] sm:w-[400px] h-10 bg-gray-200 animate-pulse rounded-2xl"></div>
-            <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-lg mt-4 sm:mt-0"></div>
           </div>
 
           {/* Table Skeleton */}
@@ -199,7 +177,7 @@ const CategorizationInventory = () => {
         <div className="bg-gradient-to-l from-[#4d4d4d] to-black w-full h-[200px] flex items-center">
           <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-8">
             <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope">
-              INVENTORY CATEGORIZATION
+              MANAGE BOOKS
             </h1>
           </div>
         </div>
@@ -207,7 +185,7 @@ const CategorizationInventory = () => {
 
       <div className="w-full h-full relative bg-white">
         <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-12 py-6">
-          {/* Search Bar and Add Category Button Container */}
+          {/* Search Bar Container */}
           <div className="flex flex-wrap justify-between items-center mb-6">
             <div className="relative w-[300px] sm:w-[400px]">
               <div className="absolute inset-y-0 left-3 flex items-center">
@@ -215,22 +193,15 @@ const CategorizationInventory = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search category"
+                placeholder="Search book"
                 className="w-full h-10 pl-10 rounded-2xl border border-stone-300 text-xs font-normal font-['Poppins'] text-[#666666] focus:outline-none focus:border-lime-950"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button
-              onClick={() => handleOpenModal()}
-              className="flex items-center gap-2 px-4 h-10 bg-lime-950 text-white rounded-lg text-xs font-normal font-['Poppins'] hover:bg-lime-900 transition-colors mt-4 sm:mt-0"
-            >
-              <FiPlus className="w-4 h-4" />
-              Add Category
-            </button>
           </div>
 
-          {/* Category Table */}
+          {/* Books Table */}
           <div className="bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -239,10 +210,10 @@ const CategorizationInventory = () => {
                     No
                   </th>
                   <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap text-left">
-                    Category Name
+                    Book Title
                   </th>
                   <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                    Total Items
+                    Stock
                   </th>
                   <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Actions
@@ -250,27 +221,27 @@ const CategorizationInventory = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCategories.map((category, index) => (
-                  <tr key={category.id} className="hover:bg-gray-50">
+                {filteredBooks.map((book, index) => (
+                  <tr key={book.id} className="hover:bg-gray-50">
                     <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
                       {index + 1}
                     </td>
                     <td className="text-left py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                      {category.category_name}
+                      {book.book_title}
                     </td>
                     <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                      {category.number_of_items}
+                      {book.stock}
                     </td>
                     <td className="py-4 px-6 text-center text-sm font-medium">
                       <div className="flex justify-center items-center gap-3">
                         <button
-                          onClick={() => handleOpenModal(category)}
+                          onClick={() => handleOpenEditModal(book)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <FiEdit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleOpenDeleteModal(category)}
+                          onClick={() => handleOpenDeleteModal(book)}
                           className="text-red-600 hover:text-red-900"
                         >
                           <FiTrash2 className="w-4 h-4" />
@@ -283,27 +254,39 @@ const CategorizationInventory = () => {
             </table>
           </div>
 
-          {/* Modal Add/Edit Category */}
-          {isModalOpen && (
+          {/* Modal Edit Stock */}
+          {isEditModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-2xl p-6 w-[400px]">
                 <h2 className="text-xl font-semibold mb-4 text-gray-500">
-                  {editingCategory ? "Edit Category" : "Add New Category"}
+                  Edit Book Stock
                 </h2>
                 <form action={handleSubmit}>
-                  <input
-                    type="text"
-                    name="category_name"
-                    placeholder="Enter category name"
-                    className="w-full h-10 px-4 bg-zinc-100 rounded-lg border border-stone-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-lime-950 mb-4"
-                    value={categoryName}
-                    onChange={(e) => setCategoryName(e.target.value)}
-                    required
-                  />
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Book Title
+                    </label>
+                    <p className="text-gray-600">{editingBook?.book_title}</p>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Stock
+                    </label>
+                    <input
+                      type="number"
+                      name="stock"
+                      min="0"
+                      placeholder="Enter stock quantity"
+                      className="w-full h-10 px-4 bg-zinc-100 rounded-lg border border-stone-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-lime-950"
+                      value={bookStock}
+                      onChange={(e) => setBookStock(e.target.value)}
+                      required
+                    />
+                  </div>
                   <div className="flex justify-end gap-3">
                     <button
                       type="button"
-                      onClick={handleCloseModal}
+                      onClick={handleCloseEditModal}
                       className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       Cancel
@@ -312,7 +295,7 @@ const CategorizationInventory = () => {
                       type="submit"
                       className="px-4 py-2 bg-lime-950 text-white rounded-lg text-sm font-medium hover:bg-lime-900"
                     >
-                      {editingCategory ? "Update" : "Submit"}
+                      Update
                     </button>
                   </div>
                 </form>
@@ -328,8 +311,8 @@ const CategorizationInventory = () => {
                   Delete Confirmation
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete the "
-                  {categoryToDelete?.category_name}" category?
+                  Are you sure you want to delete "{bookToDelete?.book_title}"
+                  from inventory?
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
@@ -339,7 +322,7 @@ const CategorizationInventory = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={() => handleDelete(categoryToDelete?.id)}
+                    onClick={() => handleDelete(bookToDelete?.id)}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
                   >
                     Delete
@@ -354,4 +337,4 @@ const CategorizationInventory = () => {
   );
 };
 
-export default CategorizationInventory;
+export default ManageBooks;

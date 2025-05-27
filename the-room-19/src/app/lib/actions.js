@@ -592,3 +592,57 @@ export async function deleteCategory(id) {
     return { success: false, error: error.message };
   }
 }
+
+export async function updateBookStock(id, formData) {
+  try {
+    const stock = parseInt(formData.get("stock"));
+
+    if (isNaN(stock) || stock < 0) {
+      throw new Error("Stock must be a valid non-negative number");
+    }
+
+    // Update book stock
+    const result = await sql`
+      UPDATE books
+      SET stock = ${stock}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      throw new Error("Book not found");
+    }
+
+    revalidatePath("/staff/dashboard/inventory/manage-books");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error updating book stock:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteBook(id) {
+  try {
+    // Check if book exists
+    const book = await sql`
+      SELECT * FROM books
+      WHERE id = ${id}
+    `;
+
+    if (book.length === 0) {
+      throw new Error("Book not found");
+    }
+
+    // Delete book
+    await sql`
+      DELETE FROM books
+      WHERE id = ${id}
+    `;
+
+    revalidatePath("/staff/dashboard/inventory/manage-books");
+    return { success: true, message: "Book deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    return { success: false, error: error.message };
+  }
+}
