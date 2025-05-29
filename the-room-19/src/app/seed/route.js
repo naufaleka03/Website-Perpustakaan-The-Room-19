@@ -179,6 +179,21 @@ async function seedCategories(tx) {
         )`;
 }
 
+async function seedInventory(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS inventory (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            item_name VARCHAR(255) NOT NULL,
+            description TEXT,
+            price NUMERIC(10, 2) NOT NULL,
+            stock_quantity INTEGER DEFAULT 0 NOT NULL,
+            item_image TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedBookGenres(tx) {
   const sql = tx ?? sql;
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -205,10 +220,10 @@ async function seedBookLoans(tx) {
             status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
-    
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  
-    await sql`
+
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+  await sql`
       CREATE TABLE IF NOT EXISTS loans (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
         user_id UUID REFERENCES visitors(id) ON DELETE CASCADE,
@@ -280,6 +295,7 @@ export async function GET() {
       await seedUserPreferences(tx);
       await seedEventReservations(tx);
       await seedCategories(tx);
+      await seedInventory(tx);
     });
 
     return Response.json({
@@ -305,4 +321,3 @@ export async function GET() {
     );
   }
 }
-

@@ -646,3 +646,35 @@ export async function deleteBook(id) {
     return { success: false, error: error.message };
   }
 }
+
+export async function submitInventoryItem(formData) {
+  try {
+    // Validate required fields
+    if (!formData.item_name) throw new Error("Item name is required");
+    if (!formData.price) throw new Error("Price is required");
+
+    // Insert item into database
+    const result = await sql`
+      INSERT INTO inventory (
+        item_name,
+        description,
+        price,
+        stock_quantity,
+        item_image
+      ) VALUES (
+        ${formData.item_name},
+        ${formData.description},
+        ${formData.price},
+        ${formData.stock_quantity},
+        ${formData.item_image}
+      )
+      RETURNING *
+    `;
+
+    revalidatePath("/staff/dashboard/inventory/manage-inventory");
+    return { success: true, data: result[0] };
+  } catch (error) {
+    console.error("Error creating inventory item:", error);
+    return { success: false, error: error.message };
+  }
+}

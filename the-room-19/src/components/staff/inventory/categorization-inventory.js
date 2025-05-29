@@ -20,6 +20,8 @@ const CategorizationInventory = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch categories from database
   const fetchCategories = async () => {
@@ -112,6 +114,73 @@ const CategorizationInventory = () => {
   const filteredCategories = categories.filter((category) =>
     category.category_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Get paginated data
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    return filteredCategories.slice(startIndex, endIndex);
+  };
+
+  // Get total pages
+  const totalPages = Math.ceil(filteredCategories.length / entriesPerPage);
+
+  // Pagination Controls Component
+  const PaginationControls = () => {
+    return (
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-[#666666] font-['Poppins']">Show</span>
+          <select
+            value={entriesPerPage}
+            onChange={(e) => {
+              setEntriesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border border-[#666666]/30 rounded px-2 py-1 text-xs text-[#666666]"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-xs text-[#666666] font-['Poppins']">
+            entries
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded text-xs ${
+              currentPage === 1
+                ? "bg-gray-100 text-[#666666]/50 cursor-not-allowed"
+                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
+            }`}
+          >
+            Previous
+          </button>
+          <span className="px-2 py-1 bg-[#111010] text-white rounded text-xs">
+            {currentPage}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded text-xs ${
+              currentPage === totalPages
+                ? "bg-gray-100 text-[#666666]/50 cursor-not-allowed"
+                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -218,7 +287,10 @@ const CategorizationInventory = () => {
                 placeholder="Search category"
                 className="w-full h-10 pl-10 rounded-2xl border border-stone-300 text-xs font-normal font-['Poppins'] text-[#666666] focus:outline-none focus:border-lime-950"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <button
@@ -250,10 +322,10 @@ const CategorizationInventory = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCategories.map((category, index) => (
+                {getPaginatedData().map((category, index) => (
                   <tr key={category.id} className="hover:bg-gray-50">
                     <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                      {index + 1}
+                      {(currentPage - 1) * entriesPerPage + index + 1}
                     </td>
                     <td className="text-left py-4 px-4 text-xs text-[#666666] font-['Poppins']">
                       {category.category_name}
@@ -282,6 +354,9 @@ const CategorizationInventory = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          <PaginationControls />
 
           {/* Modal Add/Edit Category */}
           {isModalOpen && (

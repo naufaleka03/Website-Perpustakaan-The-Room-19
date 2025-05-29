@@ -51,7 +51,7 @@ const links = [
     icon: MdInventory,
     subLinks: [
       { name: "Books", href: "/staff/dashboard/inventory/manage-books" },
-      { name: "Utilities", href: "/staff/dashboard/inventory/utility" },
+      { name: "Utilities", href: "/staff/dashboard/inventory/inventory-list" },
       { name: "Categorization", href: "/staff/dashboard/inventory/categorization-inventory" },
     ],
   },
