@@ -228,33 +228,36 @@ export default function ListEvent() {
           )}
         </div>
 
-        <div className="flex justify-center items-center gap-4 mt-1 mb-14">
+        <div className="flex justify-center items-center gap-4 mt-8">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded text-xs ${
+            className={`p-2 rounded-full bg-white border ${
               currentPage === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
+                ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                : "border-gray-300 text-gray-600 hover:bg-gray-50"
             }`}
           >
-            Previous
+            <FaChevronLeft className="text-lg" />
           </button>
-          <span className="text-xs text-[#666666]">
-            Page {currentPage} of {totalPages}
-          </span>
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-600">
+            <span>Page</span>
+            <span className="text-gray-900">{currentPage}</span>
+            <span>of</span>
+            <span className="text-gray-900">{totalPages}</span>
+          </div>
           <button
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded text-xs ${
+            className={`p-2 rounded-full bg-white border ${
               currentPage === totalPages
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-white text-[#666666] border border-[#666666]/30 hover:bg-gray-50"
+                ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                : "border-gray-300 text-gray-600 hover:bg-gray-50"
             }`}
           >
-            Next
+            <FaChevronRight className="text-lg" />
           </button>
         </div>
 

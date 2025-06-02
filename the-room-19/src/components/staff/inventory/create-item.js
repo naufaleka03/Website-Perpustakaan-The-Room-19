@@ -13,6 +13,7 @@ export default function CreateItem() {
   const [item_image, setItemImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -30,6 +31,10 @@ export default function CreateItem() {
       }
 
       setItemImage(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setError(""); // Clear any previous errors
     }
   };
 
@@ -37,29 +42,45 @@ export default function CreateItem() {
     if (!file) return null;
 
     try {
+      // Create unique filename
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random()
         .toString(36)
         .substring(2, 15)}.${fileExt}`;
-      const filePath = `public/${fileName}`;
+      const filePath = `inventory/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      // Upload file to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
         .from("inventory-images")
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
 
-      if (error) {
-        console.error("Error uploading item image:", error);
-        throw error;
+      if (uploadError) {
+        console.error("Upload Error:", uploadError);
+        throw new Error(uploadError.message || "Failed to upload image");
       }
 
-      const { data: urlData } = supabase.storage
+      if (!data?.path) {
+        throw new Error("No upload data received");
+      }
+
+      // Get public URL
+      const { data: urlData, error: urlError } = await supabase.storage
         .from("inventory-images")
-        .getPublicUrl(filePath);
+        .getPublicUrl(data.path);
+
+      if (urlError) {
+        console.error("URL Error:", urlError);
+        throw new Error(urlError.message || "Failed to get image URL");
+      }
 
       return urlData.publicUrl;
     } catch (error) {
       console.error("Error in uploadItemImage:", error);
-      throw error;
+      throw new Error(error.message || "Failed to process image upload");
     }
   };
 
@@ -69,22 +90,28 @@ export default function CreateItem() {
     setError("");
 
     try {
+      // Validate form
+      if (!item_name.trim()) {
+        throw new Error("Item name is required");
+      }
+      if (!price || isNaN(parseFloat(price))) {
+        throw new Error("Valid price is required");
+      }
+
       let imageUrl = null;
       if (item_image) {
         try {
           imageUrl = await uploadItemImage(item_image);
         } catch (uploadError) {
-          setError(
-            "Failed to upload image. Please try again with a different image."
-          );
+          setError(uploadError.message || "Failed to upload image");
           setIsSubmitting(false);
           return;
         }
       }
 
       const formData = {
-        item_name,
-        description,
+        item_name: item_name.trim(),
+        description: description.trim(),
         price: parseFloat(price.replace(/[^0-9.]/g, "")),
         item_image: imageUrl,
         stock_quantity: 0, // Default value for new items
@@ -93,14 +120,14 @@ export default function CreateItem() {
       const result = await submitInventoryItem(formData);
 
       if (result.success) {
-        router.push("/staff/dashboard/inventory/manage-inventory");
+        router.push("/staff/dashboard/inventory/inventory-list");
         router.refresh();
       } else {
-        setError(result.error || "Failed to create item");
+        throw new Error(result.error || "Failed to create item");
       }
     } catch (err) {
       console.error("Error submitting item:", err);
-      setError("An unexpected error occurred");
+      setError(err.message || "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,9 +146,7 @@ export default function CreateItem() {
           alt="Inventory banner"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1
-            className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope`}
-          >
+          <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope">
             ADD NEW <br />
             ITEM
           </h1>
@@ -204,21 +229,39 @@ export default function CreateItem() {
               </span>
             </div>
           </div>
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg"
+              />
+            </div>
+          )}
           <p className="text-xs text-gray-500 mt-1">
             Upload an image of the item. Max size: 5MB.
           </p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope"
+          className={`h-[40px] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope ${
+            isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#111010] hover:bg-[#2a2a2a]"
+          }`}
         >
           {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
         </button>
-
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
     </form>
   );

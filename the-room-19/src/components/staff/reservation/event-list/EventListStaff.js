@@ -1,7 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FaPlus, FaPencil, FaTrash, FaLock, FaLockOpen } from "react-icons/fa6";
+import {
+  FaPlus,
+  FaPencil,
+  FaTrash,
+  FaLock,
+  FaLockOpen,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa6";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import CloseConfirmationModal from "./CloseConfirmationModal";
 
@@ -10,6 +18,8 @@ export default function EventListStaff() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 6;
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     eventId: null,
@@ -125,6 +135,14 @@ export default function EventListStaff() {
     return description.substring(0, maxLength) + "...";
   };
 
+  const getPaginatedEvents = () => {
+    const startIndex = (currentPage - 1) * eventsPerPage;
+    const endIndex = startIndex + eventsPerPage;
+    return events.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.max(1, Math.ceil(events.length / eventsPerPage));
+
   return (
     <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
       <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto pt-10">
@@ -154,7 +172,7 @@ export default function EventListStaff() {
               </p>
             </div>
           ) : (
-            events.map((event) => (
+            getPaginatedEvents().map((event) => (
               <div
                 key={event.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] max-w-[350px] h-[300px] flex flex-col relative"
@@ -243,6 +261,42 @@ export default function EventListStaff() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {events.length > 0 && (
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-full bg-white border ${
+                currentPage === 1
+                  ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                  : "border-gray-300 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <FaChevronLeft className="text-lg" />
+            </button>
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-600">
+              <span>Page</span>
+              <span className="text-gray-900">{currentPage}</span>
+              <span>of</span>
+              <span className="text-gray-900">{totalPages}</span>
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-full bg-white border ${
+                currentPage === totalPages
+                  ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                  : "border-gray-300 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <FaChevronRight className="text-lg" />
+            </button>
+          </div>
+        )}
       </div>
 
       <DeleteConfirmationModal
