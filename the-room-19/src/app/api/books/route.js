@@ -35,35 +35,51 @@ export async function GET(request) {
     const genre = searchParams.get('genre');
     const bookType = searchParams.get('bookType');
     const searchQuery = searchParams.get('search');
-    
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '12', 10);
+    const offset = (page - 1) * limit;
+
     // Build the SQL query with conditions
     let conditions = [];
     let queryParams = [];
-    
+
     if (genre) {
       conditions.push(`genre = $${queryParams.length + 1}`);
       queryParams.push(genre);
     }
-    
+
     if (bookType) {
       conditions.push(`book_type = $${queryParams.length + 1}`);
       queryParams.push(bookType);
     }
-    
+
     if (searchQuery) {
       conditions.push(`(book_title ILIKE $${queryParams.length + 1} OR author ILIKE $${queryParams.length + 1})`);
       queryParams.push(`%${searchQuery}%`);
     }
-    
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    
-    const books = await sql.unsafe(`
+
+    // Get total count for pagination
+    const totalResult = await sql.unsafe(
+      `SELECT COUNT(*) as count FROM books ${whereClause}`,
+      queryParams
+    );
+    const total = parseInt(totalResult[0]?.count || '0', 10);
+
+    // Get paginated books
+    const books = await sql.unsafe(
+      `
       SELECT * FROM books
       ${whereClause}
       ORDER BY created_at DESC
-    `, queryParams);
-    
-    return NextResponse.json({ books });
+      LIMIT $${queryParams.length + 1}
+      OFFSET $${queryParams.length + 2}
+      `,
+      [...queryParams, limit, offset]
+    );
+
+    return NextResponse.json({ books, total });
   } catch (error) {
     console.error('Error fetching books:', error);
     return NextResponse.json({ error: 'Error fetching books' }, { status: 500 });

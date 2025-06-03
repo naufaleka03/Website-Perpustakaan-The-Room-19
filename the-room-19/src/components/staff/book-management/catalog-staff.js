@@ -266,7 +266,7 @@ const CatalogStaff = () => {
   const [genres, setGenres] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const booksPerPage = 12;
+  const booksPerPage = 60;
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   // Fetch all genres from database
@@ -344,6 +344,11 @@ const CatalogStaff = () => {
     };
   }, []);
 
+  // Reset to page 1 when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedGenres, selectedBookTypes]);
+
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1); // Reset to first page on new search
@@ -373,8 +378,8 @@ const CatalogStaff = () => {
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
-      <div className="w-full h-full relative bg-white">
-        <div className="w-full mx-auto px-12 py-8">
+      <div className="w-full h-full relative bg-white px-12 py-8">
+        <div className="w-full mx-auto max-w-[1200px]">
           {/* Search Bar and Add Book Button */}
           <div className="flex justify-center items-center mb-6">
             <div className="w-[600px] flex items-center gap-3">
@@ -391,7 +396,6 @@ const CatalogStaff = () => {
                   />
                 </div>
               </div>
-
               {/* Add Book Button */}
               <Link href="/staff/dashboard/book-management/create-book">
                 <button className="w-[90px] h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl">
@@ -400,7 +404,6 @@ const CatalogStaff = () => {
               </Link>
             </div>
           </div>
-
           {/* Book Grid and Sidebar Container */}
           <div className="flex gap-8 justify-between">
             {/* Book Grid */}
@@ -426,16 +429,13 @@ const CatalogStaff = () => {
                 ))
               )}
             </div>
-
-            {/* Categories Sidebar - Fixed width */}
+            {/* Sidebar Filter */}
             <div className="w-[250px] flex-shrink-0">
-              {/* Categories sections - with white wrapper */}
               <div className="space-y-4 bg-white rounded-2xl border border-[#cdcdcd] p-6">
                 <div className="mb-4">
                   <h2 className="text-black text-md font-medium mb-4">
                     Categories
                   </h2>
-                  {/* Search in categories */}
                   <div className="w-full h-[33px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] flex items-center px-3 mb-4">
                     <BiSearch className="text-gray-400" size={18} />
                     <input
@@ -445,7 +445,6 @@ const CatalogStaff = () => {
                     />
                   </div>
                 </div>
-
                 {/* Genres */}
                 <div>
                   <div className="flex justify-between items-center mb-3">
@@ -481,7 +480,6 @@ const CatalogStaff = () => {
                     )}
                   </div>
                 </div>
-
                 {/* Book Type */}
                 <div>
                   <h3 className="text-black text-sm font-medium mb-3">Book Type</h3>
@@ -515,35 +513,35 @@ const CatalogStaff = () => {
               </div>
             </div>
           </div>
-
           {/* Pagination */}
           {!loading && totalPages > 1 && (
             <div className="flex justify-center mt-8">
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+                className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full transition-colors duration-150 ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+                aria-label="Previous page"
               >
                 <IoChevronBackOutline />
               </button>
-              
-              {[...Array(totalPages)].map((_, index) => {
+              {Array.from({ length: totalPages }).map((_, index) => {
                 const pageNumber = index + 1;
                 // Show current page, first, last, and pages around current
                 if (
-                  pageNumber === 1 || 
-                  pageNumber === totalPages || 
+                  pageNumber === 1 ||
+                  pageNumber === totalPages ||
                   (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
                 ) {
                   return (
                     <button
                       key={pageNumber}
                       onClick={() => setCurrentPage(pageNumber)}
-                      className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${
+                      className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full transition-colors duration-150 ${
                         currentPage === pageNumber
                           ? 'bg-[#2e3105] text-white'
                           : 'text-black hover:bg-gray-100'
                       }`}
+                      aria-current={currentPage === pageNumber ? 'page' : undefined}
                     >
                       {pageNumber}
                     </button>
@@ -556,33 +554,32 @@ const CatalogStaff = () => {
                 }
                 return null;
               })}
-              
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+                className={`flex items-center justify-center w-8 h-8 mx-1 rounded-full transition-colors duration-150 ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:bg-gray-100'}`}
+                aria-label="Next page"
               >
                 <IoChevronForwardOutline />
               </button>
             </div>
           )}
+          {/* Genre Modal */}
+          {isGenreModalOpen && (
+            <GenreSelectModal
+              isOpen={isGenreModalOpen}
+              onClose={() => setIsGenreModalOpen(false)}
+              genres={genres.map(genre => genre.genre_name)}
+              selectedGenres={selectedGenres}
+              onChange={selectedGenres => {
+                setSelectedGenres(selectedGenres);
+                setCurrentPage(1);
+              }}
+              title="Select Genres"
+            />
+          )}
         </div>
       </div>
-
-      {/* Genre Modal */}
-      {isGenreModalOpen && (
-        <GenreSelectModal
-          isOpen={isGenreModalOpen}
-          onClose={() => setIsGenreModalOpen(false)}
-          genres={genres.map(genre => genre.genre_name)}
-          selectedGenres={selectedGenres}
-          onChange={selectedGenres => {
-            setSelectedGenres(selectedGenres);
-            setCurrentPage(1);
-          }}
-          title="Select Genres"
-        />
-      )}
     </div>
   );
 };
