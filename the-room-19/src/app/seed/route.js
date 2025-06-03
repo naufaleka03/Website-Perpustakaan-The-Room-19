@@ -190,6 +190,7 @@ async function seedInventory(tx) {
             price NUMERIC(10, 2) NOT NULL,
             stock_quantity INTEGER DEFAULT 0 NOT NULL,
             item_image TEXT,
+            category_id UUID REFERENCES categories(id),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }

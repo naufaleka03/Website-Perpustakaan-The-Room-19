@@ -14,9 +14,30 @@ export default function UpdateItem() {
   const [price, setPrice] = useState("");
   const [item_image, setItemImage] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.data);
+        } else {
+          setError("Failed to fetch categories");
+        }
+      } catch (error) {
+        setError("Error loading categories");
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Fetch existing item data
   useEffect(() => {
@@ -32,6 +53,7 @@ export default function UpdateItem() {
           setPrice(item.price?.toString() || "");
           setCurrentImage(item.item_image);
           setImagePreview(item.item_image);
+          setSelectedCategory(item.category_id || "");
         } else {
           setError("Failed to fetch item data");
         }
@@ -138,6 +160,7 @@ export default function UpdateItem() {
         description: description.trim(),
         price: parseFloat(price.replace(/[^0-9.]/g, "")),
         item_image: imageUrl,
+        category_id: selectedCategory,
       };
 
       const response = await fetch(`/api/inventory/${itemId}`, {
@@ -217,6 +240,29 @@ export default function UpdateItem() {
           />
           <p className="text-xs text-gray-500 mt-1">
             Provide a brief description of the item.
+          </p>
+        </div>
+
+        {/* Category Dropdown */}
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Category
+          </label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            required
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.category_name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select the category for this item.
           </p>
         </div>
 

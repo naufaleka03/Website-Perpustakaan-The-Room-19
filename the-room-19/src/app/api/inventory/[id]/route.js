@@ -10,8 +10,10 @@ const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 export async function GET(request, { params }) {
   try {
     const item = await sql`
-      SELECT * FROM inventory
-      WHERE id = ${params.id}
+      SELECT i.*, c.category_name
+      FROM inventory i
+      LEFT JOIN categories c ON i.category_id = c.id
+      WHERE i.id = ${params.id}
     `;
 
     if (item.length === 0) {
@@ -34,7 +36,40 @@ export async function GET(request, { params }) {
 // Update item
 export async function PUT(request, { params }) {
   try {
-    const { item_name, description, price, item_image } = await request.json();
+    const { item_name, description, price, item_image, category_id } =
+      await request.json();
+
+    // Get the current item to check if category has changed
+    const currentItem = await sql`
+      SELECT category_id FROM inventory WHERE id = ${params.id}
+    `;
+
+    if (currentItem.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Item not found" },
+        { status: 404 }
+      );
+    }
+
+    // If category has changed, update the counts
+    if (currentItem[0].category_id !== category_id) {
+      // Decrease count for old category
+      if (currentItem[0].category_id) {
+        await sql`
+          UPDATE categories
+          SET number_of_items = number_of_items - 1
+          WHERE id = ${currentItem[0].category_id}
+        `;
+      }
+      // Increase count for new category
+      if (category_id) {
+        await sql`
+          UPDATE categories
+          SET number_of_items = number_of_items + 1
+          WHERE id = ${category_id}
+        `;
+      }
+    }
 
     const result = await sql`
       UPDATE inventory
@@ -42,7 +77,8 @@ export async function PUT(request, { params }) {
         item_name = ${item_name},
         description = ${description},
         price = ${price},
-        item_image = ${item_image}
+        item_image = ${item_image},
+        category_id = ${category_id}
       WHERE id = ${params.id}
       RETURNING *
     `;
@@ -68,18 +104,32 @@ export async function PUT(request, { params }) {
 // Delete item
 export async function DELETE(request, { params }) {
   try {
-    const result = await sql`
-      DELETE FROM inventory
-      WHERE id = ${params.id}
-      RETURNING *
+    // Get the item's category before deletion
+    const item = await sql`
+      SELECT category_id FROM inventory WHERE id = ${params.id}
     `;
 
-    if (result.length === 0) {
+    if (item.length === 0) {
       return NextResponse.json(
         { success: false, error: "Item not found" },
         { status: 404 }
       );
     }
+
+    // Decrease the category's number_of_items if item has a category
+    if (item[0].category_id) {
+      await sql`
+        UPDATE categories
+        SET number_of_items = number_of_items - 1
+        WHERE id = ${item[0].category_id}
+      `;
+    }
+
+    const result = await sql`
+      DELETE FROM inventory
+      WHERE id = ${params.id}
+      RETURNING *
+    `;
 
     revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({

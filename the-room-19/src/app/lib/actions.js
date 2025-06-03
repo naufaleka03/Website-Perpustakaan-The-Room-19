@@ -652,6 +652,7 @@ export async function submitInventoryItem(formData) {
     // Validate required fields
     if (!formData.item_name) throw new Error("Item name is required");
     if (!formData.price) throw new Error("Price is required");
+    if (!formData.category_id) throw new Error("Category is required");
 
     // Insert item into database
     const result = await sql`
@@ -660,18 +661,27 @@ export async function submitInventoryItem(formData) {
         description,
         price,
         stock_quantity,
-        item_image
+        item_image,
+        category_id
       ) VALUES (
         ${formData.item_name},
         ${formData.description},
         ${formData.price},
         ${formData.stock_quantity},
-        ${formData.item_image}
+        ${formData.item_image},
+        ${formData.category_id}
       )
       RETURNING *
     `;
 
-    revalidatePath("/staff/dashboard/inventory/manage-inventory");
+    // Update category's number_of_items
+    await sql`
+      UPDATE categories
+      SET number_of_items = number_of_items + 1
+      WHERE id = ${formData.category_id}
+    `;
+
+    revalidatePath("/staff/dashboard/inventory/inventory-list");
     return { success: true, data: result[0] };
   } catch (error) {
     console.error("Error creating inventory item:", error);

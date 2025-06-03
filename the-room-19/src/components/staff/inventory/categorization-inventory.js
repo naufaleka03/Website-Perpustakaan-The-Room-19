@@ -101,6 +101,16 @@ const CategorizationInventory = () => {
 
   const handleDelete = async (id) => {
     try {
+      // Check if category has items
+      const categoryToDelete = categories.find((c) => c.id === id);
+      if (parseInt(categoryToDelete.number_of_items) > 0) {
+        setError(
+          "Cannot delete category that contains items. Please remove or reassign all items first."
+        );
+        handleCloseDeleteModal();
+        return;
+      }
+
       await deleteCategory(id);
       handleCloseDeleteModal();
       await fetchCategories();
@@ -331,7 +341,7 @@ const CategorizationInventory = () => {
                       {category.category_name}
                     </td>
                     <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                      {category.number_of_items}
+                      {parseInt(category.number_of_items)}
                     </td>
                     <td className="py-4 px-6 text-center text-sm font-medium">
                       <div className="flex justify-center items-center gap-3">

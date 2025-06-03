@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitInventoryItem } from "@/app/lib/actions";
 import { createClient } from "@/app/supabase/client";
@@ -11,9 +11,30 @@ export default function CreateItem() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [item_image, setItemImage] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.data);
+        } else {
+          setError("Failed to fetch categories");
+        }
+      } catch (error) {
+        setError("Error loading categories");
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -114,8 +135,11 @@ export default function CreateItem() {
         description: description.trim(),
         price: parseFloat(price.replace(/[^0-9.]/g, "")),
         item_image: imageUrl,
+        category_id: selectedCategory || null,
         stock_quantity: 0, // Default value for new items
       };
+
+      console.log("Submitting form data:", formData); // Debug log
 
       const result = await submitInventoryItem(formData);
 
@@ -186,6 +210,29 @@ export default function CreateItem() {
           />
           <p className="text-xs text-gray-500 mt-1">
             Provide a brief description of the item.
+          </p>
+        </div>
+
+        {/* Category Dropdown */}
+        <div className="space-y-1">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Category
+          </label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+            required
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.category_name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select the category for this item.
           </p>
         </div>
 
