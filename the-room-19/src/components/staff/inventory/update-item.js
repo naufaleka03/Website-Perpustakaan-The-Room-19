@@ -12,7 +12,6 @@ export default function UpdateItem() {
   const [item_name, setItemName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [stock_quantity, setStockQuantity] = useState(0);
   const [item_image, setItemImage] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +30,6 @@ export default function UpdateItem() {
           setItemName(item.item_name);
           setDescription(item.description || "");
           setPrice(item.price?.toString() || "");
-          setStockQuantity(item.stock_quantity || 0);
           setCurrentImage(item.item_image);
           setImagePreview(item.item_image);
         } else {
@@ -139,7 +137,6 @@ export default function UpdateItem() {
         item_name: item_name.trim(),
         description: description.trim(),
         price: parseFloat(price.replace(/[^0-9.]/g, "")),
-        stock_quantity: parseInt(stock_quantity),
         item_image: imageUrl,
       };
 
@@ -238,25 +235,6 @@ export default function UpdateItem() {
           />
           <p className="text-xs text-gray-500 mt-1">
             Enter the price of the item (in IDR).
-          </p>
-        </div>
-
-        {/* Stock Quantity */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Stock Quantity
-          </label>
-          <input
-            type="number"
-            value={stock_quantity}
-            onChange={(e) => setStockQuantity(e.target.value)}
-            placeholder="Enter Stock Quantity"
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-            min="0"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the current stock quantity.
           </p>
         </div>
 

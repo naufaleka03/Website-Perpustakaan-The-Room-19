@@ -1,15 +1,17 @@
+"use server";
+
 import postgres from "postgres";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
 // Get specific item
 export async function GET(request, { params }) {
   try {
-    const id = await params.id;
     const item = await sql`
       SELECT * FROM inventory
-      WHERE id = ${id}
+      WHERE id = ${params.id}
     `;
 
     if (item.length === 0) {
@@ -32,9 +34,7 @@ export async function GET(request, { params }) {
 // Update item
 export async function PUT(request, { params }) {
   try {
-    const id = await params.id;
-    const { item_name, description, price, stock_quantity, item_image } =
-      await request.json();
+    const { item_name, description, price, item_image } = await request.json();
 
     const result = await sql`
       UPDATE inventory
@@ -42,9 +42,8 @@ export async function PUT(request, { params }) {
         item_name = ${item_name},
         description = ${description},
         price = ${price},
-        stock_quantity = ${stock_quantity},
         item_image = ${item_image}
-      WHERE id = ${id}
+      WHERE id = ${params.id}
       RETURNING *
     `;
 
@@ -55,6 +54,7 @@ export async function PUT(request, { params }) {
       );
     }
 
+    revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({ success: true, data: result[0] });
   } catch (error) {
     console.error("Database Error:", error);
@@ -68,11 +68,9 @@ export async function PUT(request, { params }) {
 // Delete item
 export async function DELETE(request, { params }) {
   try {
-    const id = await params.id;
-
     const result = await sql`
       DELETE FROM inventory
-      WHERE id = ${id}
+      WHERE id = ${params.id}
       RETURNING *
     `;
 
@@ -83,6 +81,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({
       success: true,
       message: "Item deleted successfully",
@@ -92,6 +91,36 @@ export async function DELETE(request, { params }) {
     console.error("Database Error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete item" },
+      { status: 500 }
+    );
+  }
+}
+
+// Update stock quantity
+export async function PATCH(request, { params }) {
+  try {
+    const { stock_quantity } = await request.json();
+
+    const result = await sql`
+      UPDATE inventory
+      SET stock_quantity = ${stock_quantity}
+      WHERE id = ${params.id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Item not found" },
+        { status: 404 }
+      );
+    }
+
+    revalidatePath("/staff/dashboard/inventory/inventory-list");
+    return NextResponse.json({ success: true, data: result[0] });
+  } catch (error) {
+    console.error("Database Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update stock quantity" },
       { status: 500 }
     );
   }

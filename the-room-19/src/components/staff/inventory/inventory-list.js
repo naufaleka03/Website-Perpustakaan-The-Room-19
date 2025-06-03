@@ -5,6 +5,7 @@ import { FiSearch, FiMoreVertical } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ItemDetailModal from "./ItemDetailModal";
+import AdjustStockModal from "./AdjustStockModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 export default function InventoryList() {
@@ -17,6 +18,10 @@ export default function InventoryList() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
   const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
+  const [adjustStockModal, setAdjustStockModal] = useState({
+    isOpen: false,
+    item: null,
+  });
   const itemsPerPage = 16;
 
   // Close dropdown when clicking outside
@@ -140,11 +145,47 @@ export default function InventoryList() {
       case "update":
         router.push(`/staff/dashboard/inventory/update-item?id=${item.id}`);
         break;
+      case "adjust-stock":
+        setAdjustStockModal({ isOpen: true, item });
+        break;
       case "delete":
         setDeleteModal({ isOpen: true, item });
         break;
       default:
         break;
+    }
+  };
+
+  const handleStockAdjustment = async (newQuantity) => {
+    try {
+      const response = await fetch(
+        `/api/inventory/${adjustStockModal.item.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            stock_quantity: newQuantity,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update stock");
+      }
+
+      // Update the local state to reflect the change
+      setInventory(
+        inventory.map((item) =>
+          item.id === adjustStockModal.item.id
+            ? { ...item, stock_quantity: newQuantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      // You might want to show an error message to the user here
     }
   };
 
@@ -188,6 +229,14 @@ export default function InventoryList() {
         onClose={() => setDetailModal({ isOpen: false, item: null })}
       />
 
+      {/* Adjust Stock Modal */}
+      <AdjustStockModal
+        isOpen={adjustStockModal.isOpen}
+        item={adjustStockModal.item}
+        onClose={() => setAdjustStockModal({ isOpen: false, item: null })}
+        onConfirm={handleStockAdjustment}
+      />
+
       {/* Top Search Bar */}
       <div className="max-w-[1440px] mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
@@ -228,11 +277,11 @@ export default function InventoryList() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-[1400px] mx-auto">
                 {getPaginatedData().map((item) => (
                   <div
                     key={item.id}
-                    className="bg-[#F6F6F6] rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative"
+                    className="bg-[#F6F6F6] rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative w-full max-w-[300px] mx-auto border border-[#CDCDCD]"
                   >
                     {/* More Options Button */}
                     <div className="absolute top-2 right-2 z-10 dropdown-container">
@@ -257,6 +306,12 @@ export default function InventoryList() {
                             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
                           >
                             Update
+                          </button>
+                          <button
+                            onClick={() => handleAction("adjust-stock", item)}
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+                          >
+                            Adjust Stock
                           </button>
                           <button
                             onClick={() => handleAction("delete", item)}
@@ -284,10 +339,7 @@ export default function InventoryList() {
                       <p className="text-xs text-[#666666] mb-2 line-clamp-1">
                         {item.description}
                       </p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold text-[#111010]">
-                          Rp {item.price?.toLocaleString()}
-                        </span>
+                      <div className="flex justify-end items-center">
                         <span className="text-xs text-[#666666]">
                           Stock: {item.stock_quantity}
                         </span>
