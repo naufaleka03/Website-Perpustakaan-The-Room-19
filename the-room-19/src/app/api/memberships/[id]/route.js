@@ -39,34 +39,17 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
-    
+
     if (!id) {
       return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
     }
 
-    // Check if the application exists
-    const [existingApplication] = await sql`
-      SELECT id, status, user_id 
-      FROM memberships
-      WHERE id = ${id}
-    `;
-
-    if (!existingApplication) {
-      return NextResponse.json({ error: 'Membership application not found' }, { status: 404 });
-    }
-
-    // Update the application status
-    if (body.status) {
-      const validStatuses = ['verified', 'revision'];
-      
-      if (!validStatuses.includes(body.status)) {
-        return NextResponse.json(
-          { error: 'Invalid status value. Must be one of: verified, revision' },
-          { status: 400 }
-        );
-      }
-
-      // Update the application status
+    // If only status/notes/staff_id are present, do a partial update (staff action)
+    if (
+      typeof body.status !== 'undefined' &&
+      (typeof body.notes !== 'undefined' || typeof body.staff_id !== 'undefined') &&
+      Object.keys(body).every(key => ['status', 'notes', 'staff_id'].includes(key))
+    ) {
       const [updatedApplication] = await sql`
         UPDATE memberships
         SET 
@@ -78,25 +61,46 @@ export async function PUT(request, { params }) {
         RETURNING *
       `;
 
-      // If application is verified, update the user's member_status
       if (body.status === 'verified') {
         await sql`
           UPDATE visitors
           SET member_status = 'member'
-          WHERE id = ${existingApplication.user_id}
+          WHERE id = (SELECT user_id FROM memberships WHERE id = ${id})
         `;
       }
 
       return NextResponse.json({
         success: true,
         data: updatedApplication,
-        message: `Membership application status updated to ${body.status}`
+        message: `Membership application status updated`
       });
     }
 
-    return NextResponse.json({ error: 'Invalid update operation' }, { status: 400 });
+    // Otherwise, update all fields (user-side full update)
+    const [updatedApplication] = await sql`
+      UPDATE memberships
+      SET 
+        full_name = ${body.full_name},
+        email = ${body.email},
+        phone_number = ${body.phone_number},
+        address = ${body.address},
+        favorite_book_genre = ${body.favorite_book_genre},
+        emergency_contact_name = ${body.emergency_contact_name},
+        emergency_contact_number = ${body.emergency_contact_number},
+        id_card_url = ${body.id_card_url},
+        status = ${body.status},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    return NextResponse.json({
+      success: true,
+      data: updatedApplication,
+      message: `Membership application updated`
+    });
   } catch (error) {
-    console.error('Error in PUT membership application:', error);
+    console.error('Error updating membership application:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

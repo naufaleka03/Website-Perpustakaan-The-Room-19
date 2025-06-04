@@ -195,7 +195,19 @@ const EditBook = () => {
         
         const data = await response.json();
         if (data.book) {
-          setFormData(data.book);
+          // Ensure no select value is null
+          const safeBook = { ...data.book };
+          [
+            'book_type',
+            'content_type',
+            'genre',
+            'language',
+            'cover_type',
+            'usage',
+          ].forEach((key) => {
+            if (safeBook[key] === null) safeBook[key] = '';
+          });
+          setFormData(safeBook);
           setSelectedImage(data.book.cover_image);
           
           // Set themes if they exist

@@ -1,10 +1,5 @@
-import PaymentForm from '@/components/payment/payment-summary';
+import UserDashboard from '@/components/user/dashboard/dashboard';
 
 export default function Page() {
-    return (
-      <div className="w-full h-screen bg-gray-500">
-        <h1>Dashboard</h1>
-        <PaymentForm />
-      </div>
-    )
-  }
+  return <UserDashboard />;
+}
