@@ -408,7 +408,7 @@ const Detail = () => {
                 </div>
                 
                 {/* Price - Moved to upper section */}
-                {book.price && (
+                {book.price && book.usage !== 'On-Site Only' && (
                   <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
                     <p className="text-[#2e3105] text-lg font-bold">
                       Rp {parseInt(book.price).toLocaleString('id-ID')}
@@ -574,23 +574,30 @@ const Detail = () => {
                   Total stock: <span className="text-[#ecb43c] font-normal">{book.stock ?? 0} left</span>
                 </span>
               </div>
-              {book.stock === 0 && (
+              {/* Alert hanya muncul jika stock 0 dan usage adalah 'On-site and For Rent' */}
+              {book.stock === 0 && book.usage === 'On-site and For Rent' && (
                 <div className="my-4 p-2 rounded text-xs text-center bg-red-100 text-red-800">
-                  Stok buku habis, tidak dapat dipinjam.
+                  Book is out of stock and cannot be borrowed.
                 </div>
               )}
-              <div className="space-y-3 mt-6">
-                <button 
-                  className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]'}`}
-                  onClick={handleBorrowBook}
-                  disabled={isBorrowing || book.stock === 0}
-                >
-                  {isBorrowing ? 'Processing...' : 'Borrow Book'}
-                </button>
-                <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">
-                  Cart
-                </button>
-              </div>
+              {/* Hide Borrow and Cart if usage is On-Site Only */}
+              {book.usage !== 'On-Site Only' && (
+                <div className="space-y-3 mt-6">
+                  <button 
+                    className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]'}`}
+                    onClick={handleBorrowBook}
+                    disabled={isBorrowing || book.stock === 0}
+                  >
+                    {isBorrowing ? 'Processing...' : 'Borrow Book'}
+                  </button>
+                  <button 
+                    className={`w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl ${book.stock === 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={book.stock === 0}
+                  >
+                    Cart
+                  </button>
+                </div>
+              )}
 
               <hr className="border-[#767676]/40 my-6" />
 

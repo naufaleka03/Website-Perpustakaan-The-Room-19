@@ -19,7 +19,7 @@ async function recreateBooksTable() {
         publisher VARCHAR(255) NOT NULL,
         cover_type VARCHAR(50),
         usage VARCHAR(50) NOT NULL,
-        price NUMERIC(10, 2) NOT NULL,
+        price NUMERIC(10, 2) DEFAULT 0 NOT NULL,
         published_year INTEGER,
         description TEXT,
         book_type VARCHAR(50),

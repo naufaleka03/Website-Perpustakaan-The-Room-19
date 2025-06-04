@@ -946,96 +946,104 @@ export default function DataCollection() {
                 </div>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).map((item, index) => {
-                      const status = getBorrowingStatus(item.loan_due, item.status);
-                      return (
-                        <tr 
-                          key={item.id} 
-                          className="border-b border-[#666666]/10 hover:bg-gray-100 transition-colors duration-200"
-                        >
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                            {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
-                          </td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.full_name}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
-                            {item.book_title1}
-                            {item.book_title2 && (
-                              <span
-                                title="2 books total"
-                                className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
-                              >
-                                +1
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
-                          <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
-                          <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
-                            <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
-                              status === 'returned'
-                                ? 'text-green-800 bg-green-100'
-                                : status === 'overdue'
-                                ? 'text-red-800 bg-red-100'
-                                : 'text-yellow-800 bg-yellow-100'
-                            }`}>
-                              {status === 'returned'
-                                ? 'Returned'
-                                : status === 'overdue'
-                                ? 'Over Due'
-                                : 'On Going'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveDropdown(activeDropdown === item.id ? null : item.id);
-                              }}
-                              className="text-[#666666] hover:text-[#111010] dropdown-trigger"
-                            >
-                              <FaEllipsisV size={14} />
-                            </button>
-                                                        
-                            {activeDropdown === item.id && (
-                              <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
-                                <button 
-                                  className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDetailBorrowing(item.id);
-                                    setActiveDropdown(null);
-                                  }}
+                {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length === 0 ? (
+                  <div className="w-full text-center py-12 text-[#666666] text-sm font-['Poppins']">
+                    No borrowing record available.
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#eaeaea]">
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).map((item, index) => {
+                        const status = getBorrowingStatus(item.loan_due, item.status);
+                        return (
+                          <tr 
+                            key={item.id} 
+                            className="border-b border-[#666666]/10 hover:bg-gray-100 transition-colors duration-200"
+                          >
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                              {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.full_name}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
+                              {item.book_title1}
+                              {item.book_title2 && (
+                                <span
+                                  title="2 books total"
+                                  className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
                                 >
-                                  Detail
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                                  +1
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                            <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
+                              <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
+                                status === 'returned'
+                                  ? 'text-green-800 bg-green-100'
+                                  : status === 'overdue'
+                                  ? 'text-red-800 bg-red-100'
+                                  : 'text-yellow-800 bg-yellow-100'
+                              }`}>
+                                {status === 'returned'
+                                  ? 'Returned'
+                                  : status === 'overdue'
+                                  ? 'Over Due'
+                                  : 'On Going'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                                }}
+                                className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                              >
+                                <FaEllipsisV size={14} />
+                              </button>
+                                                        
+                              {activeDropdown === item.id && (
+                                <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                                  <button 
+                                    className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDetailBorrowing(item.id);
+                                      setActiveDropdown(null);
+                                    }}
+                                  >
+                                    Detail
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
-              <PaginationControls 
-                currentPage={borrowingBookCurrentPage}
-                setCurrentPage={setBorrowingBookCurrentPage}
-                data={borrowingBookData}
-                itemsPerPage={entriesPerPage}
-              />
+              {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length > 0 && (
+                <PaginationControls 
+                  currentPage={borrowingBookCurrentPage}
+                  setCurrentPage={setBorrowingBookCurrentPage}
+                  data={borrowingBookData}
+                  itemsPerPage={entriesPerPage}
+                />
+              )}
             </>
           )}
         </div>

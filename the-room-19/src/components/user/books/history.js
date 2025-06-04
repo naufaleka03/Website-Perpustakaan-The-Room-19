@@ -156,61 +156,67 @@ const History = () => {
           </div>
 
           <div className="space-y-4">
-            {filteredLoans.map((loan) => (
-              <div
-                key={loan.id}
-                onClick={() => handleCardClick(loan)}
-                className="w-full h-[161px] bg-white rounded-2xl shadow-md border border-[#cdcdcd] p-4 flex items-center cursor-pointer hover:bg-neutral-50 transition"
-              >
-                <div className="flex items-center h-full">
-                  {loan.cover_image1 ? (
-                    <img
-                      className="w-[84px] h-[120px] rounded-xl object-cover"
-                      src={loan.cover_image1}
-                      alt={`${loan.book_title1} Cover`}
-                    />
-                  ) : (
-                    <div className="w-[84px] h-[120px] rounded-xl bg-[#eff0c3] flex items-center justify-center">
-                      <span className="text-[#52570d] font-bold text-xl font-manrope">
-                        {loan.book_title1
-                          .split(" ")
-                          .slice(0, 2)
-                          .map((word) => word[0].toUpperCase())
-                          .join("")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 ml-6">
-                  <h3 className="text-black text-sm font-semibold font-manrope">
-                    {loan.book_title1}
-                  </h3>
-
-                  {loan.book_title2 && (
-                    <div className="flex items-center mb-2">
-                      <p className="text-[#666666] text-[11px] font-medium font-manrope">
-                        1 other book
-                      </p>
-                      <IoIosArrowDown className="text-[#666666] ml-1" size={10} />
-                    </div>
-                  )}
-
-                  <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(getBorrowingStatus(loan.loan_due || loan.return_date, loan.status))}`}>
-                    {getBorrowingStatus(loan.loan_due || loan.return_date, loan.status)}
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end">
-                  <div className="text-right mb-6 pt-[15px]">
-                    <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
-                    <p className="text-black text-sm font-semibold font-manrope">
-                      Rp{loan.total_price?.toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                </div>
+            {filteredLoans.length === 0 ? (
+              <div className="w-full text-center py-12 text-[#666666] text-sm font-manrope">
+                No borrowing history available.
               </div>
-            ))}
+            ) : (
+              filteredLoans.map((loan) => (
+                <div
+                  key={loan.id}
+                  onClick={() => handleCardClick(loan)}
+                  className="w-full h-[161px] bg-white rounded-2xl shadow-md border border-[#cdcdcd] p-4 flex items-center cursor-pointer hover:bg-neutral-50 transition"
+                >
+                  <div className="flex items-center h-full">
+                    {loan.cover_image1 ? (
+                      <img
+                        className="w-[84px] h-[120px] rounded-xl object-cover"
+                        src={loan.cover_image1}
+                        alt={`${loan.book_title1} Cover`}
+                      />
+                    ) : (
+                      <div className="w-[84px] h-[120px] rounded-xl bg-[#eff0c3] flex items-center justify-center">
+                        <span className="text-[#52570d] font-bold text-xl font-manrope">
+                          {loan.book_title1
+                            .split(" ")
+                            .slice(0, 2)
+                            .map((word) => word[0].toUpperCase())
+                            .join("")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 ml-6">
+                    <h3 className="text-black text-sm font-semibold font-manrope">
+                      {loan.book_title1}
+                    </h3>
+
+                    {loan.book_title2 && (
+                      <div className="flex items-center mb-2">
+                        <p className="text-[#666666] text-[11px] font-medium font-manrope">
+                          1 other book
+                        </p>
+                        <IoIosArrowDown className="text-[#666666] ml-1" size={10} />
+                      </div>
+                    )}
+
+                    <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(getBorrowingStatus(loan.loan_due || loan.return_date, loan.status))}`}>
+                      {getBorrowingStatus(loan.loan_due || loan.return_date, loan.status)}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end">
+                    <div className="text-right mb-6 pt-[15px]">
+                      <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
+                      <p className="text-black text-sm font-semibold font-manrope">
+                        Rp{loan.total_price?.toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

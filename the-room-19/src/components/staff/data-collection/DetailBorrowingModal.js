@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -42,6 +42,7 @@ const getBorrowingStatus = (returnDate, status) => {
 };
 
 export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, onReturnBook }) {
+  const [showConfirm, setShowConfirm] = useState(false);
   if (!isOpen || !borrowingData) return null;
 
   const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
@@ -90,6 +91,18 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
     }
   };
 
+  const handleReturnClick = () => {
+    setShowConfirm(true);
+  };
+
+  const handleConfirmYes = () => {
+    setShowConfirm(false);
+    handleReturn();
+  };
+
+  const handleConfirmCancel = () => {
+    setShowConfirm(false);
+  };
 
   const handleOutsideClick = (e) => {
     if (e.target.classList.contains('modal-overlay')) {
@@ -160,7 +173,7 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
         <div className="mt-6 flex justify-end gap-2 text-xs">
           {status !== 'returned' && (
             <button
-              onClick={handleReturn}
+              onClick={handleReturnClick}
               className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
               Mark as Returned
@@ -173,6 +186,29 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
             Close
           </button>
         </div>
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center z-60 bg-black bg-opacity-40 font-[Poppins] text-xs">
+            <div className="bg-white rounded-lg p-6 shadow-lg w-80 text-center">
+              <div className="mb-4 text-gray-800">
+                Are you sure you want to mark this loan as  <b>Returned</b>?
+              </div>
+              <div className="flex justify-center gap-4 mt-4">
+                <button
+                  onClick={handleConfirmYes}
+                  className="px-4 py-2 bg-[#43462b] text-white rounded-xl hover:opacity-90 transition-colors"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={handleConfirmCancel}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
