@@ -149,11 +149,12 @@ export async function DELETE(request, { params }) {
 // Update stock quantity
 export async function PATCH(request, { params }) {
   try {
-    const { stock_quantity } = await request.json();
+    const { stock_quantity, comment } = await request.json();
 
     const result = await sql`
       UPDATE inventory
-      SET stock_quantity = ${stock_quantity}
+      SET stock_quantity = ${stock_quantity},
+          comment = ${comment}
       WHERE id = ${params.id}
       RETURNING *
     `;

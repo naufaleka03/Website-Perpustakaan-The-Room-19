@@ -196,7 +196,7 @@ export default function InventoryList() {
     }
   };
 
-  const handleStockAdjustment = async (newQuantity) => {
+  const handleStockAdjustment = async (newQuantity, comment) => {
     try {
       const response = await fetch(
         `/api/inventory/${adjustStockModal.item.id}`,
@@ -207,6 +207,7 @@ export default function InventoryList() {
           },
           body: JSON.stringify({
             stock_quantity: newQuantity,
+            comment: comment,
           }),
         }
       );
@@ -219,7 +220,7 @@ export default function InventoryList() {
       setInventory(
         inventory.map((item) =>
           item.id === adjustStockModal.item.id
-            ? { ...item, stock_quantity: newQuantity }
+            ? { ...item, stock_quantity: newQuantity, comment }
             : item
         )
       );
