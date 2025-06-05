@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiSearch, FiMoreVertical } from "react-icons/fi";
+import { BiSearch } from "react-icons/bi";
 import { useRouter } from "next/navigation";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ItemDetailModal from "./ItemDetailModal";
@@ -11,7 +12,11 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 export default function InventoryList() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [inventory, setInventory] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [tempSelectedCategories, setTempSelectedCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,6 +41,23 @@ export default function InventoryList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   // Fetch inventory items
   useEffect(() => {
     const fetchInventory = async () => {
@@ -57,9 +79,27 @@ export default function InventoryList() {
     fetchInventory();
   }, []);
 
-  // Filter inventory based on search
-  const filteredInventory = inventory.filter((item) =>
-    item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Sync tempSelectedCategories with selectedCategories when categories or selectedCategories change
+  useEffect(() => {
+    setTempSelectedCategories(selectedCategories);
+  }, [categories, selectedCategories]);
+
+  // Filter inventory based on search and selected categories
+  const filteredInventory = inventory.filter((item) => {
+    const matchesSearch = item.item_name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(item.category_id);
+    return matchesSearch && matchesCategory;
+  });
+
+  // Filter categories based on search
+  const filteredCategories = categories.filter((category) =>
+    category.category_name
+      .toLowerCase()
+      .includes(categorySearchQuery.toLowerCase())
   );
 
   // Get paginated data
@@ -237,7 +277,7 @@ export default function InventoryList() {
         onConfirm={handleStockAdjustment}
       />
 
-      {/* Top Search Bar */}
+      {/* Main Content */}
       <div className="max-w-[1440px] mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-8">
           <div className="relative flex-1 max-w-[800px] mx-auto">
@@ -263,96 +303,179 @@ export default function InventoryList() {
           </button>
         </div>
 
-        {/* Main Content */}
-        <div className="w-full">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg mb-4">
-              {error}
-            </div>
-          )}
+        <div className="flex gap-6">
+          {/* Grid of Items */}
+          <div className="flex-1">
+            {filteredInventory.length === 0 ? (
+              <div className="text-center py-12 text-[#666666]">
+                No items available. Add a new item to get started!
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {getPaginatedData().map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-[#F6F6F6] rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative w-full max-w-[300px] mx-auto border border-[#CDCDCD]"
+                    >
+                      {/* More Options Button */}
+                      <div className="absolute top-2 right-2 z-10 dropdown-container">
+                        <button
+                          onClick={(e) => handleMoreOptions(e, item.id)}
+                          className="p-1 hover:bg-black/10 rounded-full transition-colors"
+                        >
+                          <FiMoreVertical className="w-5 h-5 text-black" />
+                        </button>
 
-          {filteredInventory.length === 0 ? (
-            <div className="text-center py-12 text-[#666666]">
-              No items available. Add a new item to get started!{" "}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-[1400px] mx-auto">
-                {getPaginatedData().map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#F6F6F6] rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative w-full max-w-[300px] mx-auto border border-[#CDCDCD]"
-                  >
-                    {/* More Options Button */}
-                    <div className="absolute top-2 right-2 z-10 dropdown-container">
-                      <button
-                        onClick={(e) => handleMoreOptions(e, item.id)}
-                        className="p-1 hover:bg-black/10 rounded-full transition-colors"
-                      >
-                        <FiMoreVertical className="w-5 h-5 text-black" />
-                      </button>
+                        {/* Dropdown Menu */}
+                        {activeDropdown === item.id && (
+                          <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                            <button
+                              onClick={() => handleAction("detail", item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+                            >
+                              Detail
+                            </button>
+                            <button
+                              onClick={() => handleAction("update", item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+                            >
+                              Update
+                            </button>
+                            <button
+                              onClick={() => handleAction("adjust-stock", item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+                            >
+                              Adjust Stock
+                            </button>
+                            <button
+                              onClick={() => handleAction("delete", item)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-red-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                      {/* Dropdown Menu */}
-                      {activeDropdown === item.id && (
-                        <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                          <button
-                            onClick={() => handleAction("detail", item)}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
-                          >
-                            Detail
-                          </button>
-                          <button
-                            onClick={() => handleAction("update", item)}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
-                          >
-                            Update
-                          </button>
-                          <button
-                            onClick={() => handleAction("adjust-stock", item)}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
-                          >
-                            Adjust Stock
-                          </button>
-                          <button
-                            onClick={() => handleAction("delete", item)}
-                            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-red-600"
-                          >
-                            Delete
-                          </button>
+                      <div className="aspect-square relative">
+                        <img
+                          src={
+                            item.item_image || "https://via.placeholder.com/300"
+                          }
+                          alt={item.item_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-sm font-medium text-[#111010] mb-1 line-clamp-1">
+                          {item.item_name}
+                        </h3>
+                        <p className="text-xs text-[#666666] mb-2 line-clamp-1">
+                          {item.description}
+                        </p>
+                        <div className="flex justify-end items-center">
+                          <span className="text-xs text-[#666666]">
+                            Stock: {item.stock_quantity}
+                          </span>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="aspect-square relative">
-                      <img
-                        src={
-                          item.item_image || "https://via.placeholder.com/300"
-                        }
-                        alt={item.item_name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-sm font-medium text-[#111010] mb-1 line-clamp-1">
-                        {item.item_name}
-                      </h3>
-                      <p className="text-xs text-[#666666] mb-2 line-clamp-1">
-                        {item.description}
-                      </p>
-                      <div className="flex justify-end items-center">
-                        <span className="text-xs text-[#666666]">
-                          Stock: {item.stock_quantity}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <PaginationControls />
+              </>
+            )}
+          </div>
+
+          {/* Categories Sidebar - Now on the right */}
+          <div className="w-64 flex-shrink-0">
+            <div className="border border-[#CDCDCD] rounded-lg p-4 bg-white sticky top-4">
+              <div className="mb-4">
+                <h2 className="text-black text-md font-medium mb-4">
+                  Categories
+                </h2>
+                {/* Search in categories */}
+                <div className="w-full h-[33px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] flex items-center px-3 mb-4">
+                  <BiSearch className="text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search categories"
+                    value={categorySearchQuery}
+                    onChange={(e) => setCategorySearchQuery(e.target.value)}
+                    className="ml-2 bg-transparent text-xs text-gray-400 outline-none w-full font-manrope"
+                  />
+                </div>
               </div>
 
-              {/* Pagination - always show */}
-              <PaginationControls />
-            </>
-          )}
+              {/* Categories List */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-black text-sm font-medium">
+                    Filter by Category
+                  </h3>
+                </div>
+                <div className="max-h-[220px] overflow-y-auto pr-2 mb-4">
+                  {filteredCategories.map((category) => (
+                    <label
+                      key={category.id}
+                      className="flex items-center gap-3 mb-3"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={tempSelectedCategories.includes(category.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTempSelectedCategories([
+                              ...tempSelectedCategories,
+                              category.id,
+                            ]);
+                          } else {
+                            setTempSelectedCategories(
+                              tempSelectedCategories.filter(
+                                (id) => id !== category.id
+                              )
+                            );
+                          }
+                        }}
+                        className="w-4 h-4 rounded-2xl border-[#cdcdcd]"
+                        style={{ accentColor: "#2e3105" }}
+                      />
+                      <span className="text-black text-xs font-medium">
+                        {category.category_name}
+                        <span className="text-gray-400 ml-1">
+                          ({category.number_of_items})
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {/* Apply and Cancel Buttons */}
+                <div className="flex gap-2 justify-end">
+                  <button
+                    className="flex-1 h-[30px] border border-[#2e3105] text-[#111111] text-xs rounded-2xl"
+                    onClick={() =>
+                      setTempSelectedCategories(selectedCategories)
+                    }
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    className="flex-1 h-[30px] bg-[#2e3105] text-white text-xs rounded-2xl"
+                    onClick={() =>
+                      setSelectedCategories(tempSelectedCategories)
+                    }
+                    type="button"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
