@@ -158,158 +158,160 @@ export default function CreateItem() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full min-h-screen mx-auto bg-white px-0 pb-20"
-    >
+    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
       {/* Hero Section */}
-      <div className="relative mb-4 mt-0">
+      <div className="relative mb-8 mt-0">
         <img
           className="w-full h-[200px] object-cover"
           src="https://via.placeholder.com/1402x272"
-          alt="Inventory banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope">
-            ADD NEW <br />
-            ITEM
-          </h1>
+        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
+          <div className="max-w-[1200px] mx-auto w-full">
+            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
+              ADD NEW <br />
+              ITEM
+            </h1>
+          </div>
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
-        {/* Item Name */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Item Name
-          </label>
-          <input
-            type="text"
-            value={item_name}
-            onChange={(e) => setItemName(e.target.value)}
-            placeholder="Enter Item Name"
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the name of the item.
-          </p>
-        </div>
-
-        {/* Description */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter Description"
-            className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Provide a brief description of the item.
-          </p>
-        </div>
-
-        {/* Category Dropdown */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Category
-          </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-            required
-          >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.category_name}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-500 mt-1">
-            Select the category for this item.
-          </p>
-        </div>
-
-        {/* Price */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Price
-          </label>
-          <input
-            type="text"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="Enter Price"
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the price of the item (in IDR).
-          </p>
-        </div>
-
-        {/* Upload Item Image */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Upload Item Image
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              onChange={handleImageUpload}
-              className="absolute opacity-0 w-full h-full cursor-pointer"
-              accept="image/*"
-            />
-            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
-              <span
-                className={`text-sm font-normal font-['Poppins'] ${
-                  item_image ? "text-[#666666]" : "text-[#A9A9A9]"
-                }`}
-              >
-                {item_image ? item_image.name : "Choose file or drop here"}
-              </span>
-            </div>
-          </div>
-          {imagePreview && (
-            <div className="mt-2">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg"
+      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+        <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Item Name */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Item Name
+              </label>
+              <input
+                type="text"
+                value={item_name}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="Enter Item Name"
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the name of the item.
+              </p>
             </div>
-          )}
-          <p className="text-xs text-gray-500 mt-1">
-            Upload an image of the item. Max size: 5MB.
-          </p>
+
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter Description"
+                className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Provide a brief description of the item.
+              </p>
+            </div>
+
+            {/* Category Dropdown */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Category
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                required
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.category_name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Select the category for this item.
+              </p>
+            </div>
+
+            {/* Price */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Price
+              </label>
+              <input
+                type="text"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="Enter Price"
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the price of the item (in IDR).
+              </p>
+            </div>
+
+            {/* Upload Item Image */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Upload Item Image
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  onChange={handleImageUpload}
+                  className="absolute opacity-0 w-full h-full cursor-pointer"
+                  accept="image/*"
+                />
+                <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+                  <span
+                    className={`text-sm font-normal font-['Poppins'] ${
+                      item_image ? "text-[#666666]" : "text-[#A9A9A9]"
+                    }`}
+                  >
+                    {item_image ? item_image.name : "Choose file or drop here"}
+                  </span>
+                </div>
+              </div>
+              {imagePreview && (
+                <div className="mt-2">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Upload an image of the item. Max size: 5MB.
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`h-[40px] w-full rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope transition-colors duration-200 ${
+                isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#2e3105] hover:bg-[#404615]"
+              }`}
+            >
+              {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+            </button>
+          </form>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`h-[40px] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope ${
-            isSubmitting
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-[#111010] hover:bg-[#2a2a2a]"
-          }`}
-        >
-          {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
-        </button>
       </div>
-    </form>
+    </div>
   );
 }

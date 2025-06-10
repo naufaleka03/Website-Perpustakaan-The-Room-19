@@ -73,37 +73,27 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
       throw new Error('Preferences table not accessible');
     }
 
-    // Insert into preferences table
-    const { error: preferencesError } = await supabase
+    // Check if preferences already exist for this user
+    const { data: existingPref, error: checkPrefError } = await supabase
       .from('preferences')
-      .insert([{
-        user_id: data.user.id,
-        // Initialize with default values
-        age_group: null,
-        occupation: null,
-        education_level: null,
-        state: null,
-        city: null,
-        preferred_language: null,
-        reading_frequency: null,
-        reading_time_availability: null,
-        reader_type: null,
-        reading_goals: null,
-        reading_habits: null,
-        favorite_genres: [],
-        preferred_book_types: [],
-        preferred_formats: [],
-        favorite_books: [],
-        desired_feelings: [],
-        disliked_genres: []
-      }]);
+      .select('id')
+      .eq('user_id', data.user.id)
+      .single();
 
+    if (checkPrefError && checkPrefError.code !== 'PGRST116') { // PGRST116: No rows found
+      console.error('Preferences check error:', checkPrefError);
+      // Do not throw, just log
+    }
+
+    // Only insert if not exists
+    if (!existingPref) {
+      const { error: preferencesError } = await supabase
+        .from('preferences')
+        .insert([{ user_id: data.user.id }]);
     if (preferencesError) {
       console.error('Raw preferences error:', preferencesError);
-      if (preferencesError.code === '23503') {
-        throw new Error('Foreign key constraint failed for preferences. User might not exist in auth.users table.');
+        // Do not throw, just log
       }
-      throw new Error(`Failed to create preferences profile: ${preferencesError.message}`);
     }
 
     return {

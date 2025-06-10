@@ -4,10 +4,9 @@ import React from 'react';
 import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Fragment } from 'react';
-import { createClient } from '@/app/supabase/client';
+import { Fragment } from "react";
 
-const Detail = ({ memberStatus = 'guest' }) => {
+const DetailStaff = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookId = searchParams.get("id");
@@ -18,39 +17,8 @@ const Detail = ({ memberStatus = 'guest' }) => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
-  const [user, setUser] = useState(null);
-  const [isBorrowing, setIsBorrowing] = useState(false);
-  const [borrowResult, setBorrowResult] = useState(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Ambil data visitor (member)
-          const { data: visitorData, error: visitorError } = await supabase
-            .from('visitors')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          if (visitorError) {
-            console.error('Error fetching visitor data:', visitorError);
-            return;
-          }
-          
-          setUser({
-            id: user.id,
-            ...visitorData
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-      }
-    };
-
     const fetchBookDetails = async () => {
       if (!bookId) {
         setError("Book ID is missing");
@@ -67,6 +35,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
         }
         
         const data = await response.json();
+        console.log('Fetched book details:', data.book);
         setBook(data.book || null);
         
         // Fetch lend count
@@ -90,9 +59,35 @@ const Detail = ({ memberStatus = 'guest' }) => {
       }
     };
 
-    fetchUserData();
     fetchBookDetails();
   }, [bookId]);
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this book?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Deleting book with ID:', bookId);
+      const response = await fetch(`/api/books/${bookId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to delete book');
+      }
+
+      console.log('Book deleted successfully');
+      router.push('/staff/dashboard/book-management/catalog');
+    } catch (err) {
+      console.error('Error deleting book:', err);
+      setError('Failed to delete book. Please try again later.');
+      setLoading(false);
+    }
+  };
 
   // Loading skeleton for the detail page
   const DetailLoadingSkeleton = () => (
@@ -195,7 +190,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
     return (
       <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex flex-col justify-center items-center">
         <p className="text-red-500 mb-4">{error || "Book not found"}</p>
-        <Link href="/user/dashboard/books/catalog">
+        <Link href="/staff/dashboard/book-management/catalog">
           <button className="bg-[#2e3105] text-white px-4 py-2 rounded-lg text-sm">
             Back to Catalog
           </button>
@@ -203,22 +198,6 @@ const Detail = ({ memberStatus = 'guest' }) => {
       </div>
     );
   }
-
-  // Generate star ratings
-  const renderStars = () => {
-    const stars = [];
-    const rating = Math.round(book.rating);
-    
-    for (let i = 1; i <= 5; i++) {
-      if (i <= rating) {
-        stars.push(<AiFillStar key={i} className="text-[#ECB43C] text-lg" />);
-      } else {
-        stars.push(<AiFillStar key={i} className="text-gray-300 text-lg" />);
-      }
-    }
-    
-    return stars;
-  };
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -247,13 +226,13 @@ const Detail = ({ memberStatus = 'guest' }) => {
                   <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
                     {book.book_title}
                   </h1>
-                  {book.price && (
+                  {book.price !== undefined && (
                     <div className="text-[#2e3105] text-sm font-semibold mb-2" style={{ fontWeight: 500 }}>
-                      Rp {parseInt(book.price).toLocaleString('id-ID')}
+                      {book.price === 0 ? "Free" : `Rp ${parseInt(book.price).toLocaleString('id-ID')}`}
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
@@ -278,7 +257,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
                     <button
                       key={theme}
                       className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666] transition-colors hover:bg-[#2e3105]/30 hover:text-[#232310] active:bg-[#2e3105]/50 focus:outline-none focus:ring-2 focus:ring-[#2e3105]"
-                      onClick={() => router.push(`/user/dashboard/books/catalog?theme=${encodeURIComponent(theme)}`)}
+                      onClick={() => router.push(`/staff/dashboard/book-management/catalog?theme=${encodeURIComponent(theme)}`)}
                       type="button"
                     >
                       {theme}
@@ -287,7 +266,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
                 </div>
               )}
 
-              {/* Book Condition - moved above description */}
+              {/* Book Condition */}
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <h3 className="text-black text-sm font-medium mb-2">Book Condition</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -304,10 +283,12 @@ const Detail = ({ memberStatus = 'guest' }) => {
                       {book.condition || "Not specified"}
                     </span>
                   </div>
+                  
                   <div>
                     <span className="text-black font-medium">Description</span>
                   </div>
                   <div className="text-black">{book.condition_description || "No description available"}</div>
+                  
                   <div>
                     <span className="text-black font-medium">Last Updated</span>
                   </div>
@@ -316,7 +297,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
               </div>
 
               {/* Tabs */}
-              <div className="border-b border-[#767676]/40">
+              <div className="border-b border-[#767676]/40 mt-4">
                 <div className="flex gap-8">
                   <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
                     Description
@@ -424,40 +405,24 @@ const Detail = ({ memberStatus = 'guest' }) => {
                   Available now
                 </span>
                 <span className="text-black text-xs font-normal ml-auto">
-                  Total stock: {" "}
+                  Total stock:{" "}
                   <span className="text-[#ecb43c] font-normal">5 left</span>
                 </span>
               </div>
 
-              {borrowResult && (
-                <div className={`my-4 p-2 rounded text-xs text-center ${borrowResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {borrowResult.message}
-                </div>
-              )}
-
               <div className="space-y-3 mt-6">
-                <button
-                  className={`w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl ${memberStatus === 'guest' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={memberStatus === 'guest'}
-                  title={memberStatus === 'guest' ? 'You must be a member to borrow books. Please register or log in.' : ''}
+                <Link href={`/staff/dashboard/book-management/edit-book?id=${bookId}`}>
+                  <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
+                    Edit
+                  </button>
+                </Link>
+                <button 
+                  onClick={handleDelete}
+                  className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >
-                  Borrow Book
-                </button>
-                <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">
-                  Cart
+                  Delete
                 </button>
               </div>
-
-              <hr className="border-[#767676]/40 my-6" />
-
-              <h3 className="text-black text-base font-semibold text-center mb-2">
-                Return Policy
-              </h3>
-              <p className="text-black text-xs text-justify font-medium font-manrope leading-relaxed">
-              Once a book is borrowed, a 7-day loan period begins. 
-              If the book is not returned after this period, a late fee will be applied. 
-              Borrowers may request a loan extension before or after the initial due date.
-              </p>
             </div>
           </div>
         </div>
@@ -466,4 +431,4 @@ const Detail = ({ memberStatus = 'guest' }) => {
   );
 };
 
-export default Detail;
+export default DetailStaff;

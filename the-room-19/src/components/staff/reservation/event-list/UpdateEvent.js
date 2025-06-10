@@ -187,201 +187,208 @@ export default function UpdateEvent() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full min-h-screen mx-auto bg-white px-0 pb-20"
-    >
+    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
       {/* Hero Section */}
-      <div className="relative mb-4 mt-0">
+      <div className="relative mb-8 mt-0">
         <img
           className="w-full h-[200px] object-cover"
           src="https://via.placeholder.com/1402x272"
           alt="Update Event banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#4d4d4d] to-black w-full mx-auto px-4 lg:px-8">
-          <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] p-8 font-manrope">
-            UPDATE <br />
-            EVENT
-          </h1>
+        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
+          <div className="max-w-[1200px] mx-auto w-full">
+            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
+              UPDATE <br />
+              EVENT
+            </h1>
+          </div>
         </div>
       </div>
 
-      {/* Form Section - menggunakan struktur yang sama dengan CreateEvent.js */}
-      <div className="flex justify-center flex-col gap-4 max-w-[1200px] mx-auto px-16 lg:px-20 overflow-x-auto">
-        {/* Event Name */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Event Name
-          </label>
-          <input
-            type="text"
-            value={event_name}
-            onChange={(e) => setEventName(e.target.value)}
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the official name of the event.
-          </p>
-        </div>
-
-        {/* Description */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Provide a brief description of the event.
-          </p>
-        </div>
-
-        {/* Event Date */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Event Date
-          </label>
-          <div className="relative">
-            <input
-              type="date"
-              onChange={handleDateChange}
-              className="absolute opacity-0 w-full h-full cursor-pointer"
-            />
-            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
-              <span
-                className={`text-sm font-normal font-['Poppins'] ${
-                  event_date ? "text-[#666666]" : "text-[#A9A9A9]"
-                }`}
-              >
-                {event_date || "Choose event date"}
-              </span>
-              <IoCalendarOutline className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl" />
+      {/* Form Section */}
+      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+        <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Event Name */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Event Name
+              </label>
+              <input
+                type="text"
+                value={event_name}
+                onChange={(e) => setEventName(e.target.value)}
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the official name of the event.
+              </p>
             </div>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Select the date when the event will take place.
-          </p>
-        </div>
 
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Shift
-          </label>
-          <select
-            value={shift_name}
-            onChange={(e) => setShiftName(e.target.value)}
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-          >
-            <option value="">Select Shift</option>
-            <option value="Shift A">Shift A</option>
-            <option value="Shift B">Shift B</option>
-            <option value="Shift C">Shift C</option>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">
-            Choose the time slot for the event.
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Max Participants
-          </label>
-          <input
-            type="number"
-            value={max_participants}
-            onChange={(e) => setMaxParticipants(e.target.value)}
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the maximum number of participants allowed.
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Ticket Fee
-          </label>
-          <input
-            type="text"
-            value={ticket_fee}
-            onChange={(e) => setTicketFee(e.target.value)}
-            className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Enter the ticket price for the event (in IDR).
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Additional Notes
-          </label>
-          <textarea
-            value={additional_notes}
-            onChange={(e) => setAdditionalNotes(e.target.value)}
-            className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Add any extra information for the event.
-          </p>
-        </div>
-
-        {currentPosterUrl && (
-          <div className="space-y-1">
-            <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-              Current Poster
-            </label>
-            <img
-              src={currentPosterUrl}
-              alt="Current event poster"
-              className="w-full max-w-[200px] h-auto rounded-lg"
-            />
-          </div>
-        )}
-
-        {/* Upload New Poster */}
-        <div className="space-y-1">
-          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-            Upload New Poster
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              onChange={handlePosterUpload}
-              className="absolute opacity-0 w-full h-full cursor-pointer"
-              accept="image/*"
-            />
-            <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
-              <span
-                className={`text-sm font-normal font-['Poppins'] ${
-                  event_poster ? "text-[#666666]" : "text-[#A9A9A9]"
-                }`}
-              >
-                {event_poster
-                  ? event_poster.name
-                  : "Choose new poster or drop here"}
-              </span>
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Provide a brief description of the event.
+              </p>
             </div>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Upload an image to represent the event. Max size: 5MB.
-          </p>
+
+            {/* Event Date */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Event Date
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  onChange={handleDateChange}
+                  className="absolute opacity-0 w-full h-full cursor-pointer"
+                />
+                <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+                  <span
+                    className={`text-sm font-normal font-['Poppins'] ${
+                      event_date ? "text-[#666666]" : "text-[#A9A9A9]"
+                    }`}
+                  >
+                    {event_date || "Choose event date"}
+                  </span>
+                  <IoCalendarOutline className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Select the date when the event will take place.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Shift
+              </label>
+              <select
+                value={shift_name}
+                onChange={(e) => setShiftName(e.target.value)}
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              >
+                <option value="">Select Shift</option>
+                <option value="Shift A">Shift A</option>
+                <option value="Shift B">Shift B</option>
+                <option value="Shift C">Shift C</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Choose the time slot for the event.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Max Participants
+              </label>
+              <input
+                type="number"
+                value={max_participants}
+                onChange={(e) => setMaxParticipants(e.target.value)}
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the maximum number of participants allowed.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Ticket Fee
+              </label>
+              <input
+                type="text"
+                value={ticket_fee}
+                onChange={(e) => setTicketFee(e.target.value)}
+                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter the ticket price for the event (in IDR).
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Additional Notes
+              </label>
+              <textarea
+                value={additional_notes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] min-h-[100px]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Add any extra information for the event.
+              </p>
+            </div>
+
+            {currentPosterUrl && (
+              <div className="space-y-1">
+                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                  Current Poster
+                </label>
+                <img
+                  src={currentPosterUrl}
+                  alt="Current event poster"
+                  className="w-full max-w-[200px] h-auto rounded-lg"
+                />
+              </div>
+            )}
+
+            {/* Upload New Poster */}
+            <div className="space-y-1">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Upload New Poster
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  onChange={handlePosterUpload}
+                  className="absolute opacity-0 w-full h-full cursor-pointer"
+                  accept="image/*"
+                />
+                <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+                  <span
+                    className={`text-sm font-normal font-['Poppins'] ${
+                      event_poster ? "text-[#666666]" : "text-[#A9A9A9]"
+                    }`}
+                  >
+                    {event_poster
+                      ? event_poster.name
+                      : "Choose new poster or drop here"}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Upload an image to represent the event. Max size: 5MB.
+              </p>
+            </div>
+
+            {/* Update Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`h-[40px] w-full rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope transition-colors duration-200 ${
+                isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#2e3105] hover:bg-[#404615]"
+              }`}
+            >
+              {isSubmitting ? "UPDATING..." : "UPDATE EVENT"}
+            </button>
+
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </form>
         </div>
-
-        {/* Update Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="h-[40px] bg-[#111010] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope"
-        >
-          {isSubmitting ? "UPDATING..." : "UPDATE EVENT"}
-        </button>
-
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
-    </form>
+    </div>
   );
 }

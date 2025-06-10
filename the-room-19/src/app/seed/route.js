@@ -31,6 +31,7 @@ async function seedUsers(tx) {
             phone_number VARCHAR(20),
             position VARCHAR(50) NOT NULL,
             hire_date DATE NOT NULL,
+            profile_picture VARCHAR(255),
             employee_id VARCHAR(20) UNIQUE
         )`;
 
@@ -46,10 +47,35 @@ async function seedUsers(tx) {
         )`;
 }
 
+async function seedMembershipApplications(tx) {
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    
+    // Membership Applications table
+    await sql`
+        CREATE TABLE IF NOT EXISTS memberships (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES auth.users(id),
+            full_name VARCHAR(255) NOT NULL,
+            email TEXT NOT NULL,
+            phone_number VARCHAR(20) NOT NULL,
+            address VARCHAR(255) NOT NULL,
+            favorite_book_genre VARCHAR(100),
+            emergency_contact_name VARCHAR(255) NOT NULL,
+            emergency_contact_number VARCHAR(20) NOT NULL,
+            id_card_url VARCHAR(255) NOT NULL,
+            status VARCHAR(20) DEFAULT 'request' NOT NULL,
+            notes TEXT,
+            reviewed_by UUID REFERENCES staffs(id),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedShifts(tx) {
-  const sql = tx ?? sql;
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+    const sql = tx ?? sql;
+    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+    await sql`
         CREATE TABLE IF NOT EXISTS shifts (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             shift_name VARCHAR(255) NOT NULL,
@@ -312,6 +338,7 @@ export async function GET() {
       await seedBookGenres(tx);
       await seedBookLoans(tx);
       await seedUserPreferences(tx);
+      await seedMembershipApplications(tx);
       await seedEventReservations(tx);
       await seedCategories(tx);
       await seedInventory(tx);

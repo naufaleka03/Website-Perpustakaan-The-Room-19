@@ -15,11 +15,8 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     fullName: '',
     gender: 'Male', // Default value
     phone: '',
-    address: '',
-    city: '',
-    state: '',
-    postalCode: '',
     position: '', // Add staff position
+    hireDate: '', // Add hire date
   });
 
   const [accountSettings, setAccountSettings] = useState({
@@ -29,16 +26,23 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     confirmNewPassword: '',
   });
 
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const supabase = createClient(); // Create Supabase client instance
   const router = useRouter(); // Initialize router
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
-        // Fetch user email
-        setAccountSettings((prev) => ({ ...prev, email: session.user.email })); // Set email from session
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUserId(session.user.id);
+          // Fetch user email
+          setAccountSettings((prev) => ({ ...prev, email: session.user.email })); // Set email from session
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
       }
     };
     fetchUserId();
@@ -47,12 +51,17 @@ export default function Profile({ profilePicture, setProfilePicture }) {
   useEffect(() => {
     const fetchProfilePicture = async () => {
       if (userId) {
-        const { data, error } = await supabase.from('staff').select('profile_picture').eq('id', userId).single();
-        if (data) {
-          console.log('Fetched profile picture URL:', data.profile_picture);
-          setProfilePicture(data.profile_picture);
-        } else {
-          console.error('Error fetching profile picture:', error);
+        try {
+          const { data, error } = await supabase.from('staffs').select('profile_picture').eq('id', userId).single();
+          if (error) throw error;
+          
+          if (data && data.profile_picture) {
+            console.log('Fetched profile picture URL:', data.profile_picture);
+            setProfilePicture(data.profile_picture);
+          }
+        } catch (error) {
+          console.error('Error fetching profile picture:', error.message);
+          // Do not set an error for the user, just log it
         }
       }
     };
@@ -63,20 +72,23 @@ export default function Profile({ profilePicture, setProfilePicture }) {
   useEffect(() => {
     const fetchPersonalInfo = async () => {
       if (userId) {
-        const { data, error } = await supabase.from('staff').select('*').eq('id', userId).single();
-        if (data) {
-          setPersonalInfo({
-            fullName: data.name,
-            gender: data.gender || 'Male', 
-            phone: data.phone_number || '', // Default to empty string if not set
-            address: data.address || '',
-            city: data.city || '',
-            state: data.state || '',
-            postalCode: data.postal_code || '',
-            position: data.position || '', // Add staff position
-          });
-        } else {
-          console.error('Error fetching personal information:', error);
+        try {
+          const { data, error } = await supabase.from('staffs').select('*').eq('id', userId).single();
+          if (error) throw error;
+          
+          if (data) {
+            setPersonalInfo({
+              fullName: data.name || '',
+              gender: data.gender || 'Male', 
+              phone: data.phone_number || '', // Default to empty string if not set
+              position: data.position || '', // Add staff position
+              hireDate: data.hire_date ? new Date(data.hire_date).toLocaleDateString() : '',
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching personal information:', error.message);
+        } finally {
+          setLoading(false);
         }
       }
     };
@@ -89,33 +101,42 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const isConfirmed = window.confirm('Are you sure you want to change your profile picture?');
-        if (isConfirmed) {
-          // Fetch current profile picture URL
-          const { data: currentData } = await supabase.from('staff').select('profile_picture').eq('id', userId).single();
-          
-          // Delete previous image if it exists
-          if (currentData && currentData.profile_picture) {
-            const previousImageName = currentData.profile_picture.split('/').pop(); // Extract the image name
-            await supabase.storage.from('profile-pictures').remove([`public/${previousImageName}`]); // Delete previous image
+        try {
+          const isConfirmed = window.confirm('Are you sure you want to change your profile picture?');
+          if (isConfirmed) {
+            setLoading(true);
+            
+            // Fetch current profile picture URL
+            const { data: currentData, error: fetchError } = await supabase.from('staffs').select('profile_picture').eq('id', userId).single();
+            if (fetchError) throw fetchError;
+            
+            // Delete previous image if it exists
+            if (currentData && currentData.profile_picture) {
+              const previousImageName = currentData.profile_picture.split('/').pop(); // Extract the image name
+              await supabase.storage.from('profile-pictures').remove([`public/${previousImageName}`]); // Delete previous image
+            }
+
+            // Upload the new image
+            const { data, error: uploadError } = await supabase.storage.from('profile-pictures').upload(`public/${file.name}`, file);
+            if (uploadError) throw uploadError;
+
+            // Construct the public URL for the uploaded image
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${file.name}`;
+            console.log('Image URL being set in database:', imageUrl);
+
+            // Update the profile picture in the database
+            const { error: updateError } = await supabase.from('staffs').update({ profile_picture: imageUrl }).eq('id', userId);
+            if (updateError) throw updateError;
+            
+            setProfilePicture(imageUrl);
+            setLoading(false);
+          } else {
+            console.log('Profile picture change canceled.');
           }
-
-          // Upload the new image
-          const { data, error } = await supabase.storage.from('profile-pictures').upload(`public/${file.name}`, file);
-          if (error) {
-            console.error('Error uploading profile picture:', error);
-            return;
-          }
-
-          // Construct the public URL for the uploaded image
-          const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${file.name}`;
-          console.log('Image URL being set in database:', imageUrl);
-
-          // Update the profile picture in the database
-          await supabase.from('staff').update({ profile_picture: imageUrl }).eq('id', userId);
-          setProfilePicture(imageUrl);
-        } else {
-          console.log('Profile picture change canceled.');
+        } catch (error) {
+          console.error('Error updating profile picture:', error.message);
+          setErrorMessage('Failed to update profile picture. Please try again.');
+          setLoading(false);
         }
       };
       reader.readAsDataURL(file);
@@ -125,72 +146,111 @@ export default function Profile({ profilePicture, setProfilePicture }) {
   const handlePersonalInfoSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      setErrorMessage('');
+      
       // Update the personal information in the database
       const { error } = await supabase
-        .from('staff')
+        .from('staffs')
         .update({
           name: personalInfo.fullName,
+          gender: personalInfo.gender,
           phone_number: personalInfo.phone,
-          address: personalInfo.address,
-          city: personalInfo.city,
-          state: personalInfo.state,
-          postal_code: personalInfo.postalCode,
           position: personalInfo.position,
         })
-        .eq('id', userId); // Ensure you update the correct user
+        .eq('id', userId);
 
-      if (error) {
-        throw error; // Throw error to be caught in the catch block
-      }
+      if (error) throw error;
 
       console.log('Personal Information Updated:', personalInfo);
-      alert('Personal information updated successfully!'); // Provide user feedback
-
-      // Redirect to the profile page
-      router.push('/staff/dashboard/profile'); // Redirect after update
+      alert('Personal information updated successfully!');
+      setLoading(false);
     } catch (error) {
-      console.error('Error updating personal information:', error);
-      alert('Failed to update personal information. Please try again.'); // Provide user feedback
+      console.error('Error updating personal information:', error.message);
+      setErrorMessage('Failed to update personal information. Please try again.');
+      setLoading(false);
     }
   };
 
   const handleAccountSettingsSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      setErrorMessage('');
+      
       // Change password if new password is provided
       if (accountSettings.newPassword) {
         const { error: passwordError } = await supabase.auth.updateUser({
           password: accountSettings.newPassword,
         });
 
-        if (passwordError) {
-          throw passwordError; // Handle password update error
-        }
-        alert('Password updated successfully!'); // Provide user feedback
+        if (passwordError) throw passwordError;
+        
+        alert('Password updated successfully!');
+        
+        // Reset password fields
+        setAccountSettings((prev) => ({
+          ...prev,
+          password: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        }));
       }
 
-      console.log('Account Settings Updated:', accountSettings);
-
-      // Reset password fields
-      setAccountSettings((prev) => ({
-        ...prev,
-        password: '',
-        newPassword: '',
-        confirmNewPassword: '',
-      }));
-
-      // Redirect to the profile page
-      router.push('/staff/dashboard/profile'); // Redirect after update
+      setLoading(false);
     } catch (error) {
-      console.error('Error updating account settings:', error);
-      alert('Failed to update account settings. Please try again.'); // Provide user feedback
+      console.error('Error updating account settings:', error.message);
+      setErrorMessage('Failed to update account settings. Please try again.');
+      setLoading(false);
     }
   };
 
-  console.log('Current Profile Picture URL:', profilePicture);
+  // Profile Loading Skeleton
+  const ProfileLoadingSkeleton = () => (
+    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mb-6 animate-pulse">
+        <div className="flex flex-col items-center">
+          <div className="w-24 h-24 bg-gray-300 rounded-full mb-4"></div>
+          <div className="h-5 bg-gray-300 rounded w-32 mb-2"></div>
+          <div className="h-6 bg-gray-300 rounded-full w-16 mb-1"></div>
+          <div className="h-4 bg-gray-300 rounded w-24"></div>
+        </div>
+      </div>
+
+      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md">
+        <div className="flex justify-center border-b">
+          {['Profile', 'Edit Profile', 'Security'].map((tab, i) => (
+            <div key={i} className="px-4 py-2">
+              <div className="h-5 bg-gray-300 rounded w-20"></div>
+            </div>
+          ))}
+        </div>
+        <div className="p-6">
+          <div className="space-y-4 px-2">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i}>
+                <div className="h-4 bg-gray-300 rounded w-20 mb-1"></div>
+                <div className="h-5 bg-gray-300 rounded w-full"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return <ProfileLoadingSkeleton />;
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+      {errorMessage && (
+        <div className="max-w-[1200px] mx-auto mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p>{errorMessage}</p>
+        </div>
+      )}
+      
       {/* Card Profile */}
       <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mb-6">
         <div className="flex flex-col items-center">
@@ -203,8 +263,8 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                 className="rounded-full object-cover transition-opacity duration-300"
               />
             ) : (
-              <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center">
-                {/* Grey background when no profile picture is set */}
+              <div className="w-full h-full bg-gray-300 rounded-full flex items-center justify-center text-2xl font-semibold text-gray-600">
+                {personalInfo.fullName ? personalInfo.fullName.charAt(0).toUpperCase() : 'S'}
               </div>
             )}
             <label htmlFor="profilePictureUpload" className="absolute inset-0 cursor-pointer flex items-center justify-center transition duration-300 hover:bg-black hover:bg-opacity-50 rounded-full">
@@ -274,16 +334,15 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                 <p className="text-[#111010] font-medium text-sm">{personalInfo.phone}</p>
               </div>
               <div>
-                <label className="text-sm text-[#666666]">Address</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.address}</p>
-              </div>
-              <div>
-                <label className="text-sm text-[#666666]">City/State</label>
-                <p className="text-[#111010] font-medium text-sm">{`${personalInfo.city}, ${personalInfo.state}`}</p>
-              </div>
-              <div>
-                <label className="text-sm text-[#666666]">Postal Code</label>
-                <p className="text-[#111010] font-medium text-sm">{personalInfo.postalCode}</p>
+                <label className="text-sm text-[#666666]">Hire Date</label>
+                <p className="text-[#111010] font-medium text-sm">
+                  {personalInfo.hireDate || 'Not available'}
+                  {personalInfo.hireDate && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({Math.floor((new Date() - new Date(personalInfo.hireDate)) / (1000 * 60 * 60 * 24 * 30))} months of service)
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
           )}
@@ -333,48 +392,6 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your phone number"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-[#666666] font-medium">Address</label>
-                    <input
-                      type="text"
-                      value={personalInfo.address}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                      placeholder="Enter your address"
-                    />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="text-sm text-[#666666] font-medium">State</label>
-                      <input
-                        type="text"
-                        value={personalInfo.state}
-                        onChange={(e) => setPersonalInfo({ ...personalInfo, state: e.target.value })}
-                        className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                        placeholder="Enter your state"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-sm text-[#666666] font-medium">City</label>
-                      <input
-                        type="text"
-                        value={personalInfo.city}
-                        onChange={(e) => setPersonalInfo({ ...personalInfo, city: e.target.value })}
-                        className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                        placeholder="Enter your city"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-[#666666] font-medium">Postal Code</label>
-                    <input
-                      type="text"
-                      value={personalInfo.postalCode}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, postalCode: e.target.value })}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 mb-2 px-4 text-sm text-[#111010] placeholder-[#444444]"
-                      placeholder="Enter your postal code"
                     />
                   </div>
                   <button

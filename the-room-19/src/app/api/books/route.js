@@ -1,20 +1,85 @@
 import { NextResponse } from "next/server";
 import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
+const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+
+// Helper function to update genre book counts
+async function updateGenreBookCount(genreName) {
+  if (!genreName) return;
+  
+  try {
+    // Get the current count of books with this genre
+    const books = await sql`
+      SELECT COUNT(*) as count FROM books 
+      WHERE genre = ${genreName}
+    `;
+    
+    const count = books[0]?.count || 0;
+    
+    // Update the genre count in the genres table
+    await sql`
+      UPDATE genres 
+      SET number_of_books = ${count}
+      WHERE genre_name = ${genreName}
+    `;
+    
+    console.log(`Updated book count for genre ${genreName}: ${count}`);
+  } catch (error) {
+    console.error(`Error updating genre count for ${genreName}:`, error);
+  }
+}
 
 export async function GET() {
   try {
-    const books = await sql`
-      SELECT id, book_title, stock
-      FROM books
-      ORDER BY book_title ASC
-    `;
+    const { searchParams } = new URL(request.url);
+    const genre = searchParams.get('genre');
+    const bookType = searchParams.get('bookType');
+    const searchQuery = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '12', 10);
+    const offset = (page - 1) * limit;
 
-    return Response.json({
-      success: true,
-      data: books,
-    });
+    // Build the SQL query with conditions
+    let conditions = [];
+    let queryParams = [];
+
+    if (genre) {
+      conditions.push(`genre = $${queryParams.length + 1}`);
+      queryParams.push(genre);
+    }
+
+    if (bookType) {
+      conditions.push(`book_type = $${queryParams.length + 1}`);
+      queryParams.push(bookType);
+    }
+
+    if (searchQuery) {
+      conditions.push(`(book_title ILIKE $${queryParams.length + 1} OR author ILIKE $${queryParams.length + 1})`);
+      queryParams.push(`%${searchQuery}%`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Get total count for pagination
+    const totalResult = await sql.unsafe(
+      `SELECT COUNT(*) as count FROM books ${whereClause}`,
+      queryParams
+    );
+    const total = parseInt(totalResult[0]?.count || '0', 10);
+
+    // Get paginated books
+    const books = await sql.unsafe(
+      `
+      SELECT * FROM books
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${queryParams.length + 1}
+      OFFSET $${queryParams.length + 2}
+      `,
+      [...queryParams, limit, offset]
+    );
+
+    return NextResponse.json({ books, total });
   } catch (error) {
     console.error("Error fetching books:", error);
     return Response.json(
@@ -96,7 +161,12 @@ export async function POST(request) {
         ${themes || []}
       ) RETURNING *
     `;
-
+    
+    // Update genre book count
+    if (genre) {
+      await updateGenreBookCount(genre);
+    }
+    
     return NextResponse.json({ book: result[0] }, { status: 201 });
   } catch (error) {
     console.error("Error creating book:", error);
