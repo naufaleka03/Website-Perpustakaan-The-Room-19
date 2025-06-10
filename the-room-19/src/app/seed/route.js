@@ -1,13 +1,13 @@
-import postgres from 'postgres';
+import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
 async function seedUsers(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    
-    // Visitors table
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+  // Visitors table
+  await sql`
         CREATE TABLE IF NOT EXISTS visitors (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -22,8 +22,8 @@ async function seedUsers(tx) {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )`;
 
-    // Staff table
-    await sql`
+  // Staff table
+  await sql`
         CREATE TABLE IF NOT EXISTS staffs (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -35,8 +35,8 @@ async function seedUsers(tx) {
             employee_id VARCHAR(20) UNIQUE
         )`;
 
-    // Owners table
-    await sql`
+  // Owners table
+  await sql`
         CREATE TABLE IF NOT EXISTS owners (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
@@ -86,9 +86,9 @@ async function seedShifts(tx) {
 }
 
 async function seedSession(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS sessions (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             category VARCHAR(255) NOT NULL,
@@ -102,6 +102,7 @@ async function seedSession(tx) {
             group_member3 VARCHAR(255),
             group_member4 VARCHAR(255),
             status VARCHAR(50) DEFAULT 'not_attended' NOT NULL,
+            cancellation_reason TEXT,
             payment_id VARCHAR(255),
             payment_status VARCHAR(50),
             payment_method VARCHAR(50),
@@ -113,10 +114,33 @@ async function seedSession(tx) {
 }
 
 async function seedEvents(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS events (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            event_name VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            event_date DATE NOT NULL,
+            shift_name VARCHAR(255) NOT NULL,
+            shift_start TIME NOT NULL,
+            shift_end TIME NOT NULL,
+            max_participants INTEGER NOT NULL,
+            ticket_fee INTEGER NOT NULL,
+            additional_notes TEXT,
+            event_poster TEXT,
+            status VARCHAR(50) DEFAULT 'open' NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+            FOREIGN KEY (shift_name, shift_start, shift_end) 
+                REFERENCES shifts(shift_name, shift_start, shift_end)
+        )`;
+}
+
+async function seedEventReservations(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS eventreservations (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             event_name VARCHAR(255) NOT NULL,
             description TEXT,
@@ -127,17 +151,26 @@ async function seedEvents(tx) {
             max_participants INTEGER NOT NULL,
             ticket_fee INTEGER NOT NULL,
             additional_notes TEXT,
-            activity_poster VARCHAR(255),
+            full_name VARCHAR(255) NOT NULL,
+            group_member1 VARCHAR(255),
+            group_member2 VARCHAR(255),
+            group_member3 VARCHAR(255),
+            group_member4 VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'not_attended' NOT NULL,
+            cancellation_reason TEXT,
+            payment_id VARCHAR(255),
+            payment_status VARCHAR(50),
+            payment_method VARCHAR(50),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
             FOREIGN KEY (shift_name, shift_start, shift_end) 
                 REFERENCES shifts(shift_name, shift_start, shift_end)
-        )`;
+    )`;
 }
 
 async function seedBooks(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS books (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             book_title VARCHAR(255) NOT NULL,
@@ -161,10 +194,56 @@ async function seedBooks(tx) {
         )`;
 }
 
+async function seedCategories(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS categories (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            category_name VARCHAR(100) NOT NULL,
+            number_of_items INTEGER DEFAULT 0 NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
+async function seedInventory(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS inventory (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            item_name VARCHAR(255) NOT NULL,
+            description TEXT,
+            price NUMERIC(10, 2) NOT NULL,
+            stock_quantity INTEGER DEFAULT 0 NOT NULL,
+            item_image TEXT,
+            comment TEXT,
+            category_id UUID REFERENCES categories(id),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
+async function seedInventoryLogs(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS inventory_logs (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            inventory_id UUID REFERENCES inventory(id),
+            mode VARCHAR(50) NOT NULL,
+            item_name VARCHAR(255) NOT NULL,
+            category_id UUID REFERENCES categories(id),
+            stock_before INTEGER NOT NULL,
+            stock_after INTEGER NOT NULL,
+            comment TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedBookGenres(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS genres (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             genre_name VARCHAR(100) NOT NULL,
@@ -174,11 +253,23 @@ async function seedBookGenres(tx) {
 }
 
 async function seedBookLoans(tx) {
-    const sql = tx ?? sql;
-    
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS loans (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            loan_start DATE NOT NULL,
+            loan_due DATE NOT NULL,
+            book_name1 VARCHAR(255),
+            book_name2 VARCHAR(255) NOT NULL,
+            status VARCHAR(50) DEFAULT 'borrowed' NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+  await sql`
       CREATE TABLE IF NOT EXISTS loans (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
         user_id UUID REFERENCES visitors(id) ON DELETE CASCADE,
@@ -208,9 +299,9 @@ async function seedBookLoans(tx) {
 }
 
 async function seedUserPreferences(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS preferences (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             user_id UUID NOT NULL REFERENCES auth.users(id),
@@ -248,33 +339,43 @@ async function seedUserPreferences(tx) {
 }
 
 export async function GET() {
-    try {
-        await sql.begin(async (tx) => {
-            await seedUsers(tx);
-            await seedShifts(tx);
-            await seedSession(tx);
-            await seedEvents(tx);
-            await seedBooks(tx);
-            await seedBookGenres(tx);
-            await seedBookLoans(tx);
-            await seedUserPreferences(tx);
-            await seedMembershipApplications(tx);
-        });
+  try {
+    await sql.begin(async (tx) => {
+      await seedUsers(tx);
+      await seedShifts(tx);
+      await seedSession(tx);
+      await seedEvents(tx);
+      await seedBooks(tx);
+      await seedBookGenres(tx);
+      await seedBookLoans(tx);
+      await seedUserPreferences(tx);
+      await seedMembershipApplications(tx);
+      await seedEventReservations(tx);
+      await seedCategories(tx);
+      await seedInventory(tx);
+      await seedInventoryLogs(tx);
+    });
 
-        return Response.json({ 
-            success: true,
-            message: 'Database seeded successfully' 
-        });
-    } catch (error) {
-        console.error('Database seeding failed:', error);
-        
-        return Response.json({ 
-            success: false,
-            message: 'Failed to seed database',
-            // Only send safe error information
-            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-        }, { 
-            status: 500 
-        });
-    }
+    return Response.json({
+      success: true,
+      message: "Database seeded successfully",
+    });
+  } catch (error) {
+    console.error("Database seeding failed:", error);
+
+    return Response.json(
+      {
+        success: false,
+        message: "Failed to seed database",
+        // Only send safe error information
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Internal server error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

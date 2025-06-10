@@ -1,64 +1,83 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { GoHomeFill } from 'react-icons/go';
 import { IoIdCard } from 'react-icons/io5';
-import { FaCalendarCheck, FaBook } from 'react-icons/fa';
+import { FaCalendarCheck, FaBook, FaCalendarPlus } from 'react-icons/fa';
 import { MdKeyboardArrowDown, MdInventory } from "react-icons/md";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { clsx } from 'clsx';
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { clsx } from "clsx";
 
 // Map of links to display in the side navigation for staff.
 const links = [
-  { 
-    name: 'Dashboard',
-    href: '/staff/dashboard',
+  {
+    name: "Dashboard",
+    href: "/staff/dashboard",
     icon: GoHomeFill,
   },
   {
-    name: 'Attendance',
-    href: '/staff/dashboard/attendance',
+    name: "Attendance",
+    href: "/staff/dashboard/attendance",
     icon: IoIdCard,
   },
   {
-    name: 'Monitoring',
-    href: '/staff/dashboard/data-collection',
+    name: "Monitoring",
+    href: "/staff/dashboard/data-collection",
     icon: FaCalendarCheck,
+  },
+  {
+    name: "Events",
+    href: "/staff/dashboard/reservation/event-list",
+    icon: FaCalendarPlus,
+    
   },
   {
     name: 'Book Management',
     href: '/staff/dashboard/book-management',
     icon: FaBook,
     subLinks: [
-      { name: 'Catalog', href: '/staff/dashboard/book-management/catalog' },
-      { name: 'Categorization', href: '/staff/dashboard/book-management/genre-settings' }
-    ]
+      { name: "Catalog", href: "/staff/dashboard/book-management/catalog" },
+      {
+        name: "Categorization",
+        href: "/staff/dashboard/book-management/genre-settings",
+      },
+    ],
   },
   {
-    name: 'Inventory',
-    href: '/staff/dashboard/inventory',
+    name: "Inventory",
+    href: "/staff/dashboard/inventory",
     icon: MdInventory,
     subLinks: [
-      { name: 'Books', href: '/staff/dashboard/inventory/book' },
-      { name: 'Utilities', href: '/staff/dashboard/inventory/utility' }
-    ]
-  }
+      { name: "Books", href: "/staff/dashboard/inventory/manage-books" },
+      { name: "Utilities", href: "/staff/dashboard/inventory/inventory-list" },
+      { name: "Categorization", href: "/staff/dashboard/inventory/categorization-inventory" },
+      { name: "Monitoring", href: "/staff/dashboard/inventory/inventory-monitoring" }
+    ],
+  },
 ];
 
-function NavItem({ href, icon: Icon, label, isActive = false, hasSubLinks, isExpanded, onToggle, collapsed = false }) {
+function NavItem({
+  href,
+  icon: Icon,
+  label,
+  isActive = false,
+  hasSubLinks,
+  isExpanded,
+  onToggle,
+  collapsed = false,
+}) {
   return (
     <div
       className={clsx(
-        'flex items-center gap-2 px-3 py-2 rounded cursor-pointer',
+        "flex items-center gap-2 px-3 py-2 rounded cursor-pointer",
         {
-          'bg-[#eff0c3] text-[#52570d]': isActive,
-          'text-[#5d7285]': !isActive,
-          'justify-center': collapsed
+          "bg-[#eff0c3] text-[#52570d]": isActive,
+          "text-[#5d7285]": !isActive,
+          "justify-center": collapsed,
         },
-        'hover:bg-gray-100 transition-colors duration-100'
+        "hover:bg-gray-100 transition-colors duration-100"
       )}
       onClick={hasSubLinks ? onToggle : undefined}
     >
@@ -69,10 +88,9 @@ function NavItem({ href, icon: Icon, label, isActive = false, hasSubLinks, isExp
           {hasSubLinks && (
             <MdKeyboardArrowDown
               size={20}
-              className={clsx(
-                'transition-transform duration-300',
-                { 'rotate-180': isExpanded }
-              )}
+              className={clsx("transition-transform duration-300", {
+                "rotate-180": isExpanded,
+              })}
             />
           )}
         </div>
@@ -84,15 +102,15 @@ function NavItem({ href, icon: Icon, label, isActive = false, hasSubLinks, isExp
 function SubNavItem({ href, label }) {
   const pathname = usePathname();
   return (
-    <Link 
-      href={href} 
+    <Link
+      href={href}
       className={clsx(
-        'ml-7 py-2 px-3 block rounded',
+        "ml-7 py-2 px-3 block rounded",
         {
-          'text-[#52570d]': pathname === href,
-          'text-[#5d7285]': pathname !== href
+          "text-[#52570d]": pathname === href,
+          "text-[#5d7285]": pathname !== href,
         },
-        'hover:bg-gray-100 transition-colors duration-100'
+        "hover:bg-gray-100 transition-colors duration-100"
       )}
     >
       {label}
@@ -104,10 +122,10 @@ function SubNavLinks({ subLinks, isExpanded }) {
   return (
     <div
       className={clsx(
-        'overflow-hidden transition-all duration-300 ease-in-out',
+        "overflow-hidden transition-all duration-300 ease-in-out",
         {
-          'max-h-0': !isExpanded,
-          'max-h-[500px]': isExpanded // Adjust this value based on your content
+          "max-h-0": !isExpanded,
+          "max-h-[500px]": isExpanded, // Adjust this value based on your content
         }
       )}
     >
@@ -127,20 +145,20 @@ export default function NavLinks({ collapsed = false }) {
   const [expandedItems, setExpandedItems] = useState({});
 
   const toggleExpand = (name) => {
-    setExpandedItems(prev => ({
+    setExpandedItems((prev) => ({
       ...prev,
-      [name]: !prev[name]
+      [name]: !prev[name],
     }));
   };
 
   useEffect(() => {
-    const activeLink = links.find(link => 
-      link.subLinks?.some(sub => sub.href === pathname)
+    const activeLink = links.find((link) =>
+      link.subLinks?.some((sub) => sub.href === pathname)
     );
     if (activeLink) {
-      setExpandedItems(prev => ({
+      setExpandedItems((prev) => ({
         ...prev,
-        [activeLink.name]: true
+        [activeLink.name]: true,
       }));
     }
   }, [pathname]);
@@ -148,12 +166,13 @@ export default function NavLinks({ collapsed = false }) {
   return (
     <div className="flex flex-col space-y-2">
       {links.map((link) => {
-        const isActive = pathname === link.href || 
-                        (link.subLinks && link.subLinks.some(sub => sub.href === pathname));
-        
+        const isActive =
+          pathname === link.href ||
+          (link.subLinks && link.subLinks.some((sub) => sub.href === pathname));
+
         return (
           <div key={link.name}>
-            {link.name === 'Dashboard' || !link.subLinks ? (
+            {link.name === "Dashboard" || !link.subLinks ? (
               <Link href={link.href}>
                 <NavItem
                   icon={link.icon}
