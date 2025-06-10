@@ -653,11 +653,11 @@ const Detail = ({ memberStatus = 'guest' }) => {
               {book.usage !== 'On-Site Only' && (
                 <div className="space-y-3 mt-6">
                   <button 
-                    className={`w-full h-[35px] text-white text-xs hover:bg-[#3e4310] rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]' }`}
+                    className={`w-full h-[35px] text-white text-xs hover:bg-[#3e4310] rounded-2xl ${isBorrowing || book.stock === 0 || memberStatus === 'guest' ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]' }`}
                     onClick={handleBorrowBook}
-                    disabled={isBorrowing || book.stock === 0}
+                    disabled={isBorrowing || book.stock === 0 || memberStatus === 'guest'}
                   >
-                    {isBorrowing ? 'Processing...' : 'Borrow Book'}
+                    {memberStatus === 'guest' ? 'Borrow Book (Members Only)' : (isBorrowing ? 'Processing...' : 'Borrow Book')}
                   </button>
                   {/* <button 
                     className={`w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl ${book.stock === 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
@@ -665,6 +665,11 @@ const Detail = ({ memberStatus = 'guest' }) => {
                   >
                     Cart
                   </button> */}
+                  {memberStatus === 'guest' && (
+                    <div className="text-xs text-red-600 text-center mt-2 font-semibold">
+                      You must be a member to borrow books. Please join as a member to make a loan.
+                    </div>
+                  )}
                 </div>
               )}
 

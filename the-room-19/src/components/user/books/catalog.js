@@ -352,26 +352,24 @@ const Catalog = () => {
       <div className="w-full h-full relative bg-white px-12 py-8">
         <div className="w-full mx-auto max-w-[1200px]">
           {/* Search Bar and Cart + Theme Heading */}
-          <div className="flex justify-between items-center mb-6">
+          <div className={`flex items-center mb-6 ${selectedTheme ? "justify-between" : "justify-center"}`}>
             {/* Theme Heading (left) */}
-            <div className="flex items-center min-w-0">
-              {selectedTheme && (
-                <div className="flex items-center whitespace-nowrap">
-                  <span className="text-lg font-semibold text-[#2e3105] font-manrope mr-2">
-                    Books with "{selectedTheme}" themes
-                  </span>
-                  <button
-                    className="text-xs text-red-500 underline hover:text-red-700"
-                    onClick={() => {
-                      router.push('/user/dashboard/books/catalog');
-                    }}
-                  >
-                    Clear theme filter
-                  </button>
-                </div>
-              )}
-            </div>
-            {/* Search Bar and Cart (right) */}
+            {selectedTheme && (
+              <div className="flex items-center whitespace-nowrap mr-4">
+                <span className="text-lg font-semibold text-[#2e3105] font-manrope mr-2">
+                  Books with "{selectedTheme}" themes
+                </span>
+                <button
+                  className="text-xs text-red-500 underline hover:text-red-700"
+                  onClick={() => {
+                    router.push('/user/dashboard/books/catalog');
+                  }}
+                >
+                  Clear theme filter
+                </button>
+              </div>
+            )}
+            {/* Search Bar and Cart (center/right) */}
             <div className="w-[600px] flex items-center gap-3">
               {/* Search Bar */}
               <div className="flex-1">
@@ -401,8 +399,11 @@ const Catalog = () => {
               ) : error ? (
                 <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
               ) : filteredBooks.length === 0 ? (
-                <div className="col-span-4 text-center py-10">
-                  No books available based on your search criteria.
+                <div className="col-span-4 flex flex-col items-center justify-center py-24 text-center">
+                  <span className="text-5xl mb-4 text-[#232323]">
+                    <BsCart3 />
+                  </span>
+                  <span className="text-lg font-semibold text-[#232323]">No books available based on your search criteria.</span>
                 </div>
               ) : (
                 filteredBooks.map((book) => (
