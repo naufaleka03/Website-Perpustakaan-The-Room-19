@@ -27,6 +27,10 @@ const Detail = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [borrowDate, setBorrowDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRekom, setLoadingRekom] = useState(true);
+  const [errorRekom, setErrorRekom] = useState(null);
+  const [rekomCovers, setRekomCovers] = useState({});
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -96,8 +100,49 @@ const Detail = () => {
       }
     };
 
+    // Fetch rekomendasi buku
+    const fetchRecommendations = async () => {
+      if (!bookId) return;
+      setLoadingRekom(true);
+      setErrorRekom(null);
+      try {
+        const response = await fetch(`http://localhost:5000/recommendation?book_id=${bookId}`);
+        if (!response.ok) throw new Error('Gagal mengambil rekomendasi buku');
+        const data = await response.json();
+        setRecommendations(data.rekomendasi || []);
+        // Setelah dapat rekomendasi, fetch cover untuk setiap rekomendasi
+        if (data.rekomendasi && data.rekomendasi.length > 0) {
+          const coverPromises = data.rekomendasi.map(async (rec) => {
+            try {
+              const res = await fetch(`/api/books/${rec.book_id}`);
+              if (!res.ok) return [rec.book_id, null];
+              const bookData = await res.json();
+              return [rec.book_id, bookData.book?.cover_image || null];
+            } catch {
+              return [rec.book_id, null];
+            }
+          });
+          const coverResults = await Promise.all(coverPromises);
+          const coverMap = {};
+          coverResults.forEach(([id, cover]) => {
+            coverMap[id] = cover;
+          });
+          setRekomCovers(coverMap);
+        } else {
+          setRekomCovers({});
+        }
+      } catch (err) {
+        setErrorRekom('Gagal memuat rekomendasi buku.');
+        setRecommendations([]);
+        setRekomCovers({});
+      } finally {
+        setLoadingRekom(false);
+      }
+    };
+
     fetchUserData();
     fetchBookDetails();
+    fetchRecommendations();
   }, [bookId]);
 
   const handleBorrowBook = async () => {
@@ -311,6 +356,30 @@ const Detail = () => {
     return stars;
   };
 
+  // Utilitas untuk mengambil inisial judul buku
+  function getBookInitials(title) {
+    if (!title) return "";
+    return title
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  // Fungsi untuk memotong judul buku dengan ellipsis jika terlalu panjang
+  function truncateTitle(title, maxLength = 40) {
+    if (!title) return '';
+    if (title.length <= maxLength) return title;
+    // Potong di batas spasi terakhir sebelum maxLength jika memungkinkan
+    const truncated = title.slice(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 0) {
+      return truncated.slice(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+  }
+
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       {/* Modal Limit Peminjaman */}
@@ -369,18 +438,22 @@ const Detail = () => {
         <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
             {/* Book Cover */}
-            <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
-              <img
-                src={book.cover_image && book.cover_image.trim() !== '' 
-                  ? book.cover_image 
-                  : "https://placehold.co/180x250"}
-                alt={`${book.book_title} Cover`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.error(`Error loading image:`, e);
-                  e.target.src = "https://placehold.co/180x250";
-                }}
-              />
+            <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden flex items-center justify-center bg-[#eff0c3]">
+              {book.cover_image && book.cover_image.trim() !== '' ? (
+                <img
+                  src={book.cover_image}
+                  alt={`${book.book_title} Cover`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/180x250";
+                  }}
+                />
+              ) : (
+                <span className="text-[#52570d] font-bold text-5xl select-none">
+                  {getBookInitials(book.book_title)}
+                </span>
+              )}
             </div>
 
             {/* Book Details */}
@@ -392,7 +465,8 @@ const Detail = () => {
                   </h1>
                   
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center">
+                    {/* Rating and Reviews */}
+                    {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
                         {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
@@ -400,10 +474,10 @@ const Detail = () => {
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
-                    </div>
-                    <div className="text-[#666666] text-xs ml-4">
+                    </div> */}
+                    {/* <div className="text-[#666666] text-xs ml-4">
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 
@@ -493,7 +567,7 @@ const Detail = () => {
               </div>
 
               {/* Book Details Section */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <div className="border-b border-[#767676]/40">
                   <div className="flex gap-8">
                     <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
@@ -590,12 +664,12 @@ const Detail = () => {
                   >
                     {isBorrowing ? 'Processing...' : 'Borrow Book'}
                   </button>
-                  <button 
+                  {/* <button 
                     className={`w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl ${book.stock === 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     disabled={book.stock === 0}
                   >
                     Cart
-                  </button>
+                  </button> */}
                 </div>
               )}
 
@@ -612,6 +686,64 @@ const Detail = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Placeholder Rekomendasi Buku */}
+      <div className="mt-8 px-6 pb-10">
+        <h2 className="text-lg font-bold mb-4 text-[#2e3105]">Rekomendasi Buku Mirip</h2>
+        {loadingRekom ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[1,2,3].map((i) => (
+              <div key={i} className="bg-white border border-[#cdcdcd] rounded-xl p-3 flex flex-col items-center animate-pulse">
+                <div className="w-[120px] h-[160px] rounded-lg bg-gray-200 mb-2"></div>
+                <div className="text-center w-full">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : errorRekom ? (
+          <div className="text-red-500 text-sm">{errorRekom}</div>
+        ) : recommendations.length === 0 ? (
+          <div className="text-gray-500 text-sm">Tidak ada rekomendasi buku mirip.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {recommendations.map((rec) => (
+              <Link
+                key={rec.book_id}
+                href={`/user/dashboard/books/catalog/detail?id=${rec.book_id}`}
+                className="transition-transform duration-200 hover:scale-105"
+                style={{ display: 'block', height: '100%' }}
+              >
+                <div className="bg-white border border-[#cdcdcd] rounded-xl p-3 flex flex-col items-center shadow-sm h-full" style={{minHeight:'270px'}}>
+                  {/* Cover atau inisial */}
+                  {rekomCovers[rec.book_id] && rekomCovers[rec.book_id].trim() !== '' ? (
+                    <img
+                      src={rekomCovers[rec.book_id]}
+                      alt={rec.book_title + ' Cover'}
+                      className="w-[120px] h-[160px] rounded-lg object-cover mb-2"
+                      onError={e => { e.target.src = 'https://placehold.co/120x160'; }}
+                    />
+                  ) : (
+                    <div className="w-[120px] h-[160px] rounded-lg bg-[#eff0c3] flex items-center justify-center mb-2">
+                      <span className="text-[#52570d] font-bold text-3xl">{getBookInitials(rec.book_title)}</span>
+                    </div>
+                  )}
+                  {/* Judul dan author sejajar, tanpa badge rekomendasi */}
+                  <div className="flex flex-col items-center w-full flex-grow justify-between" style={{minHeight:'80px'}}>
+                    <h3 className="text-sm font-semibold text-black min-h-[40px] max-h-[40px] flex items-center justify-center w-full text-center overflow-hidden text-ellipsis">
+                      {rec.book_title}
+                    </h3>
+                    <div className="flex flex-col justify-end w-full flex-1">
+                      <p className="text-xs text-gray-600 mb-1 w-full text-center">{rec.author}</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

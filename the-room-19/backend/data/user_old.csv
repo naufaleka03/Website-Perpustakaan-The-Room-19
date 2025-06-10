@@ -1,0 +1,301 @@
+user_id,name,username,email,registered_at,membership_type
+196,Salimah Prastuti,salimah_prastuti,salimah_prastuti@example.com,2023-05-27,True
+108,"Cut Zamira Halimah, S.","cut_zamira_halimah,_s.","cut_zamira_halimah,_s.@example.com",2021-12-17,True
+259,Galih Marbun,galih_marbun,galih_marbun@example.com,2021-07-24,True
+212,Yance Wibisono,yance_wibisono,yance_wibisono@example.com,2024-06-23,True
+51,Bagas Firmansyah,bagas_firmansyah,bagas_firmansyah@example.com,2023-01-27,False
+175,"Umaya Waluyo, S.Sos","umaya_waluyo,_s.sos","umaya_waluyo,_s.sos@example.com",2021-12-13,False
+300,Gaduh Tampubolon,gaduh_tampubolon,gaduh_tampubolon@example.com,2020-07-01,False
+102,Mahmud Prayoga,mahmud_prayoga,mahmud_prayoga@example.com,2021-02-19,False
+26,Dina Prayoga,dina_prayoga,dina_prayoga@example.com,2025-01-14,True
+85,Diah Tampubolon,diah_tampubolon,diah_tampubolon@example.com,2020-11-05,True
+74,Yosef Melani,yosef_melani,yosef_melani@example.com,2020-12-10,True
+214,Prabu Narpati,prabu_narpati,prabu_narpati@example.com,2025-03-09,True
+252,Indra Ramadan,indra_ramadan,indra_ramadan@example.com,2020-12-28,True
+139,Rangga Maryati,rangga_maryati,rangga_maryati@example.com,2024-03-19,True
+293,Kiandra Nurdiyanti,kiandra_nurdiyanti,kiandra_nurdiyanti@example.com,2022-01-28,False
+249,"Ikin Kuswoyo, M.Pd","ikin_kuswoyo,_m.pd","ikin_kuswoyo,_m.pd@example.com",2021-06-29,True
+144,Paiman Kusmawati,paiman_kusmawati,paiman_kusmawati@example.com,2024-02-03,True
+145,Umi Prayoga,umi_prayoga,umi_prayoga@example.com,2022-08-15,False
+278,KH. Harjaya Narpati,kh._harjaya_narpati,kh._harjaya_narpati@example.com,2024-10-01,True
+148,Juli Simanjuntak,juli_simanjuntak,juli_simanjuntak@example.com,2024-11-09,True
+257,Oni Wibisono,oni_wibisono,oni_wibisono@example.com,2024-09-26,True
+115,Tgk. Ani Kurniawan,tgk._ani_kurniawan,tgk._ani_kurniawan@example.com,2023-12-17,False
+133,Reksa Napitupulu,reksa_napitupulu,reksa_napitupulu@example.com,2021-07-07,True
+11,"dr. Rahmi Saptono, S.Gz","dr._rahmi_saptono,_s.gz","dr._rahmi_saptono,_s.gz@example.com",2024-03-03,False
+179,Salimah Uwais,salimah_uwais,salimah_uwais@example.com,2020-11-06,False
+79,Tgk. Warji Rajata,tgk._warji_rajata,tgk._warji_rajata@example.com,2021-12-31,True
+127,Irma Pranowo,irma_pranowo,irma_pranowo@example.com,2023-12-02,True
+176,Lega Utami,lega_utami,lega_utami@example.com,2022-04-30,True
+242,Michelle Habibi,michelle_habibi,michelle_habibi@example.com,2020-12-08,True
+282,"Mulya Damanik, M.Kom.","mulya_damanik,_m.kom.","mulya_damanik,_m.kom.@example.com",2021-10-22,True
+60,Dadi Nainggolan,dadi_nainggolan,dadi_nainggolan@example.com,2024-10-28,True
+46,"Ira Wacana, S.I.Kom","ira_wacana,_s.i.kom","ira_wacana,_s.i.kom@example.com",2023-12-28,True
+198,Uli Pudjiastuti,uli_pudjiastuti,uli_pudjiastuti@example.com,2023-01-28,False
+192,Najib Wasita,najib_wasita,najib_wasita@example.com,2024-06-01,True
+131,Oliva Wijayanti,oliva_wijayanti,oliva_wijayanti@example.com,2023-02-11,True
+62,Malika Prayoga,malika_prayoga,malika_prayoga@example.com,2020-11-26,True
+298,"KH. Saiful Mandasari, M.TI.","kh._saiful_mandasari,_m.ti.","kh._saiful_mandasari,_m.ti.@example.com",2020-12-29,False
+227,Darmanto Samosir,darmanto_samosir,darmanto_samosir@example.com,2021-01-25,True
+165,Vanya Wibowo,vanya_wibowo,vanya_wibowo@example.com,2022-08-18,True
+88,Hj. Paris Anggriawan,hj._paris_anggriawan,hj._paris_anggriawan@example.com,2024-12-24,True
+124,Dadi Andriani,dadi_andriani,dadi_andriani@example.com,2023-06-27,True
+258,Ade Kusmawati,ade_kusmawati,ade_kusmawati@example.com,2022-07-27,True
+205,Drs. Jinawi Lestari,drs._jinawi_lestari,drs._jinawi_lestari@example.com,2021-08-22,True
+230,Drs. Maryadi Wasita,drs._maryadi_wasita,drs._maryadi_wasita@example.com,2021-01-11,True
+188,Jumari Simbolon,jumari_simbolon,jumari_simbolon@example.com,2021-10-22,False
+91,Empluk Suryono,empluk_suryono,empluk_suryono@example.com,2022-01-20,True
+146,"Karma Laksita, S.","karma_laksita,_s.","karma_laksita,_s.@example.com",2022-08-07,True
+286,Amalia Kuswoyo,amalia_kuswoyo,amalia_kuswoyo@example.com,2021-06-15,True
+295,"R.M. Raden Santoso, M.M.","r.m._raden_santoso,_m.m.","r.m._raden_santoso,_m.m.@example.com",2022-08-26,False
+166,"dr. Dono Hutapea, .","dr._dono_hutapea,_.","dr._dono_hutapea,_.@example.com",2020-06-05,True
+197,Puspa Nuraini,puspa_nuraini,puspa_nuraini@example.com,2023-03-10,True
+56,Maryanto Astuti,maryanto_astuti,maryanto_astuti@example.com,2023-04-11,True
+76,Devi Purnawati,devi_purnawati,devi_purnawati@example.com,2022-05-10,True
+54,"Queen Permata, .","queen_permata,_.","queen_permata,_.@example.com",2022-04-30,False
+10,Harjasa Kuswoyo,harjasa_kuswoyo,harjasa_kuswoyo@example.com,2023-04-26,False
+83,Sarah Pratiwi,sarah_pratiwi,sarah_pratiwi@example.com,2021-02-10,False
+106,"dr. Rama Winarsih, S.","dr._rama_winarsih,_s.","dr._rama_winarsih,_s.@example.com",2022-07-13,True
+233,Shakila Pradipta,shakila_pradipta,shakila_pradipta@example.com,2020-05-11,True
+107,Pandu Kurniawan,pandu_kurniawan,pandu_kurniawan@example.com,2023-07-08,True
+289,Carla Yuniar,carla_yuniar,carla_yuniar@example.com,2023-07-08,True
+281,"drg. Dewi Kurniawan, M.Ak","drg._dewi_kurniawan,_m.ak","drg._dewi_kurniawan,_m.ak@example.com",2020-12-27,True
+245,Nyoman Megantara,nyoman_megantara,nyoman_megantara@example.com,2023-10-17,True
+53,"Jayeng Prabowo, M.Pd","jayeng_prabowo,_m.pd","jayeng_prabowo,_m.pd@example.com",2021-05-22,True
+84,Kawaya Prabowo,kawaya_prabowo,kawaya_prabowo@example.com,2024-07-25,True
+1,Balidin Dongoran,balidin_dongoran,balidin_dongoran@example.com,2022-05-06,True
+138,Timbul Kurniawan,timbul_kurniawan,timbul_kurniawan@example.com,2022-02-14,True
+77,Azalea Safitri,azalea_safitri,azalea_safitri@example.com,2020-12-16,False
+294,Edi Sihombing,edi_sihombing,edi_sihombing@example.com,2020-12-01,False
+95,Vera Mustofa,vera_mustofa,vera_mustofa@example.com,2022-06-28,False
+256,Uli Prastuti,uli_prastuti,uli_prastuti@example.com,2022-10-23,True
+2,Cahyono Jailani,cahyono_jailani,cahyono_jailani@example.com,2024-11-25,False
+120,Mala Hidayat,mala_hidayat,mala_hidayat@example.com,2023-01-26,True
+292,"Hj. Ghaliyati Kusmawati, M.TI.","hj._ghaliyati_kusmawati,_m.ti.","hj._ghaliyati_kusmawati,_m.ti.@example.com",2023-04-02,False
+50,Nugraha Usamah,nugraha_usamah,nugraha_usamah@example.com,2020-10-05,False
+274,Muhammad Haryanto,muhammad_haryanto,muhammad_haryanto@example.com,2022-07-29,True
+285,"dr. Olivia Suryatmi, M.M.","dr._olivia_suryatmi,_m.m.","dr._olivia_suryatmi,_m.m.@example.com",2022-11-04,True
+9,Darijan Sirait,darijan_sirait,darijan_sirait@example.com,2021-02-17,False
+260,"Eli Nasyiah, S.T.","eli_nasyiah,_s.t.","eli_nasyiah,_s.t.@example.com",2022-12-03,True
+136,Nasim Winarno,nasim_winarno,nasim_winarno@example.com,2024-06-19,False
+96,Opung Handayani,opung_handayani,opung_handayani@example.com,2024-12-15,True
+73,Olivia Nuraini,olivia_nuraini,olivia_nuraini@example.com,2021-08-08,False
+93,Hafshah Habibi,hafshah_habibi,hafshah_habibi@example.com,2021-01-17,True
+234,Hj. Natalia Habibi,hj._natalia_habibi,hj._natalia_habibi@example.com,2021-03-19,True
+41,Dimas Purnawati,dimas_purnawati,dimas_purnawati@example.com,2020-12-06,True
+235,Gaduh Wahyuni,gaduh_wahyuni,gaduh_wahyuni@example.com,2021-03-05,True
+39,dr. Nurul Budiyanto,dr._nurul_budiyanto,dr._nurul_budiyanto@example.com,2021-03-19,True
+153,"drg. Kayla Padmasari, S.Ked","drg._kayla_padmasari,_s.ked","drg._kayla_padmasari,_s.ked@example.com",2025-02-27,True
+82,Iriana Hidayanto,iriana_hidayanto,iriana_hidayanto@example.com,2020-05-04,True
+78,Sakura Padmasari,sakura_padmasari,sakura_padmasari@example.com,2025-01-26,True
+226,Ajimin Rajasa,ajimin_rajasa,ajimin_rajasa@example.com,2020-07-03,True
+164,Gabriella Hasanah,gabriella_hasanah,gabriella_hasanah@example.com,2023-01-16,True
+67,"drg. Almira Marbun, S.Sos","drg._almira_marbun,_s.sos","drg._almira_marbun,_s.sos@example.com",2020-04-12,True
+61,Dina Anggraini,dina_anggraini,dina_anggraini@example.com,2021-10-28,False
+8,Capa Anggraini,capa_anggraini,capa_anggraini@example.com,2022-08-17,False
+66,Nova Laksmiwati,nova_laksmiwati,nova_laksmiwati@example.com,2022-01-30,False
+238,"Tgk. Prayogo Adriansyah, S.IP","tgk._prayogo_adriansyah,_s.ip","tgk._prayogo_adriansyah,_s.ip@example.com",2021-05-29,True
+279,Icha Saefullah,icha_saefullah,icha_saefullah@example.com,2024-10-10,True
+114,Tomi Rajata,tomi_rajata,tomi_rajata@example.com,2021-10-12,True
+42,Opan Laksita,opan_laksita,opan_laksita@example.com,2020-11-07,True
+218,Septi Hariyah,septi_hariyah,septi_hariyah@example.com,2021-10-30,True
+254,Atmaja Yuniar,atmaja_yuniar,atmaja_yuniar@example.com,2022-07-02,True
+276,Nova Nababan,nova_nababan,nova_nababan@example.com,2025-03-05,True
+15,"Darsirah Siregar, S.Pt","darsirah_siregar,_s.pt","darsirah_siregar,_s.pt@example.com",2022-03-30,True
+181,"Cici Astuti, S.I.Kom","cici_astuti,_s.i.kom","cici_astuti,_s.i.kom@example.com",2024-03-04,True
+174,Wisnu Saragih,wisnu_saragih,wisnu_saragih@example.com,2025-02-27,True
+236,Umay Halim,umay_halim,umay_halim@example.com,2020-07-03,True
+25,Syahrini Haryanti,syahrini_haryanti,syahrini_haryanti@example.com,2021-06-23,True
+12,R. Virman Waluyo,r._virman_waluyo,r._virman_waluyo@example.com,2020-12-06,False
+193,Dimas Kusmawati,dimas_kusmawati,dimas_kusmawati@example.com,2024-06-08,False
+43,"Pranata Mahendra, I","pranata_mahendra,_i","pranata_mahendra,_i@example.com",2024-04-21,True
+170,Budi Kusmawati,budi_kusmawati,budi_kusmawati@example.com,2021-03-27,True
+211,Karsa Sitorus,karsa_sitorus,karsa_sitorus@example.com,2022-08-24,True
+182,Eva Fujiati,eva_fujiati,eva_fujiati@example.com,2024-09-13,True
+65,Wira Prakasa,wira_prakasa,wira_prakasa@example.com,2021-09-04,True
+14,R.A. Tiara Hidayat,r.a._tiara_hidayat,r.a._tiara_hidayat@example.com,2020-08-26,True
+209,"Puti Elisa Zulaika, S.Pd","puti_elisa_zulaika,_s.pd","puti_elisa_zulaika,_s.pd@example.com",2022-10-09,True
+117,Calista Winarno,calista_winarno,calista_winarno@example.com,2025-03-02,True
+157,Gawati Saputra,gawati_saputra,gawati_saputra@example.com,2023-12-21,True
+240,Nadine Hakim,nadine_hakim,nadine_hakim@example.com,2022-04-30,True
+221,"drg. Cakrawala Maryadi, S.Pd","drg._cakrawala_maryadi,_s.pd","drg._cakrawala_maryadi,_s.pd@example.com",2023-06-04,True
+215,Dt. Uda Wulandari,dt._uda_wulandari,dt._uda_wulandari@example.com,2020-06-28,True
+203,Shania Pratama,shania_pratama,shania_pratama@example.com,2021-04-04,True
+202,"KH. Laksana Natsir, S.Kom","kh._laksana_natsir,_s.kom","kh._laksana_natsir,_s.kom@example.com",2020-06-03,True
+167,"Puput Habibi, S.I.Kom","puput_habibi,_s.i.kom","puput_habibi,_s.i.kom@example.com",2022-03-03,True
+177,Mursinin Sihombing,mursinin_sihombing,mursinin_sihombing@example.com,2021-04-17,True
+19,Dipa Marpaung,dipa_marpaung,dipa_marpaung@example.com,2024-03-12,True
+68,Hani Hasanah,hani_hasanah,hani_hasanah@example.com,2022-09-09,False
+210,Tgk. Zelaya Nashiruddin,tgk._zelaya_nashiruddin,tgk._zelaya_nashiruddin@example.com,2021-12-18,True
+150,Talia Mangunsong,talia_mangunsong,talia_mangunsong@example.com,2022-01-30,False
+34,Emil Fujiati,emil_fujiati,emil_fujiati@example.com,2021-08-10,True
+33,Timbul Nasyiah,timbul_nasyiah,timbul_nasyiah@example.com,2023-02-26,True
+191,Dt. Kariman Nainggolan,dt._kariman_nainggolan,dt._kariman_nainggolan@example.com,2020-12-27,True
+149,Cahyo Maryadi,cahyo_maryadi,cahyo_maryadi@example.com,2022-03-25,True
+217,"Cut Widya Megantara, S.Pt","cut_widya_megantara,_s.pt","cut_widya_megantara,_s.pt@example.com",2020-08-12,True
+159,Mustika Waskita,mustika_waskita,mustika_waskita@example.com,2024-03-28,True
+57,Laras Hastuti,laras_hastuti,laras_hastuti@example.com,2020-09-21,True
+248,"Ir. Yance Farida, S.Psi","ir._yance_farida,_s.psi","ir._yance_farida,_s.psi@example.com",2020-06-24,True
+125,"Pangestu Natsir, M.Ak","pangestu_natsir,_m.ak","pangestu_natsir,_m.ak@example.com",2025-02-07,True
+247,Fitriani Permata,fitriani_permata,fitriani_permata@example.com,2020-04-15,True
+30,Lutfan Manullang,lutfan_manullang,lutfan_manullang@example.com,2023-11-08,False
+296,"Mariadi Sudiati, S.H.","mariadi_sudiati,_s.h.","mariadi_sudiati,_s.h.@example.com",2023-09-14,False
+219,Tirtayasa Manullang,tirtayasa_manullang,tirtayasa_manullang@example.com,2022-12-28,True
+22,Rizki Firmansyah,rizki_firmansyah,rizki_firmansyah@example.com,2022-12-12,False
+27,T. Pangeran Padmasari,t._pangeran_padmasari,t._pangeran_padmasari@example.com,2023-11-28,True
+49,Lanjar Prasetya,lanjar_prasetya,lanjar_prasetya@example.com,2020-04-28,True
+262,R. Asirwada Uyainah,r._asirwada_uyainah,r._asirwada_uyainah@example.com,2024-04-01,True
+132,Reza Prakasa,reza_prakasa,reza_prakasa@example.com,2022-11-26,True
+246,Dariati Saptono,dariati_saptono,dariati_saptono@example.com,2024-05-19,True
+137,Hesti Maulana,hesti_maulana,hesti_maulana@example.com,2020-04-23,True
+261,Maida Hutagalung,maida_hutagalung,maida_hutagalung@example.com,2022-03-02,True
+87,Zahra Palastri,zahra_palastri,zahra_palastri@example.com,2022-11-01,True
+168,"Bagiya Yulianti, S.Gz","bagiya_yulianti,_s.gz","bagiya_yulianti,_s.gz@example.com",2020-07-11,False
+171,R.A. Nadia Rajasa,r.a._nadia_rajasa,r.a._nadia_rajasa@example.com,2023-05-27,True
+208,Surya Mayasari,surya_mayasari,surya_mayasari@example.com,2025-02-04,True
+160,Luthfi Nasyidah,luthfi_nasyidah,luthfi_nasyidah@example.com,2020-06-28,False
+23,Hasna Haryanto,hasna_haryanto,hasna_haryanto@example.com,2022-01-21,False
+265,"Samiah Riyanti, S.Pd","samiah_riyanti,_s.pd","samiah_riyanti,_s.pd@example.com",2024-07-01,True
+273,Cager Yulianti,cager_yulianti,cager_yulianti@example.com,2025-02-25,True
+113,Saiful Nasyiah,saiful_nasyiah,saiful_nasyiah@example.com,2020-06-30,True
+80,"Nasrullah Sihotang, S.","nasrullah_sihotang,_s.","nasrullah_sihotang,_s.@example.com",2022-07-10,True
+152,drg. Heryanto Halim,drg._heryanto_halim,drg._heryanto_halim@example.com,2022-01-08,False
+216,Gilda Habibi,gilda_habibi,gilda_habibi@example.com,2024-03-16,True
+5,Akarsana Purwanti,akarsana_purwanti,akarsana_purwanti@example.com,2021-12-14,True
+225,"drg. Hadi Purwanti, S.Ked","drg._hadi_purwanti,_s.ked","drg._hadi_purwanti,_s.ked@example.com",2022-08-29,True
+155,Umi Wibisono,umi_wibisono,umi_wibisono@example.com,2023-10-29,True
+99,Rafid Uwais,rafid_uwais,rafid_uwais@example.com,2025-03-20,True
+204,Tugiman Narpati,tugiman_narpati,tugiman_narpati@example.com,2022-08-13,True
+126,Latika Pudjiastuti,latika_pudjiastuti,latika_pudjiastuti@example.com,2020-04-07,True
+271,"Caraka Mustofa, S.Sos","caraka_mustofa,_s.sos","caraka_mustofa,_s.sos@example.com",2022-07-16,True
+122,T. Mulyanto Wasita,t._mulyanto_wasita,t._mulyanto_wasita@example.com,2023-01-14,True
+297,Shakila Nababan,shakila_nababan,shakila_nababan@example.com,2021-10-05,False
+288,drg. Patricia Yulianti,drg._patricia_yulianti,drg._patricia_yulianti@example.com,2022-02-24,True
+143,Yance Pudjiastuti,yance_pudjiastuti,yance_pudjiastuti@example.com,2024-01-21,True
+231,"Samiah Nasyidah, S.Pt","samiah_nasyidah,_s.pt","samiah_nasyidah,_s.pt@example.com",2021-02-27,True
+129,Maimunah Wulandari,maimunah_wulandari,maimunah_wulandari@example.com,2022-01-29,True
+130,drg. Putu Narpati,drg._putu_narpati,drg._putu_narpati@example.com,2020-12-25,False
+86,Hairyanto Suryono,hairyanto_suryono,hairyanto_suryono@example.com,2021-08-09,True
+185,Zulaikha Prasasta,zulaikha_prasasta,zulaikha_prasasta@example.com,2020-12-31,False
+277,Artanto Safitri,artanto_safitri,artanto_safitri@example.com,2021-04-21,True
+151,Heryanto Wasita,heryanto_wasita,heryanto_wasita@example.com,2023-01-29,True
+38,Virman Nuraini,virman_nuraini,virman_nuraini@example.com,2020-04-07,False
+92,Jasmin Putra,jasmin_putra,jasmin_putra@example.com,2024-07-24,True
+36,"R.M. Jono Kurniawan, S.Pd","r.m._jono_kurniawan,_s.pd","r.m._jono_kurniawan,_s.pd@example.com",2024-07-31,True
+299,Ridwan Mandala,ridwan_mandala,ridwan_mandala@example.com,2024-02-11,False
+104,R. Gilda Marpaung,r._gilda_marpaung,r._gilda_marpaung@example.com,2021-10-08,False
+186,Mila Prasasta,mila_prasasta,mila_prasasta@example.com,2024-03-19,False
+206,R.A. Suci Jailani,r.a._suci_jailani,r.a._suci_jailani@example.com,2021-10-13,True
+213,Darmaji Nurdiyanti,darmaji_nurdiyanti,darmaji_nurdiyanti@example.com,2021-07-25,True
+17,Hairyanto Thamrin,hairyanto_thamrin,hairyanto_thamrin@example.com,2022-01-16,False
+20,Humaira Uyainah,humaira_uyainah,humaira_uyainah@example.com,2024-12-31,True
+4,Bakiman Pratama,bakiman_pratama,bakiman_pratama@example.com,2022-03-29,False
+142,Galiono Handayani,galiono_handayani,galiono_handayani@example.com,2024-07-22,True
+275,Jamil Farida,jamil_farida,jamil_farida@example.com,2022-07-27,True
+158,Ana Wibisono,ana_wibisono,ana_wibisono@example.com,2023-02-14,True
+45,Wisnu Namaga,wisnu_namaga,wisnu_namaga@example.com,2021-12-21,False
+29,drg. Bakijan Hardiansyah,drg._bakijan_hardiansyah,drg._bakijan_hardiansyah@example.com,2021-03-12,True
+163,Elvina Hardiansyah,elvina_hardiansyah,elvina_hardiansyah@example.com,2023-06-27,True
+156,Oman Palastri,oman_palastri,oman_palastri@example.com,2022-02-20,False
+71,Labuh Namaga,labuh_namaga,labuh_namaga@example.com,2020-10-12,False
+291,"drg. Keisha Uyainah, S.E.","drg._keisha_uyainah,_s.e.","drg._keisha_uyainah,_s.e.@example.com",2021-07-31,False
+97,"Maria Purwanti, S.Ked","maria_purwanti,_s.ked","maria_purwanti,_s.ked@example.com",2021-03-19,False
+255,Najib Prakasa,najib_prakasa,najib_prakasa@example.com,2020-09-21,True
+184,Maya Rahayu,maya_rahayu,maya_rahayu@example.com,2022-07-18,True
+228,Zamira Pranowo,zamira_pranowo,zamira_pranowo@example.com,2023-05-31,True
+267,"Tgk. Nadia Najmudin, S.Ked","tgk._nadia_najmudin,_s.ked","tgk._nadia_najmudin,_s.ked@example.com",2023-12-05,True
+110,Maryanto Nababan,maryanto_nababan,maryanto_nababan@example.com,2023-08-26,False
+35,Ade Saptono,ade_saptono,ade_saptono@example.com,2024-07-09,True
+173,"R.M. Yoga Saragih, S.IP","r.m._yoga_saragih,_s.ip","r.m._yoga_saragih,_s.ip@example.com",2025-03-08,True
+263,"Ir. Hamzah Usamah, S.I.Kom","ir._hamzah_usamah,_s.i.kom","ir._hamzah_usamah,_s.i.kom@example.com",2020-07-14,True
+287,Oni Damanik,oni_damanik,oni_damanik@example.com,2021-04-20,True
+290,Puti Zelaya Hastuti,puti_zelaya_hastuti,puti_zelaya_hastuti@example.com,2024-09-15,True
+128,Luluh Yolanda,luluh_yolanda,luluh_yolanda@example.com,2024-03-20,True
+251,Kartika Novitasari,kartika_novitasari,kartika_novitasari@example.com,2020-05-06,True
+222,"R.M. Harjasa Novitasari, S.Sos","r.m._harjasa_novitasari,_s.sos","r.m._harjasa_novitasari,_s.sos@example.com",2024-12-29,True
+16,"Puti Kezia Setiawan, M.M.","puti_kezia_setiawan,_m.m.","puti_kezia_setiawan,_m.m.@example.com",2023-05-14,False
+223,Dalimin Mardhiyah,dalimin_mardhiyah,dalimin_mardhiyah@example.com,2023-11-30,True
+183,"Emong Susanti, M.Pd","emong_susanti,_m.pd","emong_susanti,_m.pd@example.com",2024-05-17,True
+24,dr. Gabriella Yolanda,dr._gabriella_yolanda,dr._gabriella_yolanda@example.com,2024-07-05,True
+90,Calista Kurniawan,calista_kurniawan,calista_kurniawan@example.com,2024-12-19,False
+229,Warsa Haryanto,warsa_haryanto,warsa_haryanto@example.com,2022-07-25,True
+243,Kamaria Suryono,kamaria_suryono,kamaria_suryono@example.com,2021-10-15,True
+268,Ida Najmudin,ida_najmudin,ida_najmudin@example.com,2020-08-03,True
+266,Eli Latupono,eli_latupono,eli_latupono@example.com,2025-01-31,True
+195,Gawati Waskita,gawati_waskita,gawati_waskita@example.com,2022-05-01,True
+6,Sadina Palastri,sadina_palastri,sadina_palastri@example.com,2022-02-19,False
+89,Salimah Jailani,salimah_jailani,salimah_jailani@example.com,2021-05-28,True
+244,"Ani Kurniawan, S.IP","ani_kurniawan,_s.ip","ani_kurniawan,_s.ip@example.com",2023-07-04,True
+116,Titi Sihotang,titi_sihotang,titi_sihotang@example.com,2023-12-22,True
+69,Tami Puspita,tami_puspita,tami_puspita@example.com,2024-05-27,True
+250,Drs. Nilam Hutasoit,drs._nilam_hutasoit,drs._nilam_hutasoit@example.com,2023-09-06,True
+154,Natalia Ardianto,natalia_ardianto,natalia_ardianto@example.com,2023-04-03,True
+284,Jagaraga Wulandari,jagaraga_wulandari,jagaraga_wulandari@example.com,2024-04-24,True
+180,Ganep Budiman,ganep_budiman,ganep_budiman@example.com,2023-11-02,True
+70,Dadap Sihombing,dadap_sihombing,dadap_sihombing@example.com,2022-02-11,True
+52,Kamidin Prakasa,kamidin_prakasa,kamidin_prakasa@example.com,2022-08-19,True
+105,Aisyah Nugroho,aisyah_nugroho,aisyah_nugroho@example.com,2023-02-02,True
+199,Tira Hasanah,tira_hasanah,tira_hasanah@example.com,2022-07-26,False
+109,"Kamaria Samosir, S.","kamaria_samosir,_s.","kamaria_samosir,_s.@example.com",2022-02-27,True
+31,Puti Kiandra Wibowo,puti_kiandra_wibowo,puti_kiandra_wibowo@example.com,2024-03-30,False
+3,Lantar Anggraini,lantar_anggraini,lantar_anggraini@example.com,2020-07-13,True
+269,Elvin Pratama,elvin_pratama,elvin_pratama@example.com,2023-06-29,True
+98,Warsa Maryadi,warsa_maryadi,warsa_maryadi@example.com,2024-11-26,True
+28,drg. Karen Prasetya,drg._karen_prasetya,drg._karen_prasetya@example.com,2021-06-09,True
+81,Diah Winarsih,diah_winarsih,diah_winarsih@example.com,2022-10-25,True
+232,Xanana Hutapea,xanana_hutapea,xanana_hutapea@example.com,2023-08-30,True
+75,"R. Betania Riyanti, S.Pt","r._betania_riyanti,_s.pt","r._betania_riyanti,_s.pt@example.com",2022-04-06,True
+94,"Indra Saefullah, S.Gz","indra_saefullah,_s.gz","indra_saefullah,_s.gz@example.com",2020-04-17,True
+123,Tami Sihombing,tami_sihombing,tami_sihombing@example.com,2024-12-23,True
+103,Victoria Purwanti,victoria_purwanti,victoria_purwanti@example.com,2023-09-20,False
+58,"Martani Yuliarti, S.IP","martani_yuliarti,_s.ip","martani_yuliarti,_s.ip@example.com",2020-10-11,False
+283,Lasmono Mahendra,lasmono_mahendra,lasmono_mahendra@example.com,2023-11-12,True
+59,Titi Sirait,titi_sirait,titi_sirait@example.com,2021-03-11,True
+118,Dodo Gunawan,dodo_gunawan,dodo_gunawan@example.com,2023-12-21,False
+37,R.A. Eva Wahyudin,r.a._eva_wahyudin,r.a._eva_wahyudin@example.com,2021-08-20,True
+40,Yance Samosir,yance_samosir,yance_samosir@example.com,2022-04-19,True
+190,Indah Riyanti,indah_riyanti,indah_riyanti@example.com,2022-08-12,True
+111,Indah Hidayat,indah_hidayat,indah_hidayat@example.com,2022-08-21,True
+200,Hafshah Pradipta,hafshah_pradipta,hafshah_pradipta@example.com,2021-04-15,False
+134,Arsipatra Prasasta,arsipatra_prasasta,arsipatra_prasasta@example.com,2024-04-21,True
+201,Emong Suwarno,emong_suwarno,emong_suwarno@example.com,2023-06-07,True
+162,Margana Aryani,margana_aryani,margana_aryani@example.com,2021-06-01,False
+189,Gabriella Thamrin,gabriella_thamrin,gabriella_thamrin@example.com,2022-06-17,True
+241,"Tgk. Tira Hidayanto, S.Sos","tgk._tira_hidayanto,_s.sos","tgk._tira_hidayanto,_s.sos@example.com",2025-03-09,True
+280,Endra Habibi,endra_habibi,endra_habibi@example.com,2024-01-31,True
+239,Ulva Mustofa,ulva_mustofa,ulva_mustofa@example.com,2022-04-29,True
+161,Rika Pratiwi,rika_pratiwi,rika_pratiwi@example.com,2020-06-29,False
+100,R.M. Irfan Mahendra,r.m._irfan_mahendra,r.m._irfan_mahendra@example.com,2020-08-13,False
+220,Cakrabuana Wijaya,cakrabuana_wijaya,cakrabuana_wijaya@example.com,2021-07-11,True
+140,Kalim Prayoga,kalim_prayoga,kalim_prayoga@example.com,2021-04-18,False
+224,"T. Wakiman Prastuti, S.Pd","t._wakiman_prastuti,_s.pd","t._wakiman_prastuti,_s.pd@example.com",2024-10-26,True
+112,Syahrini Melani,syahrini_melani,syahrini_melani@example.com,2023-08-30,False
+119,Karma Nasyiah,karma_nasyiah,karma_nasyiah@example.com,2021-12-09,True
+141,Diana Hariyah,diana_hariyah,diana_hariyah@example.com,2024-10-12,True
+64,Martana Namaga,martana_namaga,martana_namaga@example.com,2020-05-21,True
+169,Daliono Damanik,daliono_damanik,daliono_damanik@example.com,2021-07-23,False
+253,"H. Wakiman Hidayanto, S.E.","h._wakiman_hidayanto,_s.e.","h._wakiman_hidayanto,_s.e.@example.com",2020-07-23,True
+135,Puti Mutia Agustina,puti_mutia_agustina,puti_mutia_agustina@example.com,2025-02-27,False
+18,"Emas Zulaika, S.Pt","emas_zulaika,_s.pt","emas_zulaika,_s.pt@example.com",2021-09-19,True
+147,Citra Suwarno,citra_suwarno,citra_suwarno@example.com,2022-04-04,True
+48,Gandi Damanik,gandi_damanik,gandi_damanik@example.com,2024-12-21,True
+7,Rini Setiawan,rini_setiawan,rini_setiawan@example.com,2020-04-26,False
+172,Luluh Sudiati,luluh_sudiati,luluh_sudiati@example.com,2021-03-27,False
+13,T. Radit Utami,t._radit_utami,t._radit_utami@example.com,2023-05-04,True
+270,Salimah Manullang,salimah_manullang,salimah_manullang@example.com,2022-08-24,True
+44,R.M. Eman Nuraini,r.m._eman_nuraini,r.m._eman_nuraini@example.com,2023-11-11,True
+47,drg. Banawa Prayoga,drg._banawa_prayoga,drg._banawa_prayoga@example.com,2022-03-05,False
+101,Karimah Gunarto,karimah_gunarto,karimah_gunarto@example.com,2023-04-22,True
+32,T. Kadir Anggriawan,t._kadir_anggriawan,t._kadir_anggriawan@example.com,2021-03-27,True
+187,Salsabila Wibowo,salsabila_wibowo,salsabila_wibowo@example.com,2023-02-15,True
+121,dr. Salimah Maheswara,dr._salimah_maheswara,dr._salimah_maheswara@example.com,2022-10-26,False
+194,Widya Budiyanto,widya_budiyanto,widya_budiyanto@example.com,2021-01-20,True
+272,Almira Samosir,almira_samosir,almira_samosir@example.com,2021-08-19,True
+264,"Daruna Natsir, S.Kom","daruna_natsir,_s.kom","daruna_natsir,_s.kom@example.com",2021-06-12,True
+72,"Iriana Hakim, S.Gz","iriana_hakim,_s.gz","iriana_hakim,_s.gz@example.com",2025-03-25,True
+21,Mahdi Simbolon,mahdi_simbolon,mahdi_simbolon@example.com,2020-09-26,True
+55,drg. Respati Wasita,drg._respati_wasita,drg._respati_wasita@example.com,2021-01-24,True
+178,"Purwa Gunarto, S.I.Kom","purwa_gunarto,_s.i.kom","purwa_gunarto,_s.i.kom@example.com",2024-10-17,False
+207,Yessi Mulyani,yessi_mulyani,yessi_mulyani@example.com,2025-02-03,True
+237,Vera Suryono,vera_suryono,vera_suryono@example.com,2024-02-06,True
+63,Yani Pudjiastuti,yani_pudjiastuti,yani_pudjiastuti@example.com,2021-02-04,True
