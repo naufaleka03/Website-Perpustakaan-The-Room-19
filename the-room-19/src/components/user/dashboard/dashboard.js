@@ -116,7 +116,6 @@ export default function UserDashboard() {
   const [loans, setLoans] = useState([]);
   const [loadingLoans, setLoadingLoans] = useState(true);
   const [errorLoans, setErrorLoans] = useState(null);
-  const router = useRouter();
   const [firstName, setFirstName] = useState('there');
   const router = useRouter();
 

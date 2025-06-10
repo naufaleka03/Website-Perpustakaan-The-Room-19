@@ -485,15 +485,6 @@ const Detail = ({ memberStatus = 'guest' }) => {
                     </div> */}
                   </div>
                 </div>
-                
-                {/* Price - Moved to upper section */}
-                {book.price && book.usage !== 'On-Site Only' && (
-                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
-                    <p className="text-[#2e3105] text-lg font-bold">
-                      Rp {parseInt(book.price).toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Themes */}

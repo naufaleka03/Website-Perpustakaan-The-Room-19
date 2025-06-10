@@ -8,7 +8,7 @@ CORS(app)
 @app.route('/recommendation', methods=['GET'])
 def rekomendasi_api():
     buku_id = request.args.get('book_id')
-    top_n = int(request.args.get('top_n', 5))  # default 5 jika tidak ada
+    top_n = int(request.args.get('top_n', 6))  # default 5 jika tidak ada
     if not buku_id:
         return jsonify({'error': 'Parameter book_id wajib disertakan'}), 400
 
