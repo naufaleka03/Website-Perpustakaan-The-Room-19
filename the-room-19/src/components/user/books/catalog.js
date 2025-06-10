@@ -332,10 +332,11 @@ const Catalog = () => {
           <p className="text-center text-[#b5b3b3] text-xs font-semibold font-manrope">
             {author}
           </p>
-          <div className="flex justify-center items-center mt-1">
+          {/* Rating */}
+          {/* <div className="flex justify-center items-center mt-1">
             <AiFillStar className="text-[#ECB43C] text-sm" />
             <span className="text-[#666666] text-xs ml-1">{numericRating.toFixed(1)}</span>
-          </div>
+          </div> */}
         </div>
       </Link>
     );

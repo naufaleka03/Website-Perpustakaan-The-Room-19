@@ -7,25 +7,47 @@ import CancelConfirmationModal from './CancelConfirmationModal';
 import { useRouter } from 'next/navigation';
 import DetailSessionModal from './DetailSessionModal';
 import DetailMembershipModal from './DetailMembershipModal';
+import DetailBorrowingModal from './DetailBorrowingModal';
 
 const formatDate = (dateString) => {
-  if (!dateString) return ''; // Handle empty date
-  const date = new Date(dateString);
-  
-  // Check if date is valid
+  if (!dateString) return '';
+  let date;
+  if (typeof dateString === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      // Format hanya tanggal, tambahkan offset WIB
+      date = new Date(dateString + 'T00:00:00+07:00');
+    } else {
+      // Sudah ISO atau ada waktu, parse langsung
+      date = new Date(dateString);
+    }
+  } else {
+    date = new Date(dateString);
+  }
   if (isNaN(date.getTime())) {
     console.error('Invalid date:', dateString);
     return '';
   }
-
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return `${month}-${day}-${year}`;
+  return `${day}-${month}-${year}`;
 };
 
 export default function DataCollection() {
+  // Inisialisasi default 'session' (SSR/Client sama)
   const [activeTab, setActiveTab] = useState('session');
+
+  // Setelah mount di client, update dari localStorage jika ada
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('staffDataCollectionActiveTab');
+      if (savedTab && savedTab !== activeTab) {
+        setActiveTab(savedTab);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [sessionCurrentPage, setSessionCurrentPage] = useState(1);
@@ -59,6 +81,18 @@ export default function DataCollection() {
     totalRequests: 0,
     totalRevisions: 0
   });
+  const [borrowingBookData, setBorrowingBookData] = useState([]);
+  const [borrowingBookSearchQuery, setBorrowingBookSearchQuery] = useState('');
+  const [borrowingBookCurrentPage, setBorrowingBookCurrentPage] = useState(1);
+  const [isDetailBorrowingModalOpen, setIsDetailBorrowingModalOpen] = useState(false);
+  const [selectedBorrowingData, setSelectedBorrowingData] = useState(null);
+
+  // Simpan tab aktif ke localStorage setiap kali berubah
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('staffDataCollectionActiveTab', activeTab);
+    }
+  }, [activeTab]);
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {
@@ -277,8 +311,17 @@ export default function DataCollection() {
     return sessionData.slice(startIndex, endIndex);
   };
 
-  // Fungsi untuk memfilter data berdasarkan nama
+  // Update filterDataByName function untuk mencari berdasarkan nama dan judul buku
   const filterDataByName = (data, query) => {
+    if (!data) return [];
+    
+    if (activeTab === 'borrowing') {
+      return data.filter(item => 
+        item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
+        item.book_title1?.toLowerCase().includes(query.toLowerCase()) ||
+        item.book_title2?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
     return data.filter(item => 
       item.full_name?.toLowerCase().includes(query.toLowerCase()) ||
       item.name?.toLowerCase().includes(query.toLowerCase())
@@ -355,6 +398,105 @@ export default function DataCollection() {
     setActiveDropdown(null);
   };
 
+  // Update fungsi getBorrowingStatus untuk menggunakan loan_due
+  const getBorrowingStatus = (returnDate, status) => {
+    if (status === 'Returned') return 'returned';
+    // Gunakan waktu WIB
+    const now = new Date();
+    const wibOffset = 7 * 60; // menit
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wibNow = new Date(utc + (wibOffset * 60000));
+    let returnDateObj = null;
+    if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+      returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+    } else {
+      returnDateObj = new Date(returnDate);
+    }
+    if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'overdue';
+    return 'ongoing';
+  };
+
+  // Update useEffect untuk mengambil data peminjaman dari API
+  useEffect(() => {
+    const fetchLoans = async () => {
+      try {
+        const response = await fetch('/api/loans');
+        const data = await response.json();
+        
+        if (data && data.loans) {
+          // Sortir data berdasarkan created_at (terbaru terlebih dahulu)
+          const sortedData = data.loans.sort((a, b) => {
+            const dateA = new Date(a.created_at);
+            const dateB = new Date(b.created_at);
+            return dateB - dateA;
+          });
+          
+          setBorrowingBookData(sortedData);
+        }
+      } catch (error) {
+        console.error('Error fetching loans data:', error);
+      }
+    };
+    
+    if (activeTab === 'borrowing') {
+      fetchLoans();
+    }
+  }, [activeTab]);
+
+  // Update fungsi handleDetailBorrowing untuk menggunakan struktur data baru
+  const handleDetailBorrowing = (borrowingId) => {
+    const borrowingData = borrowingBookData.find(data => data.id === borrowingId);
+    
+    if (borrowingData) {
+      // Transformasi data sesuai format yang diharapkan DetailBorrowingModal
+      const formattedData = {
+        id: borrowingData.id,
+        name: borrowingData.full_name,
+        book1: borrowingData.book_title1,
+        book2: borrowingData.book_title2 || null,
+        borrowing_date: borrowingData.loan_start,
+        return_date: borrowingData.loan_due,
+        status: borrowingData.status,
+        email: borrowingData.email,
+        phone: borrowingData.phone_number
+      };
+
+      setSelectedBorrowingData(formattedData);
+      setIsDetailBorrowingModalOpen(true);
+    }
+    
+    setActiveDropdown(null);
+  };
+
+  // Update fungsi handleReturnBook untuk menggunakan API
+  const handleReturnBook = async (bookId) => {
+    try {
+      const response = await fetch(`/api/loans/${bookId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'Returned' }),
+      });
+
+      if (response.ok) {
+        // Update status di state lokal
+        setBorrowingBookData(prevData =>
+          prevData.map(book =>
+            book.id === bookId ? { ...book, status: 'Returned' } : book
+          )
+        );
+        
+        // Tutup modal
+        setIsDetailBorrowingModalOpen(false);
+      } else {
+        console.error('Failed to update book status');
+      }
+    } catch (error) {
+      console.error('Error updating book status:', error);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
@@ -401,6 +543,16 @@ export default function DataCollection() {
             }`}
           >
             Membership
+          </button>
+          <button
+            onClick={() => setActiveTab('borrowing')}
+            className={`px-6 py-3 text-sm transition-all relative ${
+              activeTab === 'borrowing'
+                ? 'text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]'
+                : 'text-[#666666]'
+            }`}
+          >
+            Borrowing Book
           </button>
         </div>
 
@@ -472,7 +624,7 @@ export default function DataCollection() {
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Category</th>
                       <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -598,7 +750,7 @@ export default function DataCollection() {
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Date</th>
                       <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Shift</th>
                       <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -798,6 +950,122 @@ export default function DataCollection() {
               />
             </>
           )}
+
+          {activeTab === 'borrowing' && (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name or book title"
+                    value={borrowingBookSearchQuery}
+                    onChange={(e) => handleSearch(e, setBorrowingBookSearchQuery)}
+                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                  />
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                </div>
+              </div>
+              <div className="min-w-[768px] overflow-x-auto">
+                {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length === 0 ? (
+                  <div className="w-full text-center py-12 text-[#666666] text-sm font-['Poppins']">
+                    No borrowing record available.
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#eaeaea]">
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).map((item, index) => {
+                        const status = getBorrowingStatus(item.loan_due, item.status);
+                        return (
+                          <tr 
+                            key={item.id} 
+                            className="border-b border-[#666666]/10 hover:bg-gray-100 transition-colors duration-200"
+                          >
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                              {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.full_name}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
+                              {item.book_title1}
+                              {item.book_title2 && (
+                                <span
+                                  title="2 books total"
+                                  className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
+                                >
+                                  +1
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                            <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
+                              <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
+                                status === 'returned'
+                                  ? 'text-green-800 bg-green-100'
+                                  : status === 'overdue'
+                                  ? 'text-red-800 bg-red-100'
+                                  : 'text-yellow-800 bg-yellow-100'
+                              }`}>
+                                {status === 'returned'
+                                  ? 'Returned'
+                                  : status === 'overdue'
+                                  ? 'Over Due'
+                                  : 'On Going'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                                }}
+                                className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                              >
+                                <FaEllipsisV size={14} />
+                              </button>
+                                                        
+                              {activeDropdown === item.id && (
+                                <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                                  <button 
+                                    className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDetailBorrowing(item.id);
+                                      setActiveDropdown(null);
+                                    }}
+                                  >
+                                    Detail
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+              {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length > 0 && (
+                <PaginationControls 
+                  currentPage={borrowingBookCurrentPage}
+                  setCurrentPage={setBorrowingBookCurrentPage}
+                  data={borrowingBookData}
+                  itemsPerPage={entriesPerPage}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
       <CancelConfirmationModal 
@@ -838,6 +1106,12 @@ export default function DataCollection() {
           membershipId={selectedMembershipId}
         />
       )}
+      <DetailBorrowingModal 
+        isOpen={isDetailBorrowingModalOpen}
+        onClose={() => setIsDetailBorrowingModalOpen(false)}
+        borrowingData={selectedBorrowingData}
+        onReturnBook={handleReturnBook}
+      />
     </div>
   );
 }

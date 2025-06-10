@@ -5,6 +5,8 @@ import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from 'react';
+import { createClient } from '@/app/supabase/client';
+import PaymentSummaryModal from '@/components/payment/payment-summary-borrow';
 
 const Detail = ({ memberStatus = 'guest' }) => {
   const router = useRouter();
@@ -17,8 +19,48 @@ const Detail = ({ memberStatus = 'guest' }) => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
+  const [user, setUser] = useState(null);
+  const [isBorrowing, setIsBorrowing] = useState(false);
+  const [borrowResult, setBorrowResult] = useState(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [borrowDate, setBorrowDate] = useState(null);
+  const [returnDate, setReturnDate] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRekom, setLoadingRekom] = useState(true);
+  const [errorRekom, setErrorRekom] = useState(null);
+  const [rekomCovers, setRekomCovers] = useState({});
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          // Ambil data visitor (member)
+          const { data: visitorData, error: visitorError } = await supabase
+            .from('visitors')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (visitorError) {
+            console.error('Error fetching visitor data:', visitorError);
+            return;
+          }
+          
+          setUser({
+            id: user.id,
+            ...visitorData
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    };
+
     const fetchBookDetails = async () => {
       if (!bookId) {
         setError("Book ID is missing");
@@ -58,8 +100,135 @@ const Detail = ({ memberStatus = 'guest' }) => {
       }
     };
 
+    // Fetch rekomendasi buku
+    const fetchRecommendations = async () => {
+      if (!bookId) return;
+      setLoadingRekom(true);
+      setErrorRekom(null);
+      try {
+        const response = await fetch(`http://localhost:5000/recommendation?book_id=${bookId}`);
+        if (!response.ok) throw new Error('Gagal mengambil rekomendasi buku');
+        const data = await response.json();
+        setRecommendations(data.rekomendasi || []);
+        // Setelah dapat rekomendasi, fetch cover untuk setiap rekomendasi
+        if (data.rekomendasi && data.rekomendasi.length > 0) {
+          const coverPromises = data.rekomendasi.map(async (rec) => {
+            try {
+              const res = await fetch(`/api/books/${rec.book_id}`);
+              if (!res.ok) return [rec.book_id, null];
+              const bookData = await res.json();
+              return [rec.book_id, bookData.book?.cover_image || null];
+            } catch {
+              return [rec.book_id, null];
+            }
+          });
+          const coverResults = await Promise.all(coverPromises);
+          const coverMap = {};
+          coverResults.forEach(([id, cover]) => {
+            coverMap[id] = cover;
+          });
+          setRekomCovers(coverMap);
+        } else {
+          setRekomCovers({});
+        }
+      } catch (err) {
+        setErrorRekom('Gagal memuat rekomendasi buku.');
+        setRecommendations([]);
+        setRekomCovers({});
+      } finally {
+        setLoadingRekom(false);
+      }
+    };
+
+    fetchUserData();
     fetchBookDetails();
+    fetchRecommendations();
   }, [bookId]);
+
+  const handleBorrowBook = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (!book) {
+      setError('Book data not available');
+      return;
+    }
+    // CEK JUMLAH PEMINJAMAN ON GOING
+    try {
+      const response = await fetch(`/api/loans?user_id=${user.id}`);
+      const data = await response.json();
+      if (response.ok) {
+        const onGoingLoans = (data.loans || []).filter(l => l.status === 'On Going');
+        if (onGoingLoans.length >= 2) {
+          setShowLimitModal(true);
+          return;
+        }
+      }
+    } catch (err) {
+      setShowLimitModal(true);
+      return;
+    }
+    // Tampilkan modal payment summary, set tanggal pinjam dan kembali
+    const today = new Date();
+    const returnDt = new Date();
+    returnDt.setDate(today.getDate() + 7);
+    setBorrowDate(today);
+    setReturnDate(returnDt);
+    setShowPaymentModal(true);
+  };
+
+  // Callback setelah pembayaran sukses
+  const handlePaymentSuccess = async (paymentResult) => {
+    setShowPaymentModal(false);
+    // Proses peminjaman buku setelah pembayaran sukses
+    try {
+      setIsBorrowing(true);
+      setBorrowResult(null);
+      const loanData = {
+        user_id: user.id,
+        book_id1: book.id,
+        book_id2: null,
+        book_title1: book.book_title,
+        book_title2: null,
+        genre1: book.genre,
+        genre2: null,
+        cover_image1: book.cover_image,
+        cover_image2: null,
+        price1: book.price,
+        price2: null,
+        full_name: user.name,
+        email: user.email,
+        phone_number: user.phone_number || '-',
+        payment_id: paymentResult.order_id,
+        payment_status: paymentResult.transaction_status,
+        payment_method: paymentResult.payment_type
+      };
+      const response = await fetch('/api/loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loanData),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to borrow book');
+      }
+      setBorrowResult({
+        success: true,
+        message: 'Book borrowed successfully! Return date: ' + new Date(result.loan.loan_due).toLocaleDateString('id-ID'),
+      });
+      setShowSuccessModal(true);
+    } catch (err) {
+      setBorrowResult({
+        success: false,
+        message: err.message || 'Gagal meminjam buku. Silakan coba lagi nanti.',
+      });
+    } finally {
+      setIsBorrowing(false);
+    }
+  };
 
   // Loading skeleton for the detail page
   const DetailLoadingSkeleton = () => (
@@ -187,24 +356,104 @@ const Detail = ({ memberStatus = 'guest' }) => {
     return stars;
   };
 
+  // Utilitas untuk mengambil inisial judul buku
+  function getBookInitials(title) {
+    if (!title) return "";
+    return title
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  // Fungsi untuk memotong judul buku dengan ellipsis jika terlalu panjang
+  function truncateTitle(title, maxLength = 40) {
+    if (!title) return '';
+    if (title.length <= maxLength) return title;
+    // Potong di batas spasi terakhir sebelum maxLength jika memungkinkan
+    const truncated = title.slice(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 0) {
+      return truncated.slice(0, lastSpace) + '...';
+    }
+    return truncated + '...';
+  }
+
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      {/* Modal Limit Peminjaman */}
+      {showLimitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-xs text-center shadow-lg relative">
+            <h2 className="text-lg font-bold mb-2 text-[#e53e3e]">Warning</h2>
+            <p className="text-sm text-gray-700 mb-4">
+            You cannot borrow additional books. The maximum allowed is 2 books at a time.
+            </p>
+            <button
+              className="px-4 py-2 bg-[#2e3105] text-white rounded-lg hover:bg-[#222] transition-colors text-xs"
+              onClick={() => setShowLimitModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Modal Success Peminjaman */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-xs text-center shadow-lg relative">
+            <h2 className="text-lg font-bold mb-2 text-[#2e3105]">Success</h2>
+            <p className="text-sm text-gray-700 mb-4">{borrowResult?.message || 'Book borrowed successfully'}</p>
+            <button
+              className="px-4 py-2 bg-[#2e3105] text-white rounded-lg hover:bg-[#222] transition-colors text-xs"
+              onClick={() => {
+                setShowSuccessModal(false);
+                router.push('/user/dashboard/books/catalog');
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      {showPaymentModal && (
+        <PaymentSummaryModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          book={{
+            ...book,
+            user_id: user?.id,
+            full_name: user?.name,
+            email: user?.email,
+            phone_number: user?.phone_number
+          }}
+          borrowDate={borrowDate}
+          returnDate={returnDate}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
             {/* Book Cover */}
-            <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
-              <img
-                src={book.cover_image && book.cover_image.trim() !== '' 
-                  ? book.cover_image 
-                  : "https://placehold.co/180x250"}
-                alt={`${book.book_title} Cover`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.error(`Error loading image:`, e);
-                  e.target.src = "https://placehold.co/180x250";
-                }}
-              />
+            <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden flex items-center justify-center bg-[#eff0c3]">
+              {book.cover_image && book.cover_image.trim() !== '' ? (
+                <img
+                  src={book.cover_image}
+                  alt={`${book.book_title} Cover`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/180x250";
+                  }}
+                />
+              ) : (
+                <span className="text-[#52570d] font-bold text-5xl select-none">
+                  {getBookInitials(book.book_title)}
+                </span>
+              )}
             </div>
 
             {/* Book Details */}
@@ -221,7 +470,8 @@ const Detail = ({ memberStatus = 'guest' }) => {
                   )}
                   
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center">
+                    {/* Rating and Reviews */}
+                    {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
                         {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
@@ -229,13 +479,21 @@ const Detail = ({ memberStatus = 'guest' }) => {
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
-                    </div>
-                    
-                    <div className="text-[#666666] text-xs">
-                      Borrowed {lendCount} times
-                    </div>
+                    </div> */}
+                    {/* <div className="text-[#666666] text-xs ml-4">
+                      Stok: <span className="font-bold">{book.stock ?? 0}</span>
+                    </div> */}
                   </div>
                 </div>
+                
+                {/* Price - Moved to upper section */}
+                {book.price && book.usage !== 'On-Site Only' && (
+                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
+                    <p className="text-[#2e3105] text-lg font-bold">
+                      Rp {parseInt(book.price).toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Themes */}
@@ -313,7 +571,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
               </div>
 
               {/* Book Details Section */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <div className="border-b border-[#767676]/40">
                   <div className="flex gap-8">
                     <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
@@ -386,28 +644,38 @@ const Detail = ({ memberStatus = 'guest' }) => {
               <hr className="border-[#767676]/40 mb-4" />
 
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-[#c3efc3] rounded-full" />
+                <div className={`w-2 h-2 rounded-full ${book.stock > 0 ? 'bg-[#c3efc3]' : 'bg-red-400'}`} />
                 <span className="text-black text-xs font-normal">
-                  Available now
+                  {book.stock > 0 ? 'Available now' : 'Out of stock'}
                 </span>
                 <span className="text-black text-xs font-normal ml-auto">
-                  Total stock: {" "}
-                  <span className="text-[#ecb43c] font-normal">5 left</span>
+                  Total stock: <span className="text-[#ecb43c] font-normal">{book.stock ?? 0} left</span>
                 </span>
               </div>
-
-              <div className="space-y-3 mt-6">
-                <button
-                  className={`w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl ${memberStatus === 'guest' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={memberStatus === 'guest'}
-                  title={memberStatus === 'guest' ? 'You must be a member to borrow books. Please register or log in.' : ''}
-                >
-                  Borrow Book
-                </button>
-                <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">
-                  Cart
-                </button>
-              </div>
+              {/* Alert hanya muncul jika stock 0 dan usage adalah 'On-site and For Rent' */}
+              {book.stock === 0 && book.usage === 'On-site and For Rent' && (
+                <div className="my-4 p-2 rounded text-xs text-center bg-red-100 text-red-800">
+                  Book is out of stock and cannot be borrowed.
+                </div>
+              )}
+              {/* Hide Borrow and Cart if usage is On-Site Only */}
+              {book.usage !== 'On-Site Only' && (
+                <div className="space-y-3 mt-6">
+                  <button 
+                    className={`w-full h-[35px] text-white text-xs hover:bg-[#3e4310] rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]' }`}
+                    onClick={handleBorrowBook}
+                    disabled={isBorrowing || book.stock === 0}
+                  >
+                    {isBorrowing ? 'Processing...' : 'Borrow Book'}
+                  </button>
+                  {/* <button 
+                    className={`w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl ${book.stock === 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={book.stock === 0}
+                  >
+                    Cart
+                  </button> */}
+                </div>
+              )}
 
               <hr className="border-[#767676]/40 my-6" />
 
@@ -422,6 +690,70 @@ const Detail = ({ memberStatus = 'guest' }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Placeholder Rekomendasi Buku */}
+      <div className="mt-2 px-4 pb-10">
+        <h2 className="text-lg font-bold text-black flex items-center mb-6">
+          {/* <FaStar className="mr-2 text-yellow-400" /> */}
+          Rekomendasi Buku Mirip
+        </h2>
+
+        {loadingRekom ? (
+          <div className="flex space-x-3 overflow-x-auto p-4 scrollbar-hide">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-none w-48 group animate-pulse">
+                <div className="aspect-[3/4] w-full rounded-2xl bg-gray-200 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : errorRekom ? (
+          <div className="text-red-500 text-sm">{errorRekom}</div>
+        ) : recommendations.length === 0 ? (
+          <div className="text-gray-500 text-sm">Tidak ada rekomendasi buku mirip.</div>
+        ) : (
+          <div className="flex space-x-3 overflow-x-auto p-4 scrollbar-hide">
+            {recommendations.map((rec) => (
+              <Link
+                key={rec.book_id}
+                href={`/user/dashboard/books/catalog/detail?id=${rec.book_id}`}
+                className="flex-none w-48 group transition-transform duration-200 hover:scale-105"
+              >
+                <div className="relative mb-4">
+                  <div className="w-[135px] h-[187px] rounded-2xl overflow-hidden bg-[#eff0c3] shadow-lg group-hover:shadow-xl group-hover:scale-101 transition-transform duration-300 flex items-center justify-center">
+                    {rekomCovers[rec.book_id] && rekomCovers[rec.book_id].trim() !== '' ? (
+                      <img
+                        src={rekomCovers[rec.book_id]}
+                        alt={rec.book_title + ' Cover'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://placehold.co/120x160';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-[#52570d] font-bold text-3xl select-none">
+                        {getBookInitials(rec.book_title)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col justify-between min-h-[88px]">
+                  <h3 className="font-semibold text-black text-sm line-clamp-2 group-hover:text-black transition-colors min-h-[40px] max-h-[40px] overflow-hidden">
+                    {rec.book_title.length > 40
+                      ? rec.book_title.slice(0, rec.book_title.lastIndexOf(' ', 40)) + '...'
+                      : rec.book_title}
+                  </h3>
+                  <p className="text-black text-xs truncate mt-1">{rec.author}</p>
+                  <span className="mt-1 px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded-full w-fit">
+                    {rec.genre || rec.genre1 || '-'}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
