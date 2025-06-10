@@ -53,7 +53,7 @@ const links = [
       { name: "Books", href: "/staff/dashboard/inventory/manage-books" },
       { name: "Utilities", href: "/staff/dashboard/inventory/inventory-list" },
       { name: "Categorization", href: "/staff/dashboard/inventory/categorization-inventory" },
-      { name: "Monitoring", href: ""}
+      { name: "Monitoring", href: "/staff/dashboard/inventory/inventory-monitoring" }
     ],
   },
 ];

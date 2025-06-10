@@ -151,6 +151,26 @@ export async function PATCH(request, { params }) {
   try {
     const { stock_quantity, comment } = await request.json();
 
+    // Get current item data before update
+    const currentItem = await sql`
+      SELECT * FROM inventory WHERE id = ${params.id}
+    `;
+    if (currentItem.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Item not found" },
+        { status: 404 }
+      );
+    }
+    const item = currentItem[0];
+    const stockBefore = item.stock_quantity || 0;
+    const stockAfter = stock_quantity;
+    let mode = "add";
+    if (stockAfter < stockBefore) mode = "reduce";
+    else if (stockAfter > stockBefore) mode = "add";
+    else mode = "add"; // fallback (should not happen)
+    const amount = Math.abs(stockAfter - stockBefore);
+
+    // Update inventory stock
     const result = await sql`
       UPDATE inventory
       SET stock_quantity = ${stock_quantity},
@@ -165,6 +185,29 @@ export async function PATCH(request, { params }) {
         { status: 404 }
       );
     }
+
+    // Insert log into inventory_logs
+    await sql`
+      INSERT INTO inventory_logs (
+        inventory_id,
+        mode,
+        item_name,
+        category_id,
+        stock_before,
+        stock_after,
+        comment,
+        created_at
+      ) VALUES (
+        ${params.id},
+        ${mode},
+        ${item.item_name},
+        ${item.category_id},
+        ${stockBefore},
+        ${stockAfter},
+        ${comment},
+        NOW()
+      )
+    `;
 
     revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({ success: true, data: result[0] });

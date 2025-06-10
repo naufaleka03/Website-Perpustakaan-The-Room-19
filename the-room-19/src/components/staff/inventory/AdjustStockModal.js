@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdjustStockModal({ isOpen, item, onClose, onConfirm }) {
   const [mode, setMode] = useState("add"); // "add" or "reduce"
   const [amount, setAmount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState("");
+
+  // Reset comment (dan amount) setiap kali modal dibuka atau item berubah
+  useEffect(() => {
+    if (isOpen) {
+      setComment("");
+      setAmount(1);
+      setMode("add"); 
+    }
+  }, [isOpen, item]);
 
   if (!isOpen) return null;
 
@@ -34,7 +43,6 @@ export default function AdjustStockModal({ isOpen, item, onClose, onConfirm }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-sm">
-
         {/* Tab Switcher */}
         <div className="flex mb-6 border-b border-[#E5E5E5]">
           <button

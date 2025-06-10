@@ -196,6 +196,23 @@ async function seedInventory(tx) {
         )`;
 }
 
+async function seedInventoryLogs(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS inventory_logs (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            inventory_id UUID REFERENCES inventory(id),
+            mode VARCHAR(50) NOT NULL,
+            item_name VARCHAR(255) NOT NULL,
+            category_id UUID REFERENCES categories(id),
+            stock_before INTEGER NOT NULL,
+            stock_after INTEGER NOT NULL,
+            comment TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedBookGenres(tx) {
   const sql = tx ?? sql;
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -298,6 +315,7 @@ export async function GET() {
       await seedEventReservations(tx);
       await seedCategories(tx);
       await seedInventory(tx);
+      await seedInventoryLogs(tx);
     });
 
     return Response.json({
