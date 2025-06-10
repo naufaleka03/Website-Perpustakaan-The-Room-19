@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { FaSearch, FaPlus, FaEllipsisV, FaSort } from 'react-icons/fa';
+import { FaSearch, FaPlus, FaEllipsisV, FaSort, FaSyncAlt } from 'react-icons/fa';
 import { sessionData } from './data/sessionData';
 import { eventData } from './data/eventData';
 import CancelConfirmationModal from './CancelConfirmationModal';
@@ -85,6 +85,10 @@ export default function DataCollection() {
   const [borrowingBookCurrentPage, setBorrowingBookCurrentPage] = useState(1);
   const [isDetailBorrowingModalOpen, setIsDetailBorrowingModalOpen] = useState(false);
   const [selectedBorrowingData, setSelectedBorrowingData] = useState(null);
+  const [isRefreshingSession, setIsRefreshingSession] = useState(false);
+  const [isRefreshingEvent, setIsRefreshingEvent] = useState(false);
+  const [isRefreshingMembership, setIsRefreshingMembership] = useState(false);
+  const [isRefreshingBorrowing, setIsRefreshingBorrowing] = useState(false);
 
   // Simpan tab aktif ke localStorage setiap kali berubah
   useEffect(() => {
@@ -611,6 +615,78 @@ export default function DataCollection() {
     }
   };
 
+  // Define fetch functions for each tab
+  const fetchSessions = async () => {
+    try {
+      setIsRefreshingSession(true);
+      // Fetch sessions only
+      const sessionsResponse = await fetch("/api/sessions");
+      const sessionsData = await sessionsResponse.json();
+      const sortedSessionsData = sessionsData.sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return dateB - dateA;
+      });
+      setSessionData(sortedSessionsData);
+      setSessionStatuses(
+        sortedSessionsData.map((item) => ({
+          id: item.id,
+          status: item.status || "not attended",
+          isCanceled: item.status === "canceled",
+        }))
+      );
+    } finally {
+      setIsRefreshingSession(false);
+    }
+  };
+  const fetchEvents = async () => {
+    try {
+      setIsRefreshingEvent(true);
+      // Fetch events only
+      const eventReservationsResponse = await fetch("/api/eventreservations");
+      const eventReservationsData = await eventReservationsResponse.json();
+      const sortedEventReservationsData = eventReservationsData.sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return dateB - dateA;
+      });
+      setEventData(sortedEventReservationsData);
+      setEventStatuses(
+        sortedEventReservationsData.map((item) => ({
+          id: item.id,
+          status: item.status || "not attended",
+          isCanceled: item.status === "canceled",
+        }))
+      );
+    } finally {
+      setIsRefreshingEvent(false);
+    }
+  };
+  const fetchMembershipsTab = async () => {
+    try {
+      setIsRefreshingMembership(true);
+      const response = await fetch('/api/memberships');
+      if (!response.ok) {
+        throw new Error('Failed to fetch memberships');
+      }
+      const data = await response.json();
+      setMembershipData(data.memberships);
+      setMembershipStats(data.stats);
+    } catch (error) {
+      console.error('Error fetching memberships:', error);
+    } finally {
+      setIsRefreshingMembership(false);
+    }
+  };
+  const fetchBorrowing = async () => {
+    try {
+      setIsRefreshingBorrowing(true);
+      await fetchLoans();
+    } finally {
+      setIsRefreshingBorrowing(false);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
@@ -670,7 +746,7 @@ export default function DataCollection() {
             }`}
           >
             Borrowing Book
-          </button>
+          </button>
         </div>
 
         {/* Tables Section */}
@@ -689,17 +765,14 @@ export default function DataCollection() {
                     />
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                   </div>
-
-                  {/* Sort Dropdown */}
                   <div className="relative sort-container">
                     <button
                       onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666]"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
                     >
                       <FaSort />
                       Sort
                     </button>
-
                     {sortDropdownOpen && (
                       <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
                         <button
@@ -726,18 +799,27 @@ export default function DataCollection() {
                     )}
                   </div>
                 </div>
-
-                <button
-                  onClick={() =>
-                    router.push(
-                      "/staff/dashboard/data-collection/create-session"
-                    )
-                  }
-                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
-                >
-                  <FaPlus size={12} />
-                  Create
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchSessions}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                    style={{ minWidth: 40 }}
+                    aria-label="Refresh"
+                    type="button"
+                    disabled={isRefreshingSession}
+                  >
+                    <FaSyncAlt className={isRefreshingSession ? 'animate-spin' : ''} />
+                  </button>
+                  {activeTab === 'session' && (
+                    <button
+                      onClick={() => router.push("/staff/dashboard/data-collection/create-session")}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins'] transition-colors duration-200 hover:bg-[#232323]"
+                    >
+                      <FaPlus size={12} />
+                      Create
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
                 <table className="w-full">
@@ -927,17 +1009,14 @@ export default function DataCollection() {
                     />
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                   </div>
-
-                  {/* Sort Dropdown for Events */}
                   <div className="relative sort-container">
                     <button
                       onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666]"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
                     >
                       <FaSort />
                       Sort
                     </button>
-
                     {sortDropdownOpen && (
                       <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
                         <button
@@ -963,6 +1042,18 @@ export default function DataCollection() {
                       </div>
                     )}
                   </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchEvents}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                    style={{ minWidth: 40 }}
+                    aria-label="Refresh"
+                    type="button"
+                    disabled={isRefreshingEvent}
+                  >
+                    <FaSyncAlt className={isRefreshingEvent ? 'animate-spin' : ''} />
+                  </button>
                 </div>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
@@ -1164,17 +1255,19 @@ export default function DataCollection() {
                   />
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins']"
-                  onClick={() =>
-                    router.push(
-                      "/staff/dashboard/data-collection/create-membership"
-                    )
-                  }
-                >
-                  <FaPlus size={12} />
-                  Create
-                </button>
+                {/* Refresh Button (all tabs) */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchMembershipsTab}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                    style={{ minWidth: 40 }}
+                    aria-label="Refresh"
+                    type="button"
+                    disabled={isRefreshingMembership}
+                  >
+                    <FaSyncAlt className={isRefreshingMembership ? 'animate-spin' : ''} />
+                  </button>
+                </div>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
                 <table className="w-full">
@@ -1257,14 +1350,19 @@ export default function DataCollection() {
                   />
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
-                {/* Tombol Refresh */}
-                <button
-                  className="flex items-center gap-2 px-4 py-2 bg-[#2e3105] hover:bg-[#3e4310] text-white rounded-xl text-xs font-['Poppins']"
-                  onClick={fetchLoans}
-                  type="button"
-                >
-                  Refresh
-                </button>
+                {/* Refresh Button (all tabs) */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchBorrowing}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                    style={{ minWidth: 40 }}
+                    aria-label="Refresh"
+                    type="button"
+                    disabled={isRefreshingBorrowing}
+                  >
+                    <FaSyncAlt className={isRefreshingBorrowing ? 'animate-spin' : ''} />
+                  </button>
+                </div>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
                 {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length === 0 ? (

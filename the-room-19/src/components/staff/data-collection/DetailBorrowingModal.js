@@ -43,7 +43,22 @@ const getBorrowingStatus = (returnDate, status) => {
 
 export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, onReturnBook }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  if (!isOpen || !borrowingData) return null;
+  if (!isOpen) return null;
+
+  if (!borrowingData) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+        <div className="bg-white rounded-xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto relative font-['Poppins'] text-sm">
+          <div className="mt-4 space-y-3">
+            <div className="h-5 bg-gray-200 rounded animate-pulse w-1/2"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
 
