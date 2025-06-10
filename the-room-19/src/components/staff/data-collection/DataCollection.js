@@ -34,7 +34,20 @@ const formatDate = (dateString) => {
 };
 
 export default function DataCollection() {
+  // Inisialisasi default 'session' (SSR/Client sama)
   const [activeTab, setActiveTab] = useState('session');
+
+  // Setelah mount di client, update dari localStorage jika ada
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('staffDataCollectionActiveTab');
+      if (savedTab && savedTab !== activeTab) {
+        setActiveTab(savedTab);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [sessionCurrentPage, setSessionCurrentPage] = useState(1);
@@ -73,6 +86,13 @@ export default function DataCollection() {
   const [borrowingBookCurrentPage, setBorrowingBookCurrentPage] = useState(1);
   const [isDetailBorrowingModalOpen, setIsDetailBorrowingModalOpen] = useState(false);
   const [selectedBorrowingData, setSelectedBorrowingData] = useState(null);
+
+  // Simpan tab aktif ke localStorage setiap kali berubah
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('staffDataCollectionActiveTab', activeTab);
+    }
+  }, [activeTab]);
 
   // Fungsi untuk mendapatkan data yang ditampilkan
   const getTableData = (data, page, itemsPerPage, searchQuery = '') => {

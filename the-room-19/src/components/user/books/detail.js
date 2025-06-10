@@ -658,7 +658,7 @@ const Detail = () => {
               {book.usage !== 'On-Site Only' && (
                 <div className="space-y-3 mt-6">
                   <button 
-                    className={`w-full h-[35px] text-white text-xs rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]'}`}
+                    className={`w-full h-[35px] text-white text-xs hover:bg-[#3e4310] rounded-2xl ${isBorrowing || book.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2e3105]' }`}
                     onClick={handleBorrowBook}
                     disabled={isBorrowing || book.stock === 0}
                   >
@@ -689,17 +689,19 @@ const Detail = () => {
       </div>
 
       {/* Placeholder Rekomendasi Buku */}
-      <div className="mt-8 px-6 pb-10">
-        <h2 className="text-lg font-bold mb-4 text-[#2e3105]">Rekomendasi Buku Mirip</h2>
+      <div className="mt-2 px-4 pb-10">
+        <h2 className="text-lg font-bold text-black flex items-center mb-6">
+          {/* <FaStar className="mr-2 text-yellow-400" /> */}
+          Rekomendasi Buku Mirip
+        </h2>
+
         {loadingRekom ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {[1,2,3].map((i) => (
-              <div key={i} className="bg-white border border-[#cdcdcd] rounded-xl p-3 flex flex-col items-center animate-pulse">
-                <div className="w-[120px] h-[160px] rounded-lg bg-gray-200 mb-2"></div>
-                <div className="text-center w-full">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
-                </div>
+          <div className="flex space-x-3 overflow-x-auto p-4 scrollbar-hide">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-none w-48 group animate-pulse">
+                <div className="aspect-[3/4] w-full rounded-2xl bg-gray-200 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
@@ -708,37 +710,41 @@ const Detail = () => {
         ) : recommendations.length === 0 ? (
           <div className="text-gray-500 text-sm">Tidak ada rekomendasi buku mirip.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="flex space-x-3 overflow-x-auto p-4 scrollbar-hide">
             {recommendations.map((rec) => (
               <Link
                 key={rec.book_id}
                 href={`/user/dashboard/books/catalog/detail?id=${rec.book_id}`}
-                className="transition-transform duration-200 hover:scale-105"
-                style={{ display: 'block', height: '100%' }}
+                className="flex-none w-48 group transition-transform duration-200 hover:scale-105"
               >
-                <div className="bg-white border border-[#cdcdcd] rounded-xl p-3 flex flex-col items-center shadow-sm h-full" style={{minHeight:'270px'}}>
-                  {/* Cover atau inisial */}
-                  {rekomCovers[rec.book_id] && rekomCovers[rec.book_id].trim() !== '' ? (
-                    <img
-                      src={rekomCovers[rec.book_id]}
-                      alt={rec.book_title + ' Cover'}
-                      className="w-[120px] h-[160px] rounded-lg object-cover mb-2"
-                      onError={e => { e.target.src = 'https://placehold.co/120x160'; }}
-                    />
-                  ) : (
-                    <div className="w-[120px] h-[160px] rounded-lg bg-[#eff0c3] flex items-center justify-center mb-2">
-                      <span className="text-[#52570d] font-bold text-3xl">{getBookInitials(rec.book_title)}</span>
-                    </div>
-                  )}
-                  {/* Judul dan author sejajar, tanpa badge rekomendasi */}
-                  <div className="flex flex-col items-center w-full flex-grow justify-between" style={{minHeight:'80px'}}>
-                    <h3 className="text-sm font-semibold text-black min-h-[40px] max-h-[40px] flex items-center justify-center w-full text-center overflow-hidden text-ellipsis">
-                      {rec.book_title}
-                    </h3>
-                    <div className="flex flex-col justify-end w-full flex-1">
-                      <p className="text-xs text-gray-600 mb-1 w-full text-center">{rec.author}</p>
-                    </div>
+                <div className="relative mb-4">
+                  <div className="w-[135px] h-[187px] rounded-2xl overflow-hidden bg-[#eff0c3] shadow-lg group-hover:shadow-xl group-hover:scale-101 transition-transform duration-300 flex items-center justify-center">
+                    {rekomCovers[rec.book_id] && rekomCovers[rec.book_id].trim() !== '' ? (
+                      <img
+                        src={rekomCovers[rec.book_id]}
+                        alt={rec.book_title + ' Cover'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://placehold.co/120x160';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-[#52570d] font-bold text-3xl select-none">
+                        {getBookInitials(rec.book_title)}
+                      </span>
+                    )}
                   </div>
+                </div>
+                <div className="flex flex-col justify-between min-h-[88px]">
+                  <h3 className="font-semibold text-black text-sm line-clamp-2 group-hover:text-black transition-colors min-h-[40px] max-h-[40px] overflow-hidden">
+                    {rec.book_title.length > 40
+                      ? rec.book_title.slice(0, rec.book_title.lastIndexOf(' ', 40)) + '...'
+                      : rec.book_title}
+                  </h3>
+                  <p className="text-black text-xs truncate mt-1">{rec.author}</p>
+                  <span className="mt-1 px-2 py-1 bg-slate-200 text-slate-600 text-xs rounded-full w-fit">
+                    {rec.genre || rec.genre1 || '-'}
+                  </span>
                 </div>
               </Link>
             ))}

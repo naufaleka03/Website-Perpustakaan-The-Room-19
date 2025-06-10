@@ -39,7 +39,7 @@ export async function GET() {
       SELECT id as book_id, book_title, author, genre
       FROM books
       WHERE genre = ${popularGenre}
-      LIMIT 20
+      LIMIT 15
     `;
     return NextResponse.json({ books });
   } catch (error) {

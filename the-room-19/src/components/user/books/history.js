@@ -48,6 +48,20 @@ const History = () => {
     fetchLoans();
   }, [router]);
 
+  // Cek jika ada query param refresh=1, maka fetch ulang data setelah mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('refresh') === '1') {
+        // Paksa fetch ulang data
+        setLoading(true);
+        setTimeout(() => {
+          window.location.replace(window.location.pathname); // Hapus query param agar tidak loop
+        }, 100); // Sedikit delay agar fetchLoans jalan
+      }
+    }
+  }, []);
+
   const handleSelectOption = (option) => {
     setSelectedOption(option);
     setIsDropdownOpen(false);

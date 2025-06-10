@@ -159,7 +159,7 @@ export default function PaymentFinishPage() {
           {/* Action Buttons */}
           <div className="space-y-3">
             <Link
-              href="/user/dashboard/books/history"
+              href="/user/dashboard/books/history?refresh=1"
               className="inline-block bg-[#111010] text-white px-6 py-2 rounded-lg w-full hover:bg-gray-900 transition-colors"
             >
               View History Page

@@ -85,8 +85,19 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
     return `${day}-${month}-${year}`;
   };
 
+  // Cegah close modal saat isProcessing
+  const handleModalClick = (e) => {
+    if (isProcessing) {
+      e.stopPropagation();
+      return;
+    }
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleModalClick}>
       <div className="bg-white rounded-xl p-6 w-[400px] max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-medium text-[#111010] mb-4">Payment Summary</h3>
         <div className="space-y-4 mb-6">

@@ -402,6 +402,11 @@ export default function UserDashboard() {
                 ? 'Rekomendasi Genre Populer'
                 : `Similar to your last borrowed book${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
             </h2>
+            <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
+              onClick={() => router.push('/user/dashboard/books/recommendation-all-interaction')}
+            >
+              View All <FaChevronRight className="w-4 h-4 ml-1" />
+            </button>
           </div>
           <div className="flex space-x-6 overflow-x-auto p-4 scrollbar-hide">
             {loadingInteraction ? (
@@ -424,7 +429,7 @@ export default function UserDashboard() {
                   className="flex-none w-48 group transition-transform duration-200 hover:scale-105"
                 >
                   <div className="relative mb-4">
-                    <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-gray-200 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                    <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-gray-200 shadow-lg group-hover:shadow-xl group-hover:scale-101 transition-transform duration-300 flex items-center justify-center">
                       {interactionCovers[rec.book_id] && interactionCovers[rec.book_id].trim() !== '' ? (
                         <img
                           src={interactionCovers[rec.book_id]}

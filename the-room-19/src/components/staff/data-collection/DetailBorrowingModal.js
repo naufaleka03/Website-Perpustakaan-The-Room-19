@@ -174,7 +174,7 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
           {status !== 'returned' && (
             <button
               onClick={handleReturnClick}
-              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 bg-[#2e3105] text-white rounded-lg hover:bg-[#3e4310] transition-colors"
             >
               Mark as Returned
             </button>
@@ -195,7 +195,7 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
               <div className="flex justify-center gap-4 mt-4">
                 <button
                   onClick={handleConfirmYes}
-                  className="px-4 py-2 bg-[#43462b] text-white rounded-xl hover:opacity-90 transition-colors"
+                  className="px-4 py-2 bg-[#2e3105] hover:bg-[#3e4310] text-white rounded-xl hover:opacity-90 transition-colors"
                 >
                   Yes
                 </button>

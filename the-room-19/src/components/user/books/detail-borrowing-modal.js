@@ -197,7 +197,7 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
                   className={`px-4 py-2 rounded-lg transition-colors text-white ${
                     borrowingData.extend_count >= 3
                       ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-blue-400 hover:bg-blue-700'
+                      : 'bg-[#2e3105] hover:bg-[#3e4310]'
                   }`}
                   disabled={borrowingData.extend_count >= 3}
                 >
