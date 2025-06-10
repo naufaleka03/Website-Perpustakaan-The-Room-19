@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from 'react';
 
-const Detail = () => {
+const Detail = ({ memberStatus = 'guest' }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookId = searchParams.get("id");
@@ -214,6 +214,11 @@ const Detail = () => {
                   <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
                     {book.book_title}
                   </h1>
+                  {book.price && (
+                    <div className="text-[#2e3105] text-sm font-semibold mb-2" style={{ fontWeight: 500 }}>
+                      Rp {parseInt(book.price).toLocaleString('id-ID')}
+                    </div>
+                  )}
                   
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex items-center">
@@ -231,43 +236,25 @@ const Detail = () => {
                     </div>
                   </div>
                 </div>
-                
-                {/* Price - Moved to upper section */}
-                {book.price && (
-                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
-                    <p className="text-[#2e3105] text-lg font-bold">
-                      Rp {parseInt(book.price).toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Themes */}
               {book.themes && book.themes.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {book.themes.map((theme) => (
-                    <span 
-                      key={theme} 
-                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666]"
+                    <button
+                      key={theme}
+                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666] transition-colors hover:bg-[#2e3105]/30 hover:text-[#232310] active:bg-[#2e3105]/50 focus:outline-none focus:ring-2 focus:ring-[#2e3105]"
+                      onClick={() => router.push(`/user/dashboard/books/catalog?theme=${encodeURIComponent(theme)}`)}
+                      type="button"
                     >
                       {theme}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}
 
-              {/* Tabs */}
-              <div className="border-b border-[#767676]/40">
-                <div className="flex gap-8">
-                  <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
-                    Description
-                  </button>
-                </div>
-              </div>
-
-              {/* Description */}
-              
-              {/* Book Condition */}
+              {/* Book Condition - moved above description */}
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <h3 className="text-black text-sm font-medium mb-2">Book Condition</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -284,12 +271,10 @@ const Detail = () => {
                       {book.condition || "Not specified"}
                     </span>
                   </div>
-                  
                   <div>
                     <span className="text-black font-medium">Description</span>
                   </div>
                   <div className="text-black">{book.condition_description || "No description available"}</div>
-                  
                   <div>
                     <span className="text-black font-medium">Last Updated</span>
                   </div>
@@ -297,6 +282,16 @@ const Detail = () => {
                 </div>
               </div>
 
+              {/* Tabs */}
+              <div className="border-b border-[#767676]/40">
+                <div className="flex gap-8">
+                  <button className="text-[#2e3105] text-sm font-medium pb-2 border-b-2 border-[#2e3105]">
+                    Description
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
               <div className="py-4 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
                   {book.description 
@@ -396,13 +391,17 @@ const Detail = () => {
                   Available now
                 </span>
                 <span className="text-black text-xs font-normal ml-auto">
-                  Total stock:{" "}
+                  Total stock: {" "}
                   <span className="text-[#ecb43c] font-normal">5 left</span>
                 </span>
               </div>
 
               <div className="space-y-3 mt-6">
-                <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
+                <button
+                  className={`w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl ${memberStatus === 'guest' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={memberStatus === 'guest'}
+                  title={memberStatus === 'guest' ? 'You must be a member to borrow books. Please register or log in.' : ''}
+                >
                   Borrow Book
                 </button>
                 <button className="w-full h-[35px] border border-[#2e3105] text-[#2e3105] text-xs rounded-2xl">

@@ -226,6 +226,11 @@ const DetailStaff = () => {
                   <h1 className="text-black text-lg font-extrabold font-manrope mb-2">
                     {book.book_title}
                   </h1>
+                  {book.price !== undefined && (
+                    <div className="text-[#2e3105] text-sm font-semibold mb-2" style={{ fontWeight: 500 }}>
+                      {book.price === 0 ? "Free" : `Rp ${parseInt(book.price).toLocaleString('id-ID')}`}
+                    </div>
+                  )}
                   
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center">
@@ -243,27 +248,20 @@ const DetailStaff = () => {
                     </div>
                   </div>
                 </div>
-                
-                {/* Price - Moved to upper section */}
-                {book.price !== undefined && (
-                  <div className="bg-[#2e3105]/10 px-4 py-2 rounded-lg">
-                    <p className="text-[#2e3105] text-lg font-bold">
-                      {book.price === 0 ? "Free" : `Rp ${parseInt(book.price).toLocaleString('id-ID')}`}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Themes */}
               {book.themes && book.themes.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {book.themes.map((theme) => (
-                    <span 
-                      key={theme} 
-                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666]"
+                    <button
+                      key={theme}
+                      className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666] transition-colors hover:bg-[#2e3105]/30 hover:text-[#232310] active:bg-[#2e3105]/50 focus:outline-none focus:ring-2 focus:ring-[#2e3105]"
+                      onClick={() => router.push(`/staff/dashboard/book-management/catalog?theme=${encodeURIComponent(theme)}`)}
+                      type="button"
                     >
                       {theme}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}

@@ -2,12 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { FaFire, FaStar, FaUser, FaRegCalendarAlt, FaBook, FaClock, FaChevronRight, FaBookOpen, FaAward } from 'react-icons/fa';
 import { AiFillStar } from 'react-icons/ai';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { createClient } from '@/app/supabase/client';
 
 // Dummy images for the hero carousel and books with placeholder gradients
 const heroImages = [
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2NmFkMTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojOGI3M2NmO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDEpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAxPC90ZXh0Pgo8L3N2Zz4K',
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y2OWQ2OTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZmY4YTgwO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDIpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAyPC90ZXh0Pgo8L3N2Zz4K',
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzM0ZDBjMTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNDBkNGNmO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDMpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAzPC90ZXh0Pgo8L3N2Zz4K'
+  '/tr19-dashboard.jpg',
+  '/tr19-dashboard(2).jpg',
+  '/tr19-dashboard(3).jpg',
 ];
 
 const recommendedBooks = [
@@ -21,7 +24,7 @@ const recommendedBooks = [
   },
   { 
     id: 2, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMiIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y2OWQ2OTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmZjhhODA7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzIpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgMjwvdGV4dD48L3N2Zz4=',
+    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMiIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y2OWQ2OTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZmY4YTgwO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDIpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAyPC90ZXh0Pgo8L3N2Zz4K',
     title: 'Atomic Habits', 
     author: 'James Clear',
     rating: 4.9,
@@ -29,15 +32,11 @@ const recommendedBooks = [
   },
   { 
     id: 3, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzM0ZDBjMTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0MGQ0Y2Y7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzMpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgMzwvdGV4dD48L3N2Zz4=',
-    title: 'Dune', 
-    author: 'Frank Herbert',
-    rating: 4.7,
-    genre: 'Sci-Fi'
+    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzM0ZDBjMTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNDBkNGNmO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDMpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAzPC90ZXh0Pgo8L3N2Zz4K'
   },
   { 
     id: 4, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y1OWU0MjtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmZjkzMDA7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzQpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNDwvdGV4dD48L3N2Zz4=',
+    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y1OWU0MjtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZmY5MzAwO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzQpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNDwvdGV4dD48L3N2Zz4=',
     title: 'The Seven Moons', 
     author: 'Rebecca Ross',
     rating: 4.6,
@@ -45,7 +44,7 @@ const recommendedBooks = [
   },
   { 
     id: 5, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzllNGVkZjtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNjMDg0ZmM7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzUpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNTwvdGV4dD48L3N2Zz4=',
+    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzllNGVkZjtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojYzA4NGZjO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzUpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNTwvdGV4dD48L3N2Zz4=',
     title: 'Digital Minimalism', 
     author: 'Cal Newport',
     rating: 4.5,
@@ -56,8 +55,8 @@ const recommendedBooks = [
 const quickActions = [
   { id: 1, title: 'My Loans', icon: 'BookOpen', color: 'from-blue-500 to-blue-600', count: 3 },
   { id: 2, title: 'Reserve Book', icon: 'Calendar', color: 'from-purple-500 to-purple-600', count: null },
-  { id: 3, title: 'Membership', icon: 'User', color: 'from-green-500 to-green-600', count: null },
-  { id: 4, title: 'Pay Fines', icon: 'Clock', color: 'from-red-500 to-red-600', count: '$12.50' },
+  { id: 3, title: 'Reserve a Session', icon: 'Clock', color: 'from-red-500 to-red-600', count: null },
+  { id: 4, title: 'Membership', icon: 'User', color: 'from-green-500 to-green-600', count: null },
 ];
 
 const recentActivity = [
@@ -89,6 +88,29 @@ const activityIconMap = {
 export default function UserDashboard() {
   const [currentHero, setCurrentHero] = useState(0);
   const [favorites, setFavorites] = useState(new Set());
+  const [firstName, setFirstName] = useState('there');
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchFirstName = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const { data, error } = await supabase
+          .from('visitors')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+        if (data && data.name) {
+          setFirstName(data.name.split(' ')[0]);
+        }
+      } catch (err) {
+        setFirstName('there');
+      }
+    };
+    fetchFirstName();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -110,7 +132,7 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br bg-[#5f5f2c]">
+    <div className="min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
       {/* Hero Carousel */}
       <div className="relative w-full h-[400px] overflow-hidden">
         {heroImages.map((image, index) => (
@@ -121,22 +143,20 @@ export default function UserDashboard() {
               index < currentHero ? '-translate-x-full' : 'translate-x-full'
             }`}
           >
-            <img
+            <Image
               src={image}
               alt={`Hero ${index + 1}`}
-              className="w-full h-full object-cover"
+              fill
+              style={{ objectFit: 'cover' }}
+              priority={index === 0}
+              sizes="(max-width: 768px) 100vw, 1200px"
             />
           </div>
         ))}
 
-        {/* Improved seamless gradient transition: taller, starts higher, overlaps bottom */}
-        <div className="pointer-events-none absolute left-0 w-full" style={{bottom: '-1px', height: '100px'}}>
-          <div className="w-full h-full bg-gradient-to-b from-transparent via-[#5f5f2c]/50 to-[#5f5f2c]" />
-        </div>
-
         {/* Welcome text */}
         <div className="absolute left-8 bottom-8 md:left-16 md:bottom-12 z-10">
-          <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back, <span className="text-[#d9e67b]">Sarah!</span></h1>
+          <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back, <span className="text-[#d9e67b]">{firstName}!</span></h1>
           <p className="text-base text-white/90 max-w-xl drop-shadow">Discover new worlds, continue your reading journey, and manage your library activities with ease.</p>
         </div>
         
@@ -157,8 +177,8 @@ export default function UserDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick Actions */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-            <FaFire className="mr-2" />
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center font-manrope">
+            <FaFire className="mr-2 text-white" />
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -174,22 +194,26 @@ export default function UserDashboard() {
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
                 <FaRegCalendarAlt className="text-white text-lg" />
               </div>
-              <span className="font-semibold text-slate-800 text-sm">Reserve Book</span>
+              <span className="font-semibold text-slate-800 text-sm">Loan a Book</span>
               <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
             </button>
-            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60">
+            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60"
+              onClick={() => router.push('/user/dashboard/reservation/session-reservation')}
+            >
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
+                <FaClock className="text-white text-lg" />
+              </div>
+              <span className="font-semibold text-slate-800 text-sm">Reserve a Session</span>
+              <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            </button>
+            <button 
+              className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60"
+              onClick={() => router.push('/user/dashboard/membership')}
+            >
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
                 <FaUser className="text-white text-lg" />
               </div>
               <span className="font-semibold text-slate-800 text-sm">Membership</span>
-              <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
-            </button>
-            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
-                <FaClock className="text-white text-lg" />
-              </div>
-              <span className="font-semibold text-slate-800 text-sm">Pay Fines</span>
-              <span className="ml-2 text-xs text-slate-600 font-medium">$12.50</span>
               <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
             </button>
           </div>
@@ -198,8 +222,8 @@ export default function UserDashboard() {
         {/* Personalized Recommendation */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center">
-              <FaStar className="mr-2 text-yellow-400" />
+            <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
+              <FaStar className="mr-2 text-white" />
               Personalized Recommendation
             </h2>
             <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center">
@@ -247,8 +271,8 @@ export default function UserDashboard() {
         {/* Interaction Based Recommendation */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center">
-              <FaStar className="mr-2 text-yellow-400" />
+            <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
+              <FaStar className="mr-2 text-white" />
               Interaction Based Recommendation
             </h2>
             <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center">
@@ -297,8 +321,8 @@ export default function UserDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Reservations */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <span className="text-purple-600">📅</span>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+              <FaRegCalendarAlt className="mr-2 text-white" />
               Upcoming Reservations
             </h2>
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
@@ -337,8 +361,8 @@ export default function UserDashboard() {
 
           {/* Current Loans */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <span className="text-blue-600">📚</span>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+              <FaBookOpen className="mr-2 text-white" />
               Current Loans
             </h2>
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
@@ -386,8 +410,8 @@ export default function UserDashboard() {
 
         {/* Recent Activity */}
         <section>
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <span className="text-green-600">⌛</span>
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+            <FaClock className="mr-2 text-white" />
             Recent Activity
           </h2>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
