@@ -116,6 +116,7 @@ export default function UserDashboard() {
   const [loans, setLoans] = useState([]);
   const [loadingLoans, setLoadingLoans] = useState(true);
   const [errorLoans, setErrorLoans] = useState(null);
+  const [loanCovers, setLoanCovers] = useState({});
   const [firstName, setFirstName] = useState('there');
   const router = useRouter();
 
@@ -264,9 +265,29 @@ export default function UserDashboard() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal mengambil data peminjaman');
         setLoans(data.loans || []);
+        // Ambil cover untuk setiap buku yang sedang dipinjam
+        const onGoingLoans = (data.loans || []).filter(l => l.status === 'On Going');
+        const coverPromises = onGoingLoans.map(async (loan) => {
+          if (!loan.book_id1) return [loan.id, null, loan.book_title1];
+          try {
+            const res = await fetch(`/api/books/${loan.book_id1}`);
+            if (!res.ok) return [loan.id, null, loan.book_title1];
+            const bookData = await res.json();
+            return [loan.id, bookData.book?.cover_image || null, loan.book_title1];
+          } catch {
+            return [loan.id, null, loan.book_title1];
+          }
+        });
+        const coverResults = await Promise.all(coverPromises);
+        const coverMap = {};
+        coverResults.forEach(([loanId, cover, title]) => {
+          coverMap[loanId] = { cover, title };
+        });
+        setLoanCovers(coverMap);
       } catch (err) {
         setErrorLoans(err.message || 'Gagal memuat data peminjaman.');
         setLoans([]);
+        setLoanCovers({});
       } finally {
         setLoadingLoans(false);
       }
@@ -420,7 +441,7 @@ export default function UserDashboard() {
             <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
               <FaStar className="mr-2 text-white" />
               {isPopularGenre
-                ? 'Rekomendasi Genre Populer'
+                ? 'Popular Genre Recommendations'
                 : `Similar to your last borrowed book${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
             </h2>
             <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
@@ -543,7 +564,21 @@ export default function UserDashboard() {
                       onClick={() => router.push('/user/dashboard/books/history')}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-14 bg-gradient-to-b from-blue-500 to-blue-600 rounded"></div>
+                        {/* Cover Buku */}
+                        <div className="w-10 h-14 rounded overflow-hidden bg-[#eff0c3] flex items-center justify-center">
+                          {loanCovers[loan.id]?.cover ? (
+                            <img
+                              src={loanCovers[loan.id].cover}
+                              alt={loan.book_title1 + ' Cover'}
+                              className="w-full h-full object-cover"
+                              onError={e => { e.target.src = 'https://placehold.co/80x112'; }}
+                            />
+                          ) : (
+                            <span className="text-[#52570d] font-bold text-lg select-none">
+                              {getBookInitials(loanCovers[loan.id]?.title || loan.book_title1)}
+                            </span>
+                          )}
+                        </div>
                         <div>
                           <h4 className="font-semibold text-slate-800 text-sm">{loan.book_title1}</h4>
                           <p className="text-xs text-slate-600">Due: {formatDateDMY(loan.loan_due)}</p>

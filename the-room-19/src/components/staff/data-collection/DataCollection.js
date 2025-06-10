@@ -417,27 +417,27 @@ export default function DataCollection() {
   };
 
   // Update useEffect untuk mengambil data peminjaman dari API
-  useEffect(() => {
-    const fetchLoans = async () => {
-      try {
-        const response = await fetch('/api/loans');
-        const data = await response.json();
+  const fetchLoans = async () => {
+    try {
+      const response = await fetch('/api/loans');
+      const data = await response.json();
+      
+      if (data && data.loans) {
+        // Sortir data berdasarkan created_at (terbaru terlebih dahulu)
+        const sortedData = data.loans.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA;
+        });
         
-        if (data && data.loans) {
-          // Sortir data berdasarkan created_at (terbaru terlebih dahulu)
-          const sortedData = data.loans.sort((a, b) => {
-            const dateA = new Date(a.created_at);
-            const dateB = new Date(b.created_at);
-            return dateB - dateA;
-          });
-          
-          setBorrowingBookData(sortedData);
-        }
-      } catch (error) {
-        console.error('Error fetching loans data:', error);
+        setBorrowingBookData(sortedData);
       }
-    };
-    
+    } catch (error) {
+      console.error('Error fetching loans data:', error);
+    }
+  };
+
+  useEffect(() => {
     if (activeTab === 'borrowing') {
       fetchLoans();
     }
@@ -964,6 +964,14 @@ export default function DataCollection() {
                   />
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                 </div>
+                {/* Tombol Refresh */}
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-[#2e3105] hover:bg-[#3e4310] text-white rounded-xl text-xs font-['Poppins']"
+                  onClick={fetchLoans}
+                  type="button"
+                >
+                  Refresh
+                </button>
               </div>
               <div className="min-w-[768px] overflow-x-auto">
                 {getTableData(borrowingBookData, borrowingBookCurrentPage, entriesPerPage, borrowingBookSearchQuery).length === 0 ? (

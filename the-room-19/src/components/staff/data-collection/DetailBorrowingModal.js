@@ -155,7 +155,7 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
         </div>
 
         <div className="mt-4 text-xs">
-          <h3 className="text-[#111010] font-semibold mb-2">📦 Book(s) Borrowed</h3>
+          <h3 className="text-[#111010] font-semibold mb-2">📦 Book Borrowed</h3>
           <div className="space-y-2 border border-gray-100 p-3 rounded-lg bg-gray-50">
             <div className="flex justify-between">
               <span className="text-gray-700">{borrowingData.book1}</span>
