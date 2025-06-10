@@ -125,46 +125,38 @@ export default function PaymentFinishPage() {
   const statusInfo = getStatusInfo(status);
 
   return (
-    <div className="p-6">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
-        <div className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#5f5f2c]">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 border border-[#e5e5e5] font-['Poppins']">
+        <div className="flex flex-col items-center text-center">
           {/* Status Icon */}
-          <div className="flex justify-center mb-4">
-            <div className={`rounded-full ${statusInfo.bgColor} p-3`}>
-              {statusInfo.icon}
+          <div className={`rounded-full ${statusInfo.bgColor} p-3 mb-3`}>
+            {statusInfo.icon}
+          </div>
+          {/* Status Message */}
+          <h2 className={`text-lg font-semibold ${statusInfo.color} mb-2 font-['Poppins']`}>{statusInfo.message}</h2>
+          <p className="text-[#666] text-xs font-['Poppins'] mb-3">
+            Reservasi Anda telah dikonfirmasi.<br />Status pembayaran: <span className="font-semibold capitalize">{status}</span>.
+          </p>
+          <div className="w-full flex flex-col gap-1 mb-4">
+            <div className="flex justify-between text-xs text-[#888] font-['Poppins']">
+              <span className="font-medium">Payment ID</span>
+              <span>{orderId}</span>
+            </div>
+            <div className="flex justify-between text-xs text-[#888] font-['Poppins']">
+              <span className="font-medium">Payment Status</span>
+              <span className="capitalize">{status}</span>
+            </div>
+            <div className="flex justify-between text-xs text-[#888] font-['Poppins']">
+              <span className="font-medium">Payment Method</span>
+              <span>{paymentMethod || '-'}</span>
             </div>
           </div>
-
-          {/* Status Message */}
-          <h2 className={`text-2xl font-bold ${statusInfo.color} mb-4`}>
-            {statusInfo.message}
-          </h2>
-          
-          <p className="text-gray-600 mb-4">
-            Your reservation has been confirmed and payment status is{' '}
-            <span className="font-medium capitalize">{status}</span>.
-          </p>
-          
-          {/* Order ID */}
-          <p className="text-sm text-gray-500 mb-2">
-            Payment ID: {orderId}
-          </p>
-          <p className="text-sm text-gray-500 mb-2">
-            Payment Status: {status}
-          </p>
-          <p className="text-sm text-gray-500 mb-6">
-            Payment Method: {paymentMethod || '-'}
-          </p>
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <Link
-              href="/user/dashboard/books/history?refresh=1"
-              className="inline-block bg-[#111010] text-white px-6 py-2 rounded-lg w-full hover:bg-gray-900 transition-colors"
-            >
-              View History Page
-            </Link>
-          </div>
+          <Link
+            href="/user/dashboard/books/history?refresh=1"
+            className="inline-block bg-[#2e3105] text-white text-xs font-['Poppins'] px-6 py-2 rounded-lg w-full hover:bg-[#3e4310] transition-colors font-medium shadow"
+          >
+            View My History
+          </Link>
         </div>
       </div>
     </div>

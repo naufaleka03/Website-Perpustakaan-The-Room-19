@@ -692,7 +692,7 @@ const Detail = () => {
       <div className="mt-2 px-4 pb-10">
         <h2 className="text-lg font-bold text-black flex items-center mb-6">
           {/* <FaStar className="mr-2 text-yellow-400" /> */}
-          Rekomendasi Buku Mirip
+          Similar Book Recommendations
         </h2>
 
         {loadingRekom ? (

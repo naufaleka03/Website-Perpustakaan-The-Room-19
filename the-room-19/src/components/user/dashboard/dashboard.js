@@ -420,7 +420,7 @@ export default function UserDashboard() {
             <h2 className="text-2xl font-bold text-white flex items-center">
               <FaStar className="mr-2 text-yellow-400" />
               {isPopularGenre
-                ? 'Rekomendasi Genre Populer'
+                ? 'Popular Genre Recommendations'
                 : `Similar to your last borrowed book${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
             </h2>
             <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
