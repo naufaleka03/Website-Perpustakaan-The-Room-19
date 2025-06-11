@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/app/supabase/client';
 import { IoIosArrowDown } from 'react-icons/io';
@@ -35,6 +35,14 @@ export default function Questionnaire() {
     readingGoals: '',
     dislikedGenres: [],
   });
+  const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  useEffect(() => {
+    // Simulate loading user data (replace with real fetch if needed)
+    setTimeout(() => setLoading(false), 800);
+  }, []);
 
   const bookTypes = [
     { value: 'fiction', label: 'Fiction' },
@@ -151,8 +159,38 @@ export default function Questionnaire() {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.ageGroup) newErrors.ageGroup = 'Age group is required';
+    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
+    if (!formData.educationLevel) newErrors.educationLevel = 'Education level is required';
+    if (!formData.state.trim()) newErrors.state = 'State is required';
+    if (!formData.city.trim()) newErrors.city = 'City is required';
+    if (!formData.preferredLanguage) newErrors.preferredLanguage = 'Preferred language is required';
+    if (formData.favoriteGenres.length === 0) newErrors.favoriteGenres = 'Select at least one favorite genre';
+    if (formData.preferredBookTypes.length === 0) newErrors.preferredBookTypes = 'Select at least one book type';
+    if (formData.preferredFormats.length === 0) newErrors.preferredFormats = 'Select at least one format';
+    if (!formData.readingFrequency) newErrors.readingFrequency = 'Reading frequency is required';
+    if (!formData.readingTimeAvailability) newErrors.readingTimeAvailability = 'Reading time availability is required';
+    if (formData.favoriteBooks.length === 0) newErrors.favoriteBooks = 'Add at least one favorite book';
+    if (!formData.readerType) newErrors.readerType = 'Select your reader type';
+    if (formData.desiredFeelings.length === 0) newErrors.desiredFeelings = 'Select at least one desired feeling';
+    if (!formData.readingHabits.trim()) newErrors.readingHabits = 'Describe your reading habits';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      const firstErrorField = Object.keys(errors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    setSubmitStatus(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
@@ -179,23 +217,35 @@ export default function Questionnaire() {
         disliked_genres: formData.dislikedGenres
       };
 
-      const { error } = await supabase
-        .from('preferences')
-        .upsert([preferencesData], {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
-
-      router.push('/user/dashboard/profile');
+      const res = await fetch('/api/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferencesData),
+      });
+      if (!res.ok) throw new Error('Failed to save preferences');
+      setSubmitStatus('success');
+      setTimeout(() => router.push('/user/dashboard/profile'), 2000);
     } catch (error) {
-      console.error('Error saving preferences:', error);
-      alert('Failed to save preferences. Please try again.');
+      setSubmitStatus('error');
     }
   };
 
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c] flex items-center justify-center">
+        <div className="max-w-[600px] w-full mx-auto p-8 bg-white rounded-xl shadow-md animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-6"></div>
+          <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c] p-8">
       <div className="max-w-[1200px] mx-auto">
         <h1 className="text-2xl font-semibold text-white mb-6">Reading Preferences Questionnaire</h1>
         
@@ -208,6 +258,7 @@ export default function Questionnaire() {
                 <label className="block text-sm font-medium text-[#666666] mb-1">Age Group</label>
                 <div className="relative group">
                   <select
+                    name="ageGroup"
                     value={formData.ageGroup}
                     onChange={(e) => handleSelectChange(e, 'ageGroup')}
                     className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
@@ -224,6 +275,8 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
+                {errors.ageGroup && <p className="text-red-500 text-xs mt-1">{errors.ageGroup}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select your age group for demographic insights.</p>
               </div>
 
               <div>
@@ -235,6 +288,7 @@ export default function Questionnaire() {
                   className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                   placeholder="Enter your occupation"
                 />
+                {errors.occupation && <p className="text-red-500 text-xs mt-1">{errors.occupation}</p>}
               </div>
 
               <div>
@@ -256,6 +310,7 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
+                {errors.educationLevel && <p className="text-red-500 text-xs mt-1">{errors.educationLevel}</p>}
               </div>
 
               <div className="flex gap-4">
@@ -268,6 +323,7 @@ export default function Questionnaire() {
                     className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                     placeholder="Enter your state"
                   />
+                  {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm text-[#666666] mb-1">City</label>
@@ -278,6 +334,7 @@ export default function Questionnaire() {
                     className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                     placeholder="Enter your city"
                   />
+                  {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
                 </div>
               </div>
 
@@ -298,6 +355,7 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
+                {errors.preferredLanguage && <p className="text-red-500 text-xs mt-1">{errors.preferredLanguage}</p>}
               </div>
             </div>
           </div>
@@ -321,6 +379,7 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
+                {errors.preferredBookTypes && <p className="text-red-500 text-xs mt-1">{errors.preferredBookTypes}</p>}
               </div>
 
               <div>
@@ -338,6 +397,7 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
+                {errors.preferredFormats && <p className="text-red-500 text-xs mt-1">{errors.preferredFormats}</p>}
               </div>
                 
               <div>
@@ -384,6 +444,7 @@ export default function Questionnaire() {
                     </div>
                   </div>
                 </div>
+                {errors.favoriteGenres && <p className="text-red-500 text-xs mt-1">{errors.favoriteGenres}</p>}
               </div>
 
               <div>
@@ -404,6 +465,7 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
+                {errors.readingFrequency && <p className="text-red-500 text-xs mt-1">{errors.readingFrequency}</p>}
               </div>
 
               <div>
@@ -424,6 +486,7 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
+                {errors.readingTimeAvailability && <p className="text-red-500 text-xs mt-1">{errors.readingTimeAvailability}</p>}
               </div>
 
               <div>
@@ -457,6 +520,7 @@ export default function Questionnaire() {
                     />
                   )}
                 </div>
+                {errors.favoriteBooks && <p className="text-red-500 text-xs mt-1">{errors.favoriteBooks}</p>}
               </div>
             </div>
           </div>
@@ -482,6 +546,7 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
+                {errors.readerType && <p className="text-red-500 text-xs mt-1">{errors.readerType}</p>}
               </div>
 
               <div>
@@ -499,6 +564,7 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
+                {errors.desiredFeelings && <p className="text-red-500 text-xs mt-1">{errors.desiredFeelings}</p>}
               </div>
 
               <div>
@@ -509,6 +575,7 @@ export default function Questionnaire() {
                   className="w-full h-[100px] rounded-lg border border-[#666666]/30 px-4 py-2 text-sm text-[#666666]"
                   placeholder="Tell us about your reading habits and preferences..."
                 />
+                {errors.readingHabits && <p className="text-red-500 text-xs mt-1">{errors.readingHabits}</p>}
               </div>
             </div>
           </div>
@@ -527,6 +594,7 @@ export default function Questionnaire() {
                   placeholder="Enter your reading goal"
                   min="0"
                 />
+                {errors.readingGoals && <p className="text-red-500 text-xs mt-1">{errors.readingGoals}</p>}
               </div>
 
               <div>
@@ -573,6 +641,7 @@ export default function Questionnaire() {
                     </div>
                   </div>
                 </div>
+                {errors.dislikedGenres && <p className="text-red-500 text-xs mt-1">{errors.dislikedGenres}</p>}
               </div>
             </div>
           </div>
@@ -581,11 +650,17 @@ export default function Questionnaire() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="h-[40px] bg-[#2e3105] text-white rounded-3xl px-6 text-sm font-medium transition-all duration-300 hover:bg-[#3e4310]"
+              className="h-[40px] bg-[#2e3105] text-white rounded-3xl px-6 text-sm font-medium transition-all duration-300 hover:bg-[#404615]"
             >
               Save Preferences
             </button>
           </div>
+          {submitStatus === 'success' && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded text-green-800">Preferences saved successfully!</div>
+          )}
+          {submitStatus === 'error' && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded text-red-800">Failed to save preferences. Please try again.</div>
+          )}
         </form>
       </div>
     </div>
