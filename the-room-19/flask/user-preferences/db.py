@@ -1,0 +1,26 @@
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+
+class Preference(db.Model):
+    __tablename__ = 'preferences'
+    id = db.Column(db.String, primary_key=True)
+    user_id = db.Column(db.String)
+    age_group = db.Column(db.String)
+    occupation = db.Column(db.String)
+    education_level = db.Column(db.String)
+    state = db.Column(db.String)
+    city = db.Column(db.String)
+    preferred_language = db.Column(db.String)
+    reading_frequency = db.Column(db.String)
+    reading_time_availability = db.Column(db.String)
+    reader_type = db.Column(db.String)
+    reading_goals = db.Column(db.Integer)
+    reading_habits = db.Column(db.Text)
+    favorite_genres = db.Column(db.ARRAY(db.String))
+    preferred_book_types = db.Column(db.ARRAY(db.String))
+    preferred_formats = db.Column(db.ARRAY(db.String))
+    favorite_books = db.Column(db.ARRAY(db.String))
+    desired_feelings = db.Column(db.ARRAY(db.String))
+    disliked_genres = db.Column(db.ARRAY(db.String))
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)

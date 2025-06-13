@@ -1,8 +1,19 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from db import db  # <-- import db from db.py
 from recommendation import get_recommendations_for_user
 
+
 app = Flask(__name__)
+
+load_dotenv()  # Loads from .env by default
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+db.init_app(app)
 CORS(app)
 
 @app.route('/user-preferences/recommendation', methods=['GET'])
