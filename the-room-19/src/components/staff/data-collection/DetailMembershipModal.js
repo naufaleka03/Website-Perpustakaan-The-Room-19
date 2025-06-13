@@ -202,7 +202,7 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
         title: <span className="text-[#666666]">Confirm Approval</span>,
         message: 'Are you sure you want to approve this membership application? This action cannot be undone.',
         confirmText: 'Approve',
-        confirmButtonClass: 'px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700'
+        confirmButtonClass: 'px-3 py-1.5 bg-[#2e3105] text-white rounded-lg text-sm hover:bg-[#404615]'
       });
     } else if (newStatus === 'revision') {
       if (!statusUpdate.notes.trim()) {
