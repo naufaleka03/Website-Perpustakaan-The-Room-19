@@ -190,7 +190,7 @@ export default function SessionReservation() {
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Reservation Type Selector */}
-            <div className="flex justify-center gap-4 mb-4">
+            <div className="flex justify-center gap-2 mb-4">
               <button
                 type="button"
                 onClick={() => handleReservationTypeChange("individual")}

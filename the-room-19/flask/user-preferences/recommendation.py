@@ -5,6 +5,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 import ast
 from db import Preference
 
+# Load the full book dataset for enrichment
+books_df_full = pd.read_csv('data/books_dataset.csv', delimiter=';')
+books_df_full['id'] = books_df_full['id'].astype(str).str.strip()  # Ensure IDs are clean
+books_df_full.columns = books_df_full.columns.str.strip()  # Remove spaces from column names
+
 # --- Data Loading and Preprocessing ---
 
 def load_user_data():
@@ -184,10 +189,6 @@ user_vector = (
 )
 book_vectors = books_vector.drop(columns=['id'], errors='ignore').values.astype(float)
 
-print("user_vector shape:", user_vector.shape)
-print("book_vectors shape:", book_vectors.shape)
-print("book_feature_columns:", book_feature_columns)
-
 similarity_matrix = cosine_similarity(users_vector.values, books_vector.values)
 
 similarity_df = pd.DataFrame(
@@ -196,17 +197,15 @@ similarity_df = pd.DataFrame(
     columns=books_vector.index
 )
 
-print("users_vector shape:", users_vector.shape)
+print("\nusers_vector shape:", users_vector.shape)
 print("books_vector shape:", books_vector.shape)
-print("similarity_matrix shape:", similarity_df.shape)
-print("users_vector.index:", users_vector.index)
-print("books_vector.index:", books_vector.index)
+print("similarity_matrix shape:", similarity_df.shape, "\n")
 
 def get_recommendations_for_user(pref_id, top_n=5):
-    print(f"[LOG] Received pref_id: {pref_id}")
+    print(f"\n[LOG] Received pref_id: {pref_id}\n")
     user_prefs = get_user_preferences_from_db(pref_id)
     if not user_prefs:
-        print(f"[LOG] No user found for id: {pref_id}")
+        print(f"[LOG] No user found for id: {pref_id}\n")
         return []
 
     print(f"[LOG] Raw user_prefs from DB: {user_prefs}")
@@ -229,7 +228,7 @@ def get_recommendations_for_user(pref_id, top_n=5):
         'desired_feelings': user_prefs.get('desired_feelings', []),
         'disliked_genres': user_prefs.get('disliked_genres', []),
     }
-    print(f"[LOG] user_row before DataFrame: {user_row}")
+    print(f"[LOG] user_row before DataFrame: {user_row}\n")
 
     # Create a DataFrame for this user
     user_df_db = pd.DataFrame([user_row])
@@ -282,7 +281,7 @@ def get_recommendations_for_user(pref_id, top_n=5):
 
     # Align columns with user_features_df
     user_features_db = user_df_db.reindex(columns=user_features_df.columns, fill_value=0)
-    print(f"[LOG] user_features_db columns: {user_features_db.columns.tolist()}")
+    print(f"[LOG] user_features_db columns: {user_features_db.columns.tolist()}\n")
 
     # Drop 'id' from both, and reindex user to match book columns
     book_feature_columns = [col for col in books_vector.columns if col != 'id']
@@ -301,11 +300,27 @@ def get_recommendations_for_user(pref_id, top_n=5):
     top_indices = sim_scores.argsort()[::-1][:top_n]
     top_book_ids = books_vector.index[top_indices]
 
-    recommended_books = [
-        {"book_id": book_id, "book_title": book_titles.get(book_id, "Unknown Title")}
-        for book_id in top_book_ids
-    ]
-    print(f"[LOG] Recommendations: {recommended_books}")
+    recommended_books = []
+    for book_id in top_book_ids:
+        book_id = str(book_id).strip()
+        book_row = books_df_full[books_df_full['id'] == book_id]
+        if not book_row.empty:
+            book = book_row.iloc[0]
+            recommended_books.append({
+                "book_id": book_id,
+                "book_title": book.get("book_title", "Unknown Title"),
+                "author": book.get("author", "-"),
+                "genre": book.get("genre", "-")
+            })
+        else:
+            recommended_books.append({
+                "book_id": book_id,
+                "book_title": "Unknown Title",
+                "author": "-",
+                "genre": "-"
+            })
+
+    print(f"[LOG] Final Recommendations: {recommended_books}\n")
     return recommended_books
 
 def get_user_preferences_from_db(pref_id):

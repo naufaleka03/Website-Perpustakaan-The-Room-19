@@ -269,6 +269,7 @@ export default function UserDashboard() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal mengambil rekomendasi personal');
         setPersonalizedRekom(data.recommendations || []);
+        console.log('Personalized Recommendations:', data.recommendations);
       } catch (err) {
         setErrorPersonalized(err.message || 'Gagal memuat rekomendasi.');
         setPersonalizedRekom([]);
@@ -341,7 +342,9 @@ export default function UserDashboard() {
               <span className="ml-2 text-xs text-slate-600 font-medium">{loans.length}</span>
               <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
             </button>
-            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60">
+            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60"
+              onClick={() => router.push('/user/dashboard/books/catalog')}
+            >
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
                 <FaRegCalendarAlt className="text-white text-lg" />
               </div>
@@ -414,6 +417,10 @@ export default function UserDashboard() {
                     <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-[#d9e67b] transition-colors min-h-[40px] max-h-[40px] overflow-hidden">
                       {rec.book_title}
                     </h3>
+                    <p className="text-slate-50 text-xs truncate mt-1">{rec.author}</p>
+                    <span className="mt-1 px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full w-fit">
+                      {rec.genre || rec.genre1 || '-'}
+                    </span>
                   </div>
                 </Link>
               ))
@@ -537,11 +544,11 @@ export default function UserDashboard() {
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
               <div className="space-y-4">
                 {loadingLoans ? (
-                  <div className="text-center text-slate-500 py-8">Memuat data peminjaman...</div>
+                  <div className="text-center text-slate-500 py-8">Loading book loand data...</div>
                 ) : errorLoans ? (
                   <div className="text-center text-red-500 py-8">{errorLoans}</div>
                 ) : loans.filter(l => l.status === 'On Going').length === 0 ? (
-                  <div className="text-center text-slate-400 py-8">Tidak ada peminjaman aktif.</div>
+                  <div className="text-center text-slate-400 py-8">There is no active book loan.</div>
                 ) : (
                   loans.filter(l => l.status === 'On Going').map((loan) => (
                     <div

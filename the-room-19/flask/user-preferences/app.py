@@ -16,17 +16,12 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 db.init_app(app)
 CORS(app)
 
-@app.route('/user-preferences/recommendation', methods=['GET'])
-def recommend():
+@app.route('/user-preferences/recommendation')
+def personalized_recommendation():
     pref_id = request.args.get('id')
-    print('Received pref_id:', pref_id)
-    if not pref_id:
-        return jsonify({'error': 'id is required'}), 400
-    try:
-        recs = get_recommendations_for_user(pref_id)
-        return jsonify({'recommendations': recs})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    top_n = int(request.args.get('top_n', 5))  # <-- get top_n from query string, default 5
+    recommendations = get_recommendations_for_user(pref_id, top_n=top_n)
+    return jsonify({"recommendations": recommendations})
 
 if __name__ == '__main__':
     app.run(port=5001)
