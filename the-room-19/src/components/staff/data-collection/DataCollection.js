@@ -437,8 +437,10 @@ export default function DataCollection() {
     }
   };
 
+  // PATCH ke /api/loans setiap kali tab borrowing diakses
   useEffect(() => {
     if (activeTab === 'borrowing') {
+      fetch('/api/loans', { method: 'PATCH' });
       fetchLoans();
     }
   }, [activeTab]);
@@ -494,6 +496,21 @@ export default function DataCollection() {
       }
     } catch (error) {
       console.error('Error updating book status:', error);
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Returned":
+        return "bg-green-100 text-green-800";
+      case "On Going":
+        return "bg-yellow-100 text-yellow-800";
+      case "Due Date":
+        return "bg-yellow-100 text-yellow-800"; 
+      case "Over Due":
+        return "bg-red-100 text-red-800"; 
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -985,8 +1002,9 @@ export default function DataCollection() {
                         <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
                         <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
                         <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Email</th>
                         <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Borrowing Date</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Return Date</th>
                         <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
                         <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                       </tr>
@@ -1014,21 +1032,12 @@ export default function DataCollection() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.email}</td>
                             <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_start)}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_due)}</td>
                             <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
-                              <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
-                                status === 'returned'
-                                  ? 'text-green-800 bg-green-100'
-                                  : status === 'overdue'
-                                  ? 'text-red-800 bg-red-100'
-                                  : 'text-yellow-800 bg-yellow-100'
-                              }`}>
-                                {status === 'returned'
-                                  ? 'Returned'
-                                  : status === 'overdue'
-                                  ? 'Over Due'
-                                  : 'On Going'}
+                              <span className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${getStatusStyle(item.status)}`}>
+                                {item.status}
                               </span>
                             </td>
                             <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">

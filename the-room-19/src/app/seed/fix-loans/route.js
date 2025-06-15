@@ -36,6 +36,8 @@ async function fixLoansTable() {
         loan_due DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '7 days'),
         status VARCHAR(50) DEFAULT 'On Going' NOT NULL,
         extend_count INTEGER DEFAULT 0 NOT NULL,
+        fine BOOLEAN DEFAULT FALSE,
+        fine_amount NUMERIC(10, 2) DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `;

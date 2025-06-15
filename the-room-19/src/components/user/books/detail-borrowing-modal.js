@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoMdClose } from 'react-icons/io';
 import PaymentSummaryExtend from '@/components/payment/payment-summary-extend';
+import PaymentSummaryFine from '@/components/payment/payment-summary-fine';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -44,6 +45,22 @@ const getBorrowingStatus = (returnDate, status) => {
   return 'ongoing';
 };
 
+const getFineAmount = (returnDate, status) => {
+  if (status === 'returned') return 0;
+  const now = new Date();
+  const wibOffset = 7 * 60;
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibNow = new Date(utc + (wibOffset * 60000));
+  let returnDateObj = null;
+  if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+    returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+  } else {
+    returnDateObj = new Date(returnDate);
+  }
+  const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
+  return daysLate * 5000;
+};
+
 const Row = ({ label, value }) => (
   <div className="flex justify-between text-xs py-1 border-b border-gray-100 font-['Poppins']">
     <div className="text-gray-500 font-medium w-1/3">{label}</div>
@@ -56,12 +73,49 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   const [charge, setCharge] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [extendData, setExtendData] = useState(null);
+  const [showFineModal, setShowFineModal] = useState(false);
+  const [finePaid, setFinePaid] = useState(false);
+  const [loanData, setLoanData] = useState(borrowingData);
+
+  // Cek status finePaid dari localStorage saat modal dibuka/loanId berubah
+  useEffect(() => {
+    if (isOpen && borrowingData && borrowingData.id) {
+      const paid = typeof window !== 'undefined' ? localStorage.getItem('finePaid-' + borrowingData.id) : null;
+      setFinePaid(paid === '1');
+    }
+  }, [isOpen, borrowingData && borrowingData.id]);
+
+  useEffect(() => { setLoanData(borrowingData); }, [borrowingData]);
+
+  const refetchLoan = async () => {
+    if (!borrowingData?.id) return;
+    const res = await fetch(`/api/loans?user_id=${borrowingData.user_id}`);
+    const data = await res.json();
+    if (res.ok && data.loans) {
+      const updated = data.loans.find(l => l.id === borrowingData.id);
+      if (updated) setLoanData(updated);
+    }
+  };
+
   if (!isOpen || !borrowingData) return null;
 
-  // Gunakan fungsi getBorrowingStatus yang sudah benar
-  const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
+  if (!loanData) {
+    return (
+      <div className="flex-1 min-h-[calc(100vh-72px)] bg-white flex justify-center items-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  const status = getBorrowingStatus(loanData.return_date, loanData.status);
+  const isFined = loanData.fine === true;
+  // Prioritaskan field fine dari database jika ada
+  const fine = typeof loanData.fine !== 'undefined' ? loanData.fine : getFineAmount(loanData.return_date, loanData.status);
+  const fineAmount = loanData.fine_amount || getFineAmount(loanData.return_date, loanData.status);
 
-  const showExtend = status === 'ongoing' || status === 'overdue';
+  // Hanya bisa extend jika fine === false
+  const canExtend = (status === 'ongoing' || status === 'overdue') && !isFined;
+  const mustPayFine = isFined;
+  const showExtend = canExtend;
 
   const handleReturn = async () => {
     try {
@@ -149,16 +203,21 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
             label="Status"
             value={
               <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                status === 'returned'
+                loanData.status === 'Returned'
                   ? 'bg-green-100 text-green-800'
-                  : status === 'overdue'
+                  : loanData.status === 'Over Due'
                   ? 'bg-red-100 text-red-800'
+                  : loanData.status === 'Due Date'
+                  ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {status === 'returned' ? 'Returned' : status === 'overdue' ? 'Over Due' : 'On Going'}
+                {loanData.status}
               </span>
             }
           />
+          {isFined && (
+            <Row label="Denda" value={<span className="text-[#e53e3e] font-semibold">Rp {parseInt(fineAmount).toLocaleString('id-ID')}</span>} />
+          )}
         </div>
 
         <div className="mt-4 text-xs font-['Poppins']">
@@ -184,7 +243,12 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
         </div>
 
         <div className="mt-6 text-xs font-['Poppins']">
-          {(status === 'overdue' || status === 'ongoing') && (
+          {mustPayFine && (
+            <div className="mb-2 text-red-500 font-semibold">
+              Anda memiliki denda keterlambatan. Silakan bayar denda terlebih dahulu untuk dapat melakukan extend.
+            </div>
+          )}
+          {showExtend && (
             <>
               {borrowingData.extend_count >= 3 && (
                 <div className="mb-2 text-red-500 font-semibold">
@@ -212,8 +276,23 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
               </div>
             </>
           )}
-
-          {(status !== 'overdue' && status !== 'ongoing') && (
+          {mustPayFine && (
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowFineModal(true)}
+                className="px-4 py-2 rounded-lg transition-colors text-white bg-[#e53e3e] hover:bg-[#b91c1c]"
+              >
+                Pay the Fine
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          )}
+          {(status !== 'overdue' && status !== 'ongoing') && !mustPayFine && (
             <div className="flex justify-end">
               <button
                 onClick={onClose}
@@ -248,6 +327,23 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           denda={extendData.denda}
           newReturnDate={extendData.newReturnDate}
           loanId={extendData.loanId}
+        />
+      )}
+      {showFineModal && (
+        <PaymentSummaryFine
+          isOpen={showFineModal}
+          onClose={() => setShowFineModal(false)}
+          bookTitle={loanData.books && loanData.books[0] ? loanData.books[0].title : '-'}
+          fine={fineAmount}
+          loanId={loanData.id}
+          onPaymentSuccess={() => {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('finePaid-' + loanData.id, '1');
+            }
+            setFinePaid(true);
+            setShowFineModal(false);
+          }}
+          onLoanUpdated={refetchLoan}
         />
       )}
     </div>

@@ -41,11 +41,28 @@ const getBorrowingStatus = (returnDate, status) => {
   return 'ongoing';
 };
 
+const getFineAmount = (returnDate, status) => {
+  if (status === 'returned') return 0;
+  const now = new Date();
+  const wibOffset = 7 * 60;
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibNow = new Date(utc + (wibOffset * 60000));
+  let returnDateObj = null;
+  if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+    returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+  } else {
+    returnDateObj = new Date(returnDate);
+  }
+  const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
+  return daysLate * 5000;
+};
+
 export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, onReturnBook }) {
   const [showConfirm, setShowConfirm] = useState(false);
   if (!isOpen || !borrowingData) return null;
 
   const status = getBorrowingStatus(borrowingData.return_date, borrowingData.status);
+  const isFined = borrowingData.fine === true;
 
   const handleReturn = async () => {
     try {
@@ -142,16 +159,21 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
             label="Status"
             value={
               <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                status === 'returned'
+                borrowingData.status === 'Returned'
                   ? 'bg-green-100 text-green-800'
-                  : status === 'overdue'
+                  : borrowingData.status === 'Over Due'
                   ? 'bg-red-100 text-red-800'
+                  : borrowingData.status === 'Due Date'
+                  ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {status === 'returned' ? 'Returned' : status === 'overdue' ? 'Over Due' : 'On Going'}
+                {borrowingData.status}
               </span>
             }
           />
+          {borrowingData.fine === true && borrowingData.fine_amount && Number(borrowingData.fine_amount) > 0 && (
+            <Row label="Denda" value={<span className="text-[#e53e3e] font-semibold">Rp {parseInt(borrowingData.fine_amount).toLocaleString('id-ID')}</span>} />
+          )}
         </div>
 
         <div className="mt-4 text-xs">

@@ -48,6 +48,17 @@ export default function PaymentFinishPage() {
 
     // Jika extend: insert ke tabel transaction
     if (loanId && orderId && status && paymentMethod && !transactionSaved) {
+      // Ambil amount dari localStorage jika ada (untuk extend/fine)
+      let amount = null;
+      if (newReturnDate) {
+        // Extend: ambil dari localStorage atau tentukan sendiri
+        amount = localStorage.getItem('extendAmount');
+      } else {
+        // Fine: ambil dari localStorage atau tentukan sendiri
+        amount = localStorage.getItem('fineAmount');
+      }
+      // Fallback jika tidak ada di localStorage
+      if (!amount) amount = 0;
       fetch('/api/transaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +66,8 @@ export default function PaymentFinishPage() {
           loan_id: loanId,
           payment_id: orderId,
           payment_status: status,
-          payment_method: paymentMethod
+          payment_method: paymentMethod,
+          amount: amount
         })
       })
       .then(res => res.json())
@@ -72,7 +84,11 @@ export default function PaymentFinishPage() {
             .then(res => res.json())
             .then(() => {
               localStorage.removeItem('extendNewReturnDate');
+              localStorage.removeItem('extendAmount');
             });
+          }
+          if (!newReturnDate) {
+            localStorage.removeItem('fineAmount');
           }
         } else {
           setTransactionError(res.error || 'Gagal menyimpan transaksi extend');
