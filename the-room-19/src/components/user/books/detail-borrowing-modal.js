@@ -76,6 +76,12 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   const [showFineModal, setShowFineModal] = useState(false);
   const [finePaid, setFinePaid] = useState(false);
   const [loanData, setLoanData] = useState(borrowingData);
+  const [showExtendOption, setShowExtendOption] = useState(false);
+  const [extendOptions, setExtendOptions] = useState([
+    { label: '1 Minggu', value: 1, disabled: false },
+    { label: '2 Minggu', value: 2, disabled: false },
+    { label: '3 Minggu', value: 3, disabled: false },
+  ]);
 
   // Cek status finePaid dari localStorage saat modal dibuka/loanId berubah
   useEffect(() => {
@@ -86,6 +92,33 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   }, [isOpen, borrowingData && borrowingData.id]);
 
   useEffect(() => { setLoanData(borrowingData); }, [borrowingData]);
+
+  // Validasi opsi extend berdasarkan max_due
+  useEffect(() => {
+    if (!loanData) return;
+    const { return_date, max_due } = loanData;
+    let returnDateObj = null;
+    if (typeof return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(return_date)) {
+      returnDateObj = new Date(return_date + 'T00:00:00+07:00');
+    } else {
+      returnDateObj = new Date(return_date);
+    }
+    let maxDueObj = null;
+    if (typeof max_due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(max_due)) {
+      maxDueObj = new Date(max_due + 'T00:00:00+07:00');
+    } else {
+      maxDueObj = new Date(max_due);
+    }
+    // Hanya tampilkan opsi yang valid (tidak melebihi max_due)
+    const validOptions = [1,2,3].filter(week => {
+      const newReturn = new Date(returnDateObj.getTime() + week * 7 * 24 * 60 * 60 * 1000);
+      return newReturn <= maxDueObj;
+    });
+    setExtendOptions(validOptions.map(week => ({
+      label: `${week} Minggu`,
+      value: week
+    })));
+  }, [loanData]);
 
   const refetchLoan = async () => {
     if (!borrowingData?.id) return;
@@ -145,8 +178,13 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
     }
   };
 
+  // Pilih durasi extend
   const handleExtend = () => {
-    // Hitung tanggal baru (WIB)
+    setShowExtendOption(true);
+  };
+
+  // Proses extend setelah pilih durasi
+  const handleSelectExtend = (week) => {
     let returnDateObj = null;
     if (typeof borrowingData.return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(borrowingData.return_date)) {
       returnDateObj = new Date(borrowingData.return_date + 'T00:00:00+07:00');
@@ -163,11 +201,11 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
       const daysLate = Math.max(0, Math.floor((wibNow.setHours(0,0,0,0) - returnDateObj.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
       chargeAmount = daysLate * 5000;
     }
-    const newReturnDate = new Date(returnDateObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const newReturnDate = new Date(returnDateObj.getTime() + week * 7 * 24 * 60 * 60 * 1000);
     const newReturnDateStr = newReturnDate.toISOString().split('T')[0];
     setExtendData({
       bookTitle: borrowingData.books && borrowingData.books[0] ? borrowingData.books[0].title : '-',
-      price: borrowingData.price,
+      price: parseInt(borrowingData.price) * week,
       denda: chargeAmount,
       newReturnDate: newReturnDateStr,
       loanId: borrowingData.id
@@ -175,6 +213,7 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
     if (typeof window !== 'undefined') {
       localStorage.setItem('extendNewReturnDate', newReturnDateStr);
     }
+    setShowExtendOption(false);
     setShowPaymentModal(true);
   };
 
@@ -215,7 +254,7 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
               </span>
             }
           />
-          {isFined && (
+          {isFined && fineAmount > 0 && (
             <Row label="Denda" value={<span className="text-[#e53e3e] font-semibold">Rp {parseInt(fineAmount).toLocaleString('id-ID')}</span>} />
           )}
         </div>
@@ -224,19 +263,20 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           <h3 className="text-[#111010] font-semibold mb-2">📦 Book Borrowed</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {borrowingData.books && borrowingData.books.map((book, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-2">
+              <div key={idx} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-2 min-h-[72px] min-w-[120px]" style={{minHeight:'72px', minWidth:'120px'}}>
                 {book.cover ? (
                   <img
                     src={book.cover}
                     alt={book.title}
-                    className="w-12 h-16 rounded object-cover border"
+                    className="w-12 h-16 rounded object-cover border flex-shrink-0"
+                    style={{width:'48px',height:'64px'}}
                   />
                 ) : (
-                  <div className="w-12 h-16 rounded bg-[#eff0c3] flex items-center justify-center text-[#52570d] font-bold text-base">
+                  <div className="w-12 h-16 rounded bg-[#eff0c3] flex items-center justify-center text-[#52570d] font-bold text-base flex-shrink-0" style={{width:'48px',height:'64px'}}>
                     {book.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
                   </div>
                 )}
-                <span className="text-gray-800 font-medium line-clamp-2 text-xs sm:text-sm">{book.title}</span>
+                <span className="text-gray-800 font-medium line-clamp-2 text-xs sm:text-sm break-words" style={{wordBreak:'break-word'}}>{book.title}</span>
               </div>
             ))}
           </div>
@@ -250,20 +290,14 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           )}
           {showExtend && (
             <>
-              {borrowingData.extend_count >= 3 && (
-                <div className="mb-2 text-red-500 font-semibold">
-                  Extension limit reached (maximum of 3 extensions allowed).
-                </div>
+              {extendOptions.length === 0 && (
+                <div className="mb-2 text-red-500 font-semibold">Anda tidak dapat melakukan perpanjangan lagi karena sudah melewati batas maksimal perpanjangan.</div>
               )}
               <div className="flex justify-end gap-2">
                 <button
                   onClick={handleExtend}
-                  className={`px-4 py-2 rounded-lg transition-colors text-white ${
-                    borrowingData.extend_count >= 3
-                      ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-[#2e3105] hover:bg-[#3e4310]'
-                  }`}
-                  disabled={borrowingData.extend_count >= 3}
+                  className={`px-4 py-2 rounded-lg transition-colors text-white bg-[#2e3105] hover:bg-[#3e4310] ${extendOptions.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={extendOptions.length === 0}
                 >
                   Extend
                 </button>
@@ -274,6 +308,29 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
                   Close
                 </button>
               </div>
+              {/* Modal Pilihan Durasi Extend */}
+              {showExtendOption && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50" onClick={()=>setShowExtendOption(false)}>
+                  <div className="bg-white rounded-xl p-6 w-[350px] max-w-full text-center shadow-lg relative" onClick={e=>e.stopPropagation()}>
+                    <h3 className="text-black text-sm font-semibold mb-4">Pilih Durasi Perpanjangan</h3>
+                    <div className="flex flex-col gap-3 mb-4">
+                      {extendOptions.length === 0 && (
+                        <div className="text-red-500 text-xs">Tidak ada opsi perpanjangan yang tersedia (melebihi max due).</div>
+                      )}
+                      {extendOptions.map(opt => (
+                        <button
+                          key={opt.value}
+                          className="w-full px-4 py-2 rounded-lg text-xs font-medium bg-[#2e3105] text-white hover:bg-[#3e4310]"
+                          onClick={()=>handleSelectExtend(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button className="mt-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-xs" onClick={()=>setShowExtendOption(false)}>Batal</button>
+                  </div>
+                </div>
+              )}
             </>
           )}
           {mustPayFine && (
@@ -336,12 +393,14 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
           bookTitle={loanData.books && loanData.books[0] ? loanData.books[0].title : '-'}
           fine={fineAmount}
           loanId={loanData.id}
-          onPaymentSuccess={() => {
+          onPaymentSuccess={async () => {
             if (typeof window !== 'undefined') {
               localStorage.setItem('finePaid-' + loanData.id, '1');
             }
             setFinePaid(true);
             setShowFineModal(false);
+            // Refetch loan untuk update status, fine, dan return_date
+            await refetchLoan();
           }}
           onLoanUpdated={refetchLoan}
         />

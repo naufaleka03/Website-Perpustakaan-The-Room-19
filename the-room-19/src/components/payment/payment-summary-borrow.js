@@ -123,7 +123,7 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
         )}
         <div className="flex justify-end gap-3">
           <button
-            onClick={onClose}
+            onClick={e => { e.stopPropagation(); onClose(); }}
             className="px-4 py-2 text-xs text-[#666666] border border-[#666666]/30 rounded-lg hover:bg-gray-50"
             disabled={isProcessing}
           >

@@ -171,9 +171,17 @@ export default function DetailBorrowingModal({ isOpen, onClose, borrowingData, o
               </span>
             }
           />
-          {borrowingData.fine === true && borrowingData.fine_amount && Number(borrowingData.fine_amount) > 0 && (
-            <Row label="Denda" value={<span className="text-[#e53e3e] font-semibold">Rp {parseInt(borrowingData.fine_amount).toLocaleString('id-ID')}</span>} />
-          )}
+          {(borrowingData.fine === true || borrowingData.fine === "true" || borrowingData.fine === 1 || borrowingData.fine === "1")
+              && Number(borrowingData.fine_amount) > 0 && (
+              <Row
+                label="Denda"
+                value={
+                  <span className="text-[#e53e3e] font-semibold">
+                    Rp {parseInt(borrowingData.fine_amount).toLocaleString('id-ID')}
+                  </span>
+                }
+              />
+            )}
         </div>
 
         <div className="mt-4 text-xs">

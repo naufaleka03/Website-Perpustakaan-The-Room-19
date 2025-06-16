@@ -46,7 +46,7 @@ export default function PaymentFinishPage() {
       });
     }
 
-    // Jika extend: insert ke tabel transaction
+    // Jika extend/fine: insert ke tabel transaction
     if (loanId && orderId && status && paymentMethod && !transactionSaved) {
       // Ambil amount dari localStorage jika ada (untuk extend/fine)
       let amount = null;
@@ -74,8 +74,9 @@ export default function PaymentFinishPage() {
       .then(res => {
         if (res.success) {
           setTransactionSaved(true);
-          // Setelah transaksi extend dicatat, update return date dan status pada loans LANGSUNG di sini
+          // Setelah transaksi dicatat, update loan sesuai jenis transaksi
           if (loanId && newReturnDate) {
+            // EXTEND: update loan_due ke tanggal extend, status ke 'On Going'
             fetch(`/api/loans/${loanId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -86,9 +87,22 @@ export default function PaymentFinishPage() {
               localStorage.removeItem('extendNewReturnDate');
               localStorage.removeItem('extendAmount');
             });
-          }
-          if (!newReturnDate) {
+          } else if (loanId && !newReturnDate) {
+            // FINE: update loan_due ke hari ini, status ke 'Due Date', fine ke false
+            const now = new Date();
+            const wibOffset = 7 * 60;
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const wibNow = new Date(utc + (wibOffset * 60000));
+            const todayWIB = wibNow.toISOString().split('T')[0];
+            fetch(`/api/loans/${loanId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fine: false, payFine: true })
+            })
+            .then(res => res.json())
+            .then(() => {
             localStorage.removeItem('fineAmount');
+            });
           }
         } else {
           setTransactionError(res.error || 'Gagal menyimpan transaksi extend');
