@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { useState, useEffect, useRef } from "react";
+import { FiSearch, FiEdit2, FiTrash2, FiMoreVertical } from "react-icons/fi";
 import { updateBookStock, deleteBook } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
+import AddBookModal from "./AddBookModal";
+import DetailModal from "./DetailModal";
+import AdjustCopiesModal from "./AdjustCopiesModal";
 
 const ManageBooks = () => {
   const router = useRouter();
@@ -18,11 +21,18 @@ const ManageBooks = () => {
   const [error, setError] = useState(null);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
+  const dropdownRef = useRef(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedBookDetail, setSelectedBookDetail] = useState(null);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [selectedBookAdjust, setSelectedBookAdjust] = useState(null);
 
   // Fetch books from database
   const fetchBooks = async () => {
     try {
-      const response = await fetch("/api/books");
+      const response = await fetch("/api/manage-books");
       const data = await response.json();
       if (data.success) {
         setBooks(data.data);
@@ -39,6 +49,19 @@ const ManageBooks = () => {
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenActionMenuId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openActionMenuId]);
 
   const handleOpenEditModal = (book) => {
     setEditingBook(book);
@@ -162,6 +185,27 @@ const ManageBooks = () => {
     );
   };
 
+  const handleUpdateCopies = async ({ status, comment }) => {
+    if (!selectedBookAdjust) return;
+    try {
+      const res = await fetch("/api/manage-books", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedBookAdjust.id, status, comment }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAdjustModalOpen(false);
+        setSelectedBookAdjust(null);
+        fetchBooks(); // refresh data
+      } else {
+        alert(data.error || "Failed to update status");
+      }
+    } catch (err) {
+      alert("Failed to update status");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -255,7 +299,7 @@ const ManageBooks = () => {
 
       <div className="w-full h-full relative bg-white">
         <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-12 py-6">
-          {/* Search Bar Container */}
+          {/* Search Bar & Add Button */}
           <div className="flex flex-wrap justify-between items-center mb-6">
             <div className="relative w-[300px] sm:w-[400px]">
               <div className="absolute inset-y-0 left-3 flex items-center">
@@ -272,54 +316,109 @@ const ManageBooks = () => {
                 }}
               />
             </div>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-lime-950 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-900"
+            >
+              + Add Books
+            </button>
           </div>
 
           {/* Books Table */}
-          <div className="bg-white rounded-xl shadow overflow-x-auto">
-            <table className="w-full border-collapse">
+          <div className="min-w-[768px] overflow-x-auto">
+            <table className="w-full">
               <thead>
                 <tr className="bg-[#eaeaea]">
-                  <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                  <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     No
                   </th>
-                  <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap text-left">
+                  <th className="text-left py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Book Title
                   </th>
-                  <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                    Stock
+                  <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                    Status
                   </th>
-                  <th className="py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                  <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {getPaginatedData().map((book, index) => (
-                  <tr key={book.id} className="hover:bg-gray-50">
-                    <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                  <tr
+                    key={book.id}
+                    className="border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                  >
+                    <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
                       {(currentPage - 1) * entriesPerPage + index + 1}
                     </td>
-                    <td className="text-left py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                    <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-left">
                       {book.book_title}
+                      {book.copies ? ` (copies ${book.copies})` : ""}
                     </td>
-                    <td className="text-center py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                      {book.stock}
+                    <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
+                      {(() => {
+                        const status = (book.status || "").toLowerCase();
+                        let badgeClass =
+                          "px-2 py-1 rounded-lg text-xs font-medium ";
+                        let label = book.status || "-";
+                        if (
+                          status === "not specified" ||
+                          status === "not_specified"
+                        ) {
+                          badgeClass += "bg-yellow-100 text-yellow-800";
+                        } else if (status === "pristine") {
+                          badgeClass += "bg-green-100 text-green-800";
+                        } else if (status === "good") {
+                          badgeClass += "bg-blue-100 text-blue-800";
+                        } else if (status === "fair") {
+                          badgeClass += "bg-orange-100 text-orange-800";
+                        } else {
+                          badgeClass += "text-[#666666]";
+                        }
+                        return <span className={badgeClass}>{label}</span>;
+                      })()}
                     </td>
-                    <td className="py-4 px-6 text-center text-sm font-medium">
-                      <div className="flex justify-center items-center gap-3">
-                        <button
-                          onClick={() => handleOpenEditModal(book)}
-                          className="text-blue-600 hover:text-blue-900"
+                    <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
+                      <button
+                        onClick={() =>
+                          setOpenActionMenuId(
+                            openActionMenuId === book.id ? null : book.id
+                          )
+                        }
+                        className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
+                      >
+                        <FiMoreVertical className="text-[#666666]" />
+                      </button>
+                      {openActionMenuId === book.id && (
+                        <div
+                          ref={dropdownRef}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
                         >
-                          <FiEdit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenDeleteModal(book)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                          <button
+                            className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                            type="button"
+                            onClick={() => {
+                              setSelectedBookAdjust(book);
+                              setIsAdjustModalOpen(true);
+                              setOpenActionMenuId(null);
+                            }}
+                          >
+                            Adjust Copies
+                          </button>
+                          <button
+                            className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200"
+                            type="button"
+                            onClick={() => {
+                              setSelectedBookDetail(book);
+                              setIsDetailModalOpen(true);
+                              setOpenActionMenuId(null);
+                            }}
+                          >
+                            Detail
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -407,6 +506,26 @@ const ManageBooks = () => {
               </div>
             </div>
           )}
+
+          {/* Modal Add Book */}
+          {isAddModalOpen && (
+            <AddBookModal onClose={() => setIsAddModalOpen(false)} />
+          )}
+
+          {/* Detail Modal */}
+          <DetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            book={selectedBookDetail}
+          />
+
+          {/* Adjust Copies Modal */}
+          <AdjustCopiesModal
+            isOpen={isAdjustModalOpen}
+            onClose={() => setIsAdjustModalOpen(false)}
+            book={selectedBookAdjust}
+            onUpdate={handleUpdateCopies}
+          />
         </div>
       </div>
     </div>

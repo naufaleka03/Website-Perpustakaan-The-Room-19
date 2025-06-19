@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoTriangleDown } from "react-icons/go";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
@@ -19,14 +19,18 @@ export default function SessionReservation() {
   const [error, setError] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [reservationFormData, setReservationFormData] = useState(null);
+  const [shiftAvailability, setShiftAvailability] = useState({});
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
       const [year, month, day] = inputDate.split("-");
-      setDate(`${month}-${day}-${year}`);
+      const formattedDate = `${month}-${day}-${year}`;
+      setDate(formattedDate);
+      fetchShiftAvailability(formattedDate);
     } else {
       setDate("");
+      setShiftAvailability({});
     }
   };
 
@@ -48,6 +52,33 @@ export default function SessionReservation() {
   const handleReservationTypeChange = (type) => {
     setReservationType(type);
     setMembers([""]);
+  };
+
+  const fetchShiftAvailability = async (selectedDate) => {
+    const shifts = ["Shift A", "Shift B", "Shift C"];
+    const results = {};
+    for (const shift of shifts) {
+      try {
+        const response = await fetch("/api/sessions/check-availability", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            arrival_date: selectedDate,
+            shift_name: shift,
+            reservation_type: reservationType,
+            group_size:
+              reservationType === "group"
+                ? members.filter((m) => m.trim()).length + 1
+                : 1,
+          }),
+        });
+        const data = await response.json();
+        results[shift] = data.available_slots ?? 0;
+      } catch (err) {
+        results[shift] = 0;
+      }
+    }
+    setShiftAvailability(results);
   };
 
   const handleSubmit = async (e) => {
@@ -296,9 +327,24 @@ export default function SessionReservation() {
                     <option value="" className="text-[#666666]/40">
                       Choose your shift
                     </option>
-                    <option value="Shift A">Shift A (10:00 - 14:00)</option>
-                    <option value="Shift B">Shift B (14:00 - 18:00)</option>
-                    <option value="Shift C">Shift C (18:00 - 22:00)</option>
+                    <option value="Shift A">
+                      Shift A (10:00 - 14:00)
+                      {shiftAvailability["Shift A"] !== undefined
+                        ? ` - ${shiftAvailability["Shift A"]} slots left`
+                        : ""}
+                    </option>
+                    <option value="Shift B">
+                      Shift B (14:00 - 18:00)
+                      {shiftAvailability["Shift B"] !== undefined
+                        ? ` - ${shiftAvailability["Shift B"]} slots left`
+                        : ""}
+                    </option>
+                    <option value="Shift C">
+                      Shift C (18:00 - 22:00)
+                      {shiftAvailability["Shift C"] !== undefined
+                        ? ` - ${shiftAvailability["Shift C"]} slots left`
+                        : ""}
+                    </option>
                   </select>
                   <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
                 </div>

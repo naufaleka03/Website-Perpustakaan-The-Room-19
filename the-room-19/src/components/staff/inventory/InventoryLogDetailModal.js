@@ -79,6 +79,12 @@ export default function InventoryLogDetailModal({ isOpen, log, onClose }) {
           </label>
           <p className="text-sm text-[#666666]">{log.comment || "-"}</p>
         </div>
+        <div className="mb-4">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Handle by:
+          </label>
+          <p className="text-sm text-[#111010]">{log.staff_name || "-"}</p>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ItemDetailModal from "./ItemDetailModal";
 import AdjustStockModal from "./AdjustStockModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { createClient } from "@/app/supabase/client";
 
 export default function InventoryList() {
   const router = useRouter();
@@ -198,6 +199,14 @@ export default function InventoryList() {
 
   const handleStockAdjustment = async (newQuantity, comment) => {
     try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const staffId = session?.user?.id;
+      if (!staffId) throw new Error("Staff ID not found in session");
+
+      // Update stock in inventory table
       const response = await fetch(
         `/api/inventory/${adjustStockModal.item.id}`,
         {
@@ -215,6 +224,25 @@ export default function InventoryList() {
       if (!response.ok) {
         throw new Error("Failed to update stock");
       }
+
+      // Insert log to inventory_logs with handle_by
+      await fetch("/api/inventory/monitoring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inventory_id: adjustStockModal.item.id,
+          mode:
+            newQuantity > adjustStockModal.item.stock_quantity
+              ? "add"
+              : "reduce",
+          item_name: adjustStockModal.item.item_name,
+          category_id: adjustStockModal.item.category_id,
+          stock_before: adjustStockModal.item.stock_quantity,
+          stock_after: newQuantity,
+          comment: comment,
+          handle_by: staffId,
+        }),
+      });
 
       // Update the local state to reflect the change
       setInventory(

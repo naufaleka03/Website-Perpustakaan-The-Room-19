@@ -194,6 +194,20 @@ async function seedBooks(tx) {
         )`;
 }
 
+async function seedManageBooks(tx) {
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+        CREATE TABLE IF NOT EXISTS manage_books (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            book_id UUID REFERENCES books(id),
+            copies INTEGER DEFAULT 0 NOT NULL,
+            status VARCHAR(50) DEFAULT 'Not Specified' NOT NULL,
+            comment TEXT,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        )`;
+}
+
 async function seedCategories(tx) {
   const sql = tx ?? sql;
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -236,6 +250,7 @@ async function seedInventoryLogs(tx) {
             stock_before INTEGER NOT NULL,
             stock_after INTEGER NOT NULL,
             comment TEXT,
+            handle_by UUID REFERENCES staffs(id),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }
@@ -354,6 +369,7 @@ export async function GET() {
       await seedCategories(tx);
       await seedInventory(tx);
       await seedInventoryLogs(tx);
+      await seedManageBooks(tx);
     });
 
     return Response.json({

@@ -186,29 +186,6 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Insert log into inventory_logs
-    await sql`
-      INSERT INTO inventory_logs (
-        inventory_id,
-        mode,
-        item_name,
-        category_id,
-        stock_before,
-        stock_after,
-        comment,
-        created_at
-      ) VALUES (
-        ${params.id},
-        ${mode},
-        ${item.item_name},
-        ${item.category_id},
-        ${stockBefore},
-        ${stockAfter},
-        ${comment},
-        NOW()
-      )
-    `;
-
     revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({ success: true, data: result[0] });
   } catch (error) {

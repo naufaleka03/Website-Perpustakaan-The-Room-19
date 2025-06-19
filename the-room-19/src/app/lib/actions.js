@@ -121,6 +121,9 @@ export async function submitSessionReservation(formData) {
       RETURNING *
     `;
 
+    // Revalidate API availability endpoint so slot langsung update
+    revalidatePath("/api/sessions/check-availability");
+
     console.log("Insert result:", result);
     return {
       success: true,

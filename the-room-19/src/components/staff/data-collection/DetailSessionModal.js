@@ -143,30 +143,26 @@ export default function DetailSessionModal({
 
             {/* Group Members Field - Optional */}
             {(data.group_member1 ||
-              (data.members && data.members.length > 0)) && (
+              data.group_member2 ||
+              data.group_member3 ||
+              data.group_member4) && (
               <div className="mb-4">
                 <label className="text-[#666666] text-sm font-medium font-['Poppins']">
                   Group Members:
                 </label>
                 <div className="space-y-2">
-                  {type === "session"
-                    ? [
-                        data.group_member1,
-                        data.group_member2,
-                        data.group_member3,
-                        data.group_member4,
-                      ]
-                        .filter(Boolean)
-                        .map((member, index) => (
-                          <p key={index} className="text-sm text-[#666666]">
-                            {member}
-                          </p>
-                        ))
-                    : data.members?.map((member, index) => (
-                        <p key={index} className="text-sm text-[#666666]">
-                          {member}
-                        </p>
-                      ))}
+                  {[
+                    data.group_member1,
+                    data.group_member2,
+                    data.group_member3,
+                    data.group_member4,
+                  ]
+                    .filter(Boolean)
+                    .map((member, index) => (
+                      <p key={index} className="text-sm text-[#666666]">
+                        {member}
+                      </p>
+                    ))}
                 </div>
               </div>
             )}
