@@ -545,7 +545,7 @@ const Detail = ({ memberStatus = "guest" }) => {
                   <div className="flex justify-start mb-2">
                     <div
                       className="relative"
-                      style={{ width: "fit-content", minWidth: "140px" }}
+                      style={{ width: "fit-content", minWidth: "108px" }}
                     >
                       <select
                         className="appearance-none border-2 border-[#2e3105] rounded-full px-3 py-0.5 text-xs font-medium font-['Poppins'] bg-white text-[#222] focus:outline-none focus:border-[#2e3105] transition w-full pr-8 shadow-sm"

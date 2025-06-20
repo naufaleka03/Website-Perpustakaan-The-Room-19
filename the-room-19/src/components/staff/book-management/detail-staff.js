@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import React from 'react';
+import React from "react";
 import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -17,6 +17,8 @@ const DetailStaff = () => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
+  const [copies, setCopies] = useState([]);
+  const [selectedCopyIndex, setSelectedCopyIndex] = useState(0);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -29,31 +31,37 @@ const DetailStaff = () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/books/${bookId}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch book details');
+          throw new Error("Failed to fetch book details");
         }
-        
+
         const data = await response.json();
-        console.log('Fetched book details:', data.book);
+        console.log("Fetched book details:", data.book);
         setBook(data.book || null);
-        
+
         // Fetch lend count
         const lendResponse = await fetch(`/api/books/${bookId}/lend-count`);
         if (lendResponse.ok) {
           const lendData = await lendResponse.json();
           setLendCount(lendData.count || 0);
         }
-        
+
         // Fetch rating count
         const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
         if (ratingResponse.ok) {
           const ratingData = await ratingResponse.json();
           setRatingCount(ratingData.count || 0);
         }
+
+        // Fetch copies/condition
+        const copiesRes = await fetch(`/api/manage-books?id=${bookId}`);
+        const copiesData = await copiesRes.json();
+        setCopies(copiesData.data || []);
+        setSelectedCopyIndex(0);
       } catch (err) {
-        console.error('Error fetching book details:', err);
-        setError('Failed to load book details. Please try again later.');
+        console.error("Error fetching book details:", err);
+        setError("Failed to load book details. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -63,28 +71,28 @@ const DetailStaff = () => {
   }, [bookId]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this book?')) {
+    if (!window.confirm("Are you sure you want to delete this book?")) {
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Deleting book with ID:', bookId);
+      console.log("Deleting book with ID:", bookId);
       const response = await fetch(`/api/books/${bookId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || 'Failed to delete book');
+        console.error("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to delete book");
       }
 
-      console.log('Book deleted successfully');
-      router.push('/staff/dashboard/book-management/catalog');
+      console.log("Book deleted successfully");
+      router.push("/staff/dashboard/book-management/catalog");
     } catch (err) {
-      console.error('Error deleting book:', err);
-      setError('Failed to delete book. Please try again later.');
+      console.error("Error deleting book:", err);
+      setError("Failed to delete book. Please try again later.");
       setLoading(false);
     }
   };
@@ -114,8 +122,11 @@ const DetailStaff = () => {
 
               {/* Themes Skeleton */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-6 w-20 bg-gray-200 rounded-full"
+                  ></div>
                 ))}
               </div>
 
@@ -123,7 +134,7 @@ const DetailStaff = () => {
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
                 <div className="grid grid-cols-2 gap-2">
-                  {[1, 2, 3].map(i => (
+                  {[1, 2, 3].map((i) => (
                     <Fragment key={i}>
                       <div className="h-4 bg-gray-200 rounded w-24"></div>
                       <div className="h-4 bg-gray-200 rounded w-32"></div>
@@ -151,7 +162,7 @@ const DetailStaff = () => {
                 </div>
                 <div className="py-4">
                   <div className="grid grid-cols-2 gap-2">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
                       <Fragment key={i}>
                         <div className="h-4 bg-gray-200 rounded w-24"></div>
                         <div className="h-4 bg-gray-200 rounded w-32"></div>
@@ -207,9 +218,11 @@ const DetailStaff = () => {
             {/* Book Cover */}
             <div className="w-[180px] h-[250px] rounded-2xl overflow-hidden">
               <img
-                src={book.cover_image && book.cover_image.trim() !== '' 
-                  ? book.cover_image 
-                  : "https://placehold.co/180x250"}
+                src={
+                  book.cover_image && book.cover_image.trim() !== ""
+                    ? book.cover_image
+                    : "https://placehold.co/180x250"
+                }
                 alt={`${book.book_title} Cover`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -227,22 +240,30 @@ const DetailStaff = () => {
                     {book.book_title}
                   </h1>
                   {book.price !== undefined && (
-                    <div className="text-[#2e3105] text-sm font-semibold mb-2" style={{ fontWeight: 500 }}>
-                      {book.price === 0 ? "Free" : `Rp ${parseInt(book.price).toLocaleString('id-ID')}`}
+                    <div
+                      className="text-[#2e3105] text-sm font-semibold mb-2"
+                      style={{ fontWeight: 500 }}
+                    >
+                      {book.price === 0
+                        ? "Free"
+                        : `Rp ${parseInt(book.price).toLocaleString("id-ID")}`}
                     </div>
                   )}
-                  
+
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
-                        {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
+                        {(typeof book.rating === "number"
+                          ? book.rating
+                          : 0
+                        ).toFixed(1)}
                       </span>
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
                     </div>
-                    
+
                     <div className="text-[#666666] text-xs">
                       Borrowed {lendCount} times
                     </div>
@@ -257,7 +278,13 @@ const DetailStaff = () => {
                     <button
                       key={theme}
                       className="bg-[#2e3105]/10 px-2 py-1 rounded-full text-xs text-[#666666] transition-colors hover:bg-[#2e3105]/30 hover:text-[#232310] active:bg-[#2e3105]/50 focus:outline-none focus:ring-2 focus:ring-[#2e3105]"
-                      onClick={() => router.push(`/staff/dashboard/book-management/catalog?theme=${encodeURIComponent(theme)}`)}
+                      onClick={() =>
+                        router.push(
+                          `/staff/dashboard/book-management/catalog?theme=${encodeURIComponent(
+                            theme
+                          )}`
+                        )
+                      }
                       type="button"
                     >
                       {theme}
@@ -268,32 +295,130 @@ const DetailStaff = () => {
 
               {/* Book Condition */}
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <h3 className="text-black text-sm font-medium mb-2">Book Condition</h3>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-black font-medium">Status</span>
+                <h3 className="text-black text-sm font-medium mb-2 flex items-center gap-4">
+                  Book Condition
+                </h3>
+                {copies.length > 0 && (
+                  <div className="flex justify-start mb-2">
+                    <div
+                      className="relative"
+                      style={{ width: "fit-content", minWidth: "108px" }}
+                    >
+                      <select
+                        className="appearance-none border-2 border-[#2e3105] rounded-full px-3 py-0.5 text-xs font-medium font-['Poppins'] bg-white text-[#222] focus:outline-none focus:border-[#2e3105] transition w-full pr-8 shadow-sm"
+                        value={selectedCopyIndex}
+                        onChange={(e) =>
+                          setSelectedCopyIndex(Number(e.target.value))
+                        }
+                        disabled={copies.length === 1}
+                        style={{ fontSize: "0.75rem", height: "1.75rem" }}
+                      >
+                        {copies.map((copy, idx) => (
+                          <option
+                            key={copy.id}
+                            value={idx}
+                            className="rounded-full text-xs"
+                          >
+                            Copy {copy.copy}
+                          </option>
+                        ))}
+                      </select>
+                      {/* Custom dropdown arrow */}
+                      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#2e3105]">
+                        <svg
+                          width="16"
+                          height="16"
+                          fill="none"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            d="M6 8l4 4 4-4"
+                            stroke="#2e3105"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-black">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      book.condition === 'Pristine' ? 'bg-green-100 text-green-800' :
-                      book.condition === 'Good' ? 'bg-blue-100 text-blue-800' :
-                      book.condition === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-200 text-gray-800'
-                    }`}>
-                      {book.condition || "Not specified"}
-                    </span>
+                )}
+                {/* Book condition info below dropdown */}
+                {copies.length === 0 ? (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-black font-medium">Status</span>
+                    </div>
+                    <div>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">
+                        Not specified
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-black font-medium">
+                        Description
+                      </span>
+                    </div>
+                    <div className="text-black">No description available</div>
+                    <div>
+                      <span className="text-black font-medium">
+                        Last Updated
+                      </span>
+                    </div>
+                    <div className="text-black">Not available</div>
                   </div>
-                  
-                  <div>
-                    <span className="text-black font-medium">Description</span>
-                  </div>
-                  <div className="text-black">{book.condition_description || "No description available"}</div>
-                  
-                  <div>
-                    <span className="text-black font-medium">Last Updated</span>
-                  </div>
-                  <div className="text-black">{book.condition_updated_at || "Not available"}</div>
-                </div>
+                ) : (
+                  (() => {
+                    const copy = copies[selectedCopyIndex] || {};
+                    let badgeClass =
+                      "px-2 py-1 rounded-full text-xs font-medium ";
+                    const status = (copy.status || "").toLowerCase();
+                    if (
+                      status === "not specified" ||
+                      status === "not_specified"
+                    ) {
+                      badgeClass += "bg-yellow-100 text-yellow-800";
+                    } else if (status === "pristine") {
+                      badgeClass += "bg-green-100 text-green-800";
+                    } else if (status === "good") {
+                      badgeClass += "bg-blue-100 text-blue-800";
+                    } else if (status === "fair") {
+                      badgeClass += "bg-orange-100 text-orange-800";
+                    } else {
+                      badgeClass += "bg-gray-200 text-gray-800";
+                    }
+                    return (
+                      <div className="grid grid-cols-2 gap-2 text-xs mt-2">
+                        <div>
+                          <span className="text-black font-medium">Status</span>
+                        </div>
+                        <div>
+                          <span className={badgeClass}>
+                            {copy.status || "Not specified"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-black font-medium">
+                            Description
+                          </span>
+                        </div>
+                        <div className="text-black">
+                          {copy.comment || "No description available"}
+                        </div>
+                        <div>
+                          <span className="text-black font-medium">
+                            Last Updated
+                          </span>
+                        </div>
+                        <div className="text-black">
+                          {copy.updated_at
+                            ? new Date(copy.updated_at).toLocaleString()
+                            : "Not available"}
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
               </div>
 
               {/* Tabs */}
@@ -308,12 +433,12 @@ const DetailStaff = () => {
               {/* Description */}
               <div className="py-4 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
-                  {book.description 
-                    ? (isExpanded 
-                        ? book.description 
-                        : book.description.length > 200 
-                          ? book.description.slice(0, 200) + "..." 
-                          : book.description)
+                  {book.description
+                    ? isExpanded
+                      ? book.description
+                      : book.description.length > 200
+                      ? book.description.slice(0, 200) + "..."
+                      : book.description
                     : "No description available for this book."}
                 </p>
                 {book.description && book.description.length > 200 && (
@@ -342,47 +467,65 @@ const DetailStaff = () => {
                       <span className="text-black font-medium">Author</span>
                     </div>
                     <div className="text-black">{book.author || "Not set"}</div>
-                    
+
                     <div>
                       <span className="text-black font-medium">Publisher</span>
                     </div>
-                    <div className="text-black">{book.publisher || "Not set"}</div>
-                    
-                    <div>
-                      <span className="text-black font-medium">Published Year</span>
+                    <div className="text-black">
+                      {book.publisher || "Not set"}
                     </div>
-                    <div className="text-black">{book.published_year || "Not set"}</div>
-                    
+
+                    <div>
+                      <span className="text-black font-medium">
+                        Published Year
+                      </span>
+                    </div>
+                    <div className="text-black">
+                      {book.published_year || "Not set"}
+                    </div>
+
                     <div>
                       <span className="text-black font-medium">Language</span>
                     </div>
-                    <div className="text-black">{book.language || "Not set"}</div>
-                    
+                    <div className="text-black">
+                      {book.language || "Not set"}
+                    </div>
+
                     <div>
                       <span className="text-black font-medium">ISBN</span>
                     </div>
-                    <div className="text-black">{book.isbn_code || "Not set"}</div>
-                    
+                    <div className="text-black">
+                      {book.isbn_code || "Not set"}
+                    </div>
+
                     <div>
                       <span className="text-black font-medium">Genre</span>
                     </div>
                     <div className="text-black">{book.genre || "Not set"}</div>
-                    
+
                     <div>
                       <span className="text-black font-medium">Book Type</span>
                     </div>
-                    <div className="text-black">{book.book_type || "Not set"}</div>
-                    
-                    <div>
-                      <span className="text-black font-medium">Content Type</span>
+                    <div className="text-black">
+                      {book.book_type || "Not set"}
                     </div>
-                    <div className="text-black">{book.content_type || "Not set"}</div>
-                    
+
+                    <div>
+                      <span className="text-black font-medium">
+                        Content Type
+                      </span>
+                    </div>
+                    <div className="text-black">
+                      {book.content_type || "Not set"}
+                    </div>
+
                     <div>
                       <span className="text-black font-medium">Cover Type</span>
                     </div>
-                    <div className="text-black">{book.cover_type || "Not set"}</div>
-                    
+                    <div className="text-black">
+                      {book.cover_type || "Not set"}
+                    </div>
+
                     <div>
                       <span className="text-black font-medium">Usage</span>
                     </div>
@@ -411,12 +554,14 @@ const DetailStaff = () => {
               </div>
 
               <div className="space-y-3 mt-6">
-                <Link href={`/staff/dashboard/book-management/edit-book?id=${bookId}`}>
+                <Link
+                  href={`/staff/dashboard/book-management/edit-book?id=${bookId}`}
+                >
                   <button className="w-full h-[35px] bg-[#2e3105] text-white text-xs rounded-2xl">
                     Edit
                   </button>
                 </Link>
-                <button 
+                <button
                   onClick={handleDelete}
                   className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >
