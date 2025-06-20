@@ -1,10 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const statusOptions = ["Pristine", "Good", "Fair", "Not Specified"];
 
 const AdjustCopiesModal = ({ isOpen, onClose, book, onUpdate }) => {
   const [status, setStatus] = useState(book?.status || "Not Specified");
   const [comment, setComment] = useState("");
+
+  useEffect(() => {
+    if (isOpen && book) {
+      setStatus(book.status || "Not Specified");
+      setComment(book.comment || "");
+    }
+  }, [isOpen, book]);
 
   if (!isOpen || !book) return null;
 

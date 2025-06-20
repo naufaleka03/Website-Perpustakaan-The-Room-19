@@ -204,6 +204,9 @@ async function seedManageBooks(tx) {
             copies INTEGER DEFAULT 0 NOT NULL,
             status VARCHAR(50) DEFAULT 'Not Specified' NOT NULL,
             comment TEXT,
+            is_retired BOOLEAN DEFAULT FALSE NOT NULL,
+            handle_by UUID REFERENCES staffs(id),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }

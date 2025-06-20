@@ -1,12 +1,20 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { FiSearch, FiEdit2, FiTrash2, FiMoreVertical } from "react-icons/fi";
+import {
+  FiSearch,
+  FiEdit2,
+  FiTrash2,
+  FiMoreVertical,
+  FiRefreshCw,
+} from "react-icons/fi";
 import { updateBookStock, deleteBook } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 import AddBookModal from "./AddBookModal";
 import DetailModal from "./DetailModal";
 import AdjustCopiesModal from "./AdjustCopiesModal";
+import RetireConfirmationModal from "./RetireConfirmationModal";
+import { createClient } from "@/app/supabase/client";
 
 const ManageBooks = () => {
   const router = useRouter();
@@ -28,6 +36,9 @@ const ManageBooks = () => {
   const [selectedBookDetail, setSelectedBookDetail] = useState(null);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [selectedBookAdjust, setSelectedBookAdjust] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRetireModalOpen, setIsRetireModalOpen] = useState(false);
+  const [bookToRetire, setBookToRetire] = useState(null);
 
   // Fetch books from database
   const fetchBooks = async () => {
@@ -206,6 +217,36 @@ const ManageBooks = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchBooks();
+    setIsRefreshing(false);
+  };
+
+  const handleRetire = async (id) => {
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const staffId = session?.user?.id;
+      if (!staffId) throw new Error("Staff ID not found in session");
+      const res = await fetch("/api/manage-books", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, retire: true, handle_by: staffId }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to retire book");
+      setIsRetireModalOpen(false);
+      setBookToRetire(null);
+      await fetchBooks();
+      router.refresh();
+    } catch (error) {
+      setError(error.message || "Failed to retire book");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
@@ -316,12 +357,24 @@ const ManageBooks = () => {
                 }}
               />
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-lime-950 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-900"
-            >
-              + Add Books
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                style={{ minWidth: 40 }}
+                aria-label="Refresh"
+                type="button"
+                disabled={isRefreshing}
+              >
+                <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} />
+              </button>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-lime-950 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-900"
+              >
+                + Add Books
+              </button>
+            </div>
           </div>
 
           {/* Books Table */}
@@ -337,6 +390,9 @@ const ManageBooks = () => {
                   </th>
                   <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Status
+                  </th>
+                  <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                    Comment
                   </th>
                   <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Actions
@@ -354,7 +410,7 @@ const ManageBooks = () => {
                     </td>
                     <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-left">
                       {book.book_title}
-                      {book.copies ? ` (copies ${book.copies})` : ""}
+                      {book.copy ? ` (copy ${book.copy})` : ""}
                     </td>
                     <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
                       {(() => {
@@ -378,6 +434,9 @@ const ManageBooks = () => {
                         }
                         return <span className={badgeClass}>{label}</span>;
                       })()}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
+                      {book.comment ? book.comment : "-"}
                     </td>
                     <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                       <button
@@ -404,7 +463,7 @@ const ManageBooks = () => {
                               setOpenActionMenuId(null);
                             }}
                           >
-                            Adjust Copies
+                            Adjust Condition
                           </button>
                           <button
                             className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200"
@@ -416,6 +475,17 @@ const ManageBooks = () => {
                             }}
                           >
                             Detail
+                          </button>
+                          <button
+                            className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                            type="button"
+                            onClick={() => {
+                              setBookToRetire(book);
+                              setIsRetireModalOpen(true);
+                              setOpenActionMenuId(null);
+                            }}
+                          >
+                            Retire Book
                           </button>
                         </div>
                       )}
@@ -525,6 +595,14 @@ const ManageBooks = () => {
             onClose={() => setIsAdjustModalOpen(false)}
             book={selectedBookAdjust}
             onUpdate={handleUpdateCopies}
+          />
+
+          {/* Retire Confirmation Modal */}
+          <RetireConfirmationModal
+            isOpen={isRetireModalOpen}
+            onClose={() => setIsRetireModalOpen(false)}
+            onRetire={() => handleRetire(bookToRetire?.id)}
+            book={bookToRetire}
           />
         </div>
       </div>

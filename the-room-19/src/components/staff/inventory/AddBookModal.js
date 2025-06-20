@@ -57,8 +57,13 @@ const AddBookModal = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!selectedBook || !copies || copies < 1) {
+    const numCopies = Number(copies);
+    if (!selectedBook || !numCopies || numCopies < 1) {
       setError("Please select a book and enter a valid number of copies.");
+      return;
+    }
+    if (numCopies > 3) {
+      setError("Maximum allowed is 3 copies per book.");
       return;
     }
     setLoading(true);
@@ -68,7 +73,7 @@ const AddBookModal = ({ onClose }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           book_id: selectedBook.value,
-          copies: Number(copies),
+          copies: numCopies,
         }),
       });
       const data = await res.json();
@@ -120,6 +125,7 @@ const AddBookModal = ({ onClose }) => {
             <input
               type="number"
               min={1}
+              max={3}
               value={copies}
               onChange={(e) => setCopies(e.target.value)}
               className="w-full h-10 px-4 bg-zinc-100 rounded-lg border border-stone-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-lime-950"

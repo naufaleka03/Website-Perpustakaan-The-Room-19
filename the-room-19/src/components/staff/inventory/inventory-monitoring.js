@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import React from "react";
 import InventoryLogDetailModal from "./InventoryLogDetailModal";
 import { FaEllipsisV } from "react-icons/fa";
+import { FiRefreshCw } from "react-icons/fi";
 
 function formatDate(dateString) {
   if (!dateString) return "";
@@ -24,24 +25,29 @@ export default function InventoryMonitoring() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [detailModal, setDetailModal] = useState({ isOpen: false, log: null });
   const [selectedRow, setSelectedRow] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Move fetchLogs outside useEffect
+  const fetchLogs = async () => {
+    setIsRefreshing(true);
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/inventory/monitoring");
+      const data = await res.json();
+      if (data.success) {
+        setLogs(data.data);
+      } else {
+        setError(data.error || "Failed to fetch inventory logs");
+      }
+    } catch (err) {
+      setError("Failed to fetch inventory logs");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLogs = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch("/api/inventory/monitoring");
-        const data = await res.json();
-        if (data.success) {
-          setLogs(data.data);
-        } else {
-          setError(data.error || "Failed to fetch inventory logs");
-        }
-      } catch (err) {
-        setError("Failed to fetch inventory logs");
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchLogs();
   }, []);
 
@@ -116,6 +122,16 @@ export default function InventoryMonitoring() {
               </svg>
             </span>
           </div>
+          <button
+            onClick={fetchLogs}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+            style={{ minWidth: 40 }}
+            aria-label="Refresh"
+            type="button"
+            disabled={isRefreshing}
+          >
+            <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} />
+          </button>
         </div>
 
         {/* Table */}
