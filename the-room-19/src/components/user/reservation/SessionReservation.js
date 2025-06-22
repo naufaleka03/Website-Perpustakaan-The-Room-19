@@ -6,9 +6,11 @@ import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { submitSessionReservation } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 import PaymentSummaryModal from "@/components/payment/payment-summary";
+import { createClient } from "@/app/supabase/client";
 
 export default function SessionReservation() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [date, setDate] = useState("");
   const [reservationType, setReservationType] = useState("individual");
   const [members, setMembers] = useState([""]);
@@ -20,6 +22,30 @@ export default function SessionReservation() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [reservationFormData, setReservationFormData] = useState(null);
   const [shiftAvailability, setShiftAvailability] = useState({});
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        // Fetch visitor data
+        const { data: visitorData, error } = await supabase
+          .from("visitors")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        if (visitorData) {
+          setUser(visitorData);
+          setFullName(visitorData.name); // Pre-fill the full name
+        } else if (error) {
+          console.error("Error fetching visitor data:", error);
+        }
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
@@ -92,6 +118,7 @@ export default function SessionReservation() {
       }
 
       const formData = {
+        user_id: user ? user.id : null,
         category,
         arrival_date: date,
         shift_name: shiftName,
@@ -165,6 +192,7 @@ export default function SessionReservation() {
 
       // Create formatted data for database insertion
       const sessionData = {
+        user_id: reservationFormData.user_id,
         category: reservationFormData.category,
         arrival_date: formattedDate,
         shift_name: reservationFormData.shift_name,

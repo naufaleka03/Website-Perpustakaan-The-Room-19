@@ -33,6 +33,7 @@ export async function submitSessionReservation(formData) {
 
     // Convert camelCase to snake_case for database consistency
     const dbFormData = {
+      user_id: formData.user_id,
       category: formData.category,
       arrival_date: formData.arrivalDate || formData.arrival_date,
       shift_name: formData.shiftName || formData.shift_name,
@@ -46,6 +47,7 @@ export async function submitSessionReservation(formData) {
 
     console.log("Formatted data for DB:", dbFormData);
     // Validation after conversion
+    if (!dbFormData.user_id) throw new Error("User not logged in");
     if (!dbFormData.category) throw new Error("Category is required");
     if (!dbFormData.arrival_date) throw new Error("Arrival date is required");
     if (!dbFormData.shift_name) throw new Error("Shift name is required");
@@ -85,6 +87,7 @@ export async function submitSessionReservation(formData) {
     // Insert reservation with payment details
     const result = await sql`
       INSERT INTO sessions (
+        user_id,
         category, 
         arrival_date,
         shift_name,
@@ -102,6 +105,7 @@ export async function submitSessionReservation(formData) {
         amount
       )
       VALUES (
+        ${dbFormData.user_id},
         ${dbFormData.category},
         ${dbFormData.arrival_date},
         ${dbFormData.shift_name},
@@ -403,6 +407,7 @@ export async function submitEventReservation(formData) {
 
     // Convert camelCase to snake_case for database consistency
     const dbFormData = {
+      user_id: formData.user_id,
       event_name: formData.event_name,
       description: formData.description,
       event_date: formData.event_date,
@@ -421,6 +426,7 @@ export async function submitEventReservation(formData) {
     };
 
     // Validation
+    if (!dbFormData.user_id) throw new Error("User not logged in");
     if (!dbFormData.event_name) throw new Error("Event name is required");
     if (!dbFormData.event_date) throw new Error("Event date is required");
     if (!dbFormData.shift_name) throw new Error("Shift name is required");
@@ -429,6 +435,7 @@ export async function submitEventReservation(formData) {
     // Insert reservation into database
     const result = await sql`
       INSERT INTO eventreservations (
+        user_id,
         event_name,
         description,
         event_date,
@@ -450,6 +457,7 @@ export async function submitEventReservation(formData) {
         created_at
       )
       VALUES (
+        ${dbFormData.user_id},
         ${dbFormData.event_name},
         ${dbFormData.description},
         ${dbFormData.event_date},

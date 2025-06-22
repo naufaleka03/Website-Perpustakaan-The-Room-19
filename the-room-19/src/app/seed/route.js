@@ -48,11 +48,11 @@ async function seedUsers(tx) {
 }
 
 async function seedMembershipApplications(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    
-    // Membership Applications table
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+  // Membership Applications table
+  await sql`
         CREATE TABLE IF NOT EXISTS memberships (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             user_id UUID NOT NULL REFERENCES auth.users(id),
@@ -73,9 +73,9 @@ async function seedMembershipApplications(tx) {
 }
 
 async function seedShifts(tx) {
-    const sql = tx ?? sql;
-    await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-    await sql`
+  const sql = tx ?? sql;
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
         CREATE TABLE IF NOT EXISTS shifts (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             shift_name VARCHAR(255) NOT NULL,

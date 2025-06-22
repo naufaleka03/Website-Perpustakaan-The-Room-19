@@ -6,7 +6,7 @@ const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 export async function GET() {
   try {
     const eventReservations = await sql`
-      SELECT 
+      SELECT
         er.*,
         e.event_name,
         e.description,

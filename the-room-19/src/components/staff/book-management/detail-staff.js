@@ -31,22 +31,22 @@ const DetailStaff = () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/books/${bookId}`);
-
+        
         if (!response.ok) {
           throw new Error("Failed to fetch book details");
         }
-
+        
         const data = await response.json();
         console.log("Fetched book details:", data.book);
         setBook(data.book || null);
-
+        
         // Fetch lend count
         const lendResponse = await fetch(`/api/books/${bookId}/lend-count`);
         if (lendResponse.ok) {
           const lendData = await lendResponse.json();
           setLendCount(lendData.count || 0);
         }
-
+        
         // Fetch rating count
         const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
         if (ratingResponse.ok) {
@@ -220,7 +220,7 @@ const DetailStaff = () => {
               <img
                 src={
                   book.cover_image && book.cover_image.trim() !== ""
-                    ? book.cover_image
+                  ? book.cover_image 
                     : "https://placehold.co/180x250"
                 }
                 alt={`${book.book_title} Cover`}
@@ -249,7 +249,7 @@ const DetailStaff = () => {
                         : `Rp ${parseInt(book.price).toLocaleString("id-ID")}`}
                     </div>
                   )}
-
+                  
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
@@ -263,7 +263,7 @@ const DetailStaff = () => {
                         ({ratingCount} reviews)
                       </span>
                     </div>
-
+                    
                     <div className="text-[#666666] text-xs">
                       Borrowed {lendCount} times
                     </div>
@@ -345,10 +345,10 @@ const DetailStaff = () => {
                 )}
                 {/* Book condition info below dropdown */}
                 {copies.length === 0 ? (
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-black font-medium">Status</span>
-                    </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-black font-medium">Status</span>
+                  </div>
                     <div>
                       <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">
                         Not specified
@@ -357,10 +357,10 @@ const DetailStaff = () => {
                     <div>
                       <span className="text-black font-medium">
                         Description
-                      </span>
-                    </div>
+                    </span>
+                  </div>
                     <div className="text-black">No description available</div>
-                    <div>
+                  <div>
                       <span className="text-black font-medium">
                         Last Updated
                       </span>
@@ -405,7 +405,7 @@ const DetailStaff = () => {
                         <div className="text-black">
                           {copy.comment || "No description available"}
                         </div>
-                        <div>
+                  <div>
                           <span className="text-black font-medium">
                             Last Updated
                           </span>
@@ -414,8 +414,8 @@ const DetailStaff = () => {
                           {copy.updated_at
                             ? new Date(copy.updated_at).toLocaleString()
                             : "Not available"}
-                        </div>
-                      </div>
+                  </div>
+                </div>
                     );
                   })()
                 )}
@@ -433,11 +433,11 @@ const DetailStaff = () => {
               {/* Description */}
               <div className="py-4 text-xs font-manrope leading-relaxed">
                 <p className="text-justify font-normal text-black">
-                  {book.description
+                  {book.description 
                     ? isExpanded
-                      ? book.description
-                      : book.description.length > 200
-                      ? book.description.slice(0, 200) + "..."
+                        ? book.description 
+                        : book.description.length > 200 
+                          ? book.description.slice(0, 200) + "..." 
                       : book.description
                     : "No description available for this book."}
                 </p>
@@ -467,14 +467,14 @@ const DetailStaff = () => {
                       <span className="text-black font-medium">Author</span>
                     </div>
                     <div className="text-black">{book.author || "Not set"}</div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Publisher</span>
                     </div>
                     <div className="text-black">
                       {book.publisher || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">
                         Published Year
@@ -483,33 +483,33 @@ const DetailStaff = () => {
                     <div className="text-black">
                       {book.published_year || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Language</span>
                     </div>
                     <div className="text-black">
                       {book.language || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">ISBN</span>
                     </div>
                     <div className="text-black">
                       {book.isbn_code || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Genre</span>
                     </div>
                     <div className="text-black">{book.genre || "Not set"}</div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Book Type</span>
                     </div>
                     <div className="text-black">
                       {book.book_type || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">
                         Content Type
@@ -518,14 +518,14 @@ const DetailStaff = () => {
                     <div className="text-black">
                       {book.content_type || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Cover Type</span>
                     </div>
                     <div className="text-black">
                       {book.cover_type || "Not set"}
                     </div>
-
+                    
                     <div>
                       <span className="text-black font-medium">Usage</span>
                     </div>
@@ -561,7 +561,7 @@ const DetailStaff = () => {
                     Edit
                   </button>
                 </Link>
-                <button
+                <button 
                   onClick={handleDelete}
                   className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >

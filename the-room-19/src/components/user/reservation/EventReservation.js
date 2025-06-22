@@ -6,6 +6,7 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { submitEventReservation } from "@/app/lib/actions";
 import PaymentSummaryEventsModal from "@/components/payment/payment-summary-events";
+import { createClient } from "@/app/supabase/client";
 
 export default function EventReservation() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function EventReservation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [reservationFormData, setReservationFormData] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const supabase = createClient();
 
   useEffect(() => {
     if (!eventId) {
@@ -40,8 +43,18 @@ export default function EventReservation() {
       }
     };
 
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+
     fetchEventDetails();
-  }, [eventId, router]);
+    fetchUser();
+  }, [eventId, router, supabase]);
 
   const handleReservationTypeChange = (type) => {
     setReservationType(type);
@@ -124,6 +137,7 @@ export default function EventReservation() {
 
       // Prepare form data for payment
       const formData = {
+        user_id: userId,
         event_name: eventDetails.event_name,
         description: eventDetails.description,
         event_date: eventDetails.event_date,

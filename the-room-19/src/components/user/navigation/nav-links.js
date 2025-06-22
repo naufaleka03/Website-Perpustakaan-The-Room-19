@@ -24,7 +24,7 @@ const links = [
     subLinks: [
       { name: 'Sessions', href: '/user/dashboard/reservation/session-reservation' },
       { name: 'Events', href: '/user/dashboard/reservation/event-list' },
-      { name: 'Histories', href: ''}
+      { name: 'Histories', href: '/user/dashboard/reservation/histories'}
     ]
   },
   {
