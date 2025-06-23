@@ -125,6 +125,10 @@ export async function POST(request) {
         await sql`
           UPDATE books SET stock = stock - 1 WHERE id = ${requestData.book_id1}
         `;
+        // Tambah total_borrow setiap kali buku dipinjam
+        await sql`
+          UPDATE books SET total_borrow = total_borrow + 1 WHERE id = ${requestData.book_id1}
+        `;
         return Response.json({ success: true, loan: insertedLoan[0], transaction: transactionRow }, { status: 201 });
       } else {
         throw new Error('Failed to insert loan record');

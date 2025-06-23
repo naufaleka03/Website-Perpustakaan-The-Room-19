@@ -38,12 +38,8 @@ const DetailStaff = () => {
         console.log('Fetched book details:', data.book);
         setBook(data.book || null);
         
-        // Fetch lend count
-        const lendResponse = await fetch(`/api/books/${bookId}/lend-count`);
-        if (lendResponse.ok) {
-          const lendData = await lendResponse.json();
-          setLendCount(lendData.count || 0);
-        }
+        // Ambil total_borrow dan stock langsung dari data.book
+        setLendCount(data.book?.total_borrow || 0);
         
         // Fetch rating count
         const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
@@ -228,7 +224,7 @@ const DetailStaff = () => {
                   </h1>
                   
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center">
+                    {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
                         {(typeof book.rating === 'number' ? book.rating : 0).toFixed(1)}
@@ -236,10 +232,10 @@ const DetailStaff = () => {
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
-                    </div>
+                    </div> */}
                     
                     <div className="text-[#666666] text-xs">
-                      Borrowed {lendCount} times
+                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
                     </div>
                   </div>
                 </div>
@@ -407,8 +403,7 @@ const DetailStaff = () => {
                   Available now
                 </span>
                 <span className="text-black text-xs font-normal ml-auto">
-                  Total stock:{" "}
-                  <span className="text-[#ecb43c] font-normal">5 left</span>
+                  Stok: <span className="font-bold">{book.stock ?? 0}</span>
                 </span>
               </div>
 

@@ -478,6 +478,9 @@ const Detail = () => {
                     {/* <div className="text-[#666666] text-xs ml-4">
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
                     </div> */}
+                    <div className="text-[#666666] text-xs">
+                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
+                    </div>
                   </div>
                 </div>
                 
