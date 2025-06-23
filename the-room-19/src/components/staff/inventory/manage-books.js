@@ -196,13 +196,13 @@ const ManageBooks = () => {
     );
   };
 
-  const handleUpdateCopies = async ({ status, comment }) => {
+  const handleUpdateCopies = async ({ condition, comment }) => {
     if (!selectedBookAdjust) return;
     try {
       const res = await fetch("/api/manage-books", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedBookAdjust.id, status, comment }),
+        body: JSON.stringify({ id: selectedBookAdjust.id, condition, comment }),
       });
       const data = await res.json();
       if (data.success) {
@@ -210,10 +210,10 @@ const ManageBooks = () => {
         setSelectedBookAdjust(null);
         fetchBooks(); // refresh data
       } else {
-        alert(data.error || "Failed to update status");
+        alert(data.error || "Failed to update condition");
       }
     } catch (err) {
-      alert("Failed to update status");
+      alert("Failed to update condition");
     }
   };
 
@@ -389,10 +389,13 @@ const ManageBooks = () => {
                     Book Title
                   </th>
                   <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                    Status
+                    Condition
                   </th>
                   <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Comment
+                  </th>
+                  <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                    Status
                   </th>
                   <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
                     Actions
@@ -414,20 +417,20 @@ const ManageBooks = () => {
                     </td>
                     <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
                       {(() => {
-                        const status = (book.status || "").toLowerCase();
+                        const condition = (book.condition || "").toLowerCase();
                         let badgeClass =
                           "px-2 py-1 rounded-lg text-xs font-medium ";
-                        let label = book.status || "-";
+                        let label = book.condition || "-";
                         if (
-                          status === "not specified" ||
-                          status === "not_specified"
+                          condition === "not specified" ||
+                          condition === "not_specified"
                         ) {
                           badgeClass += "bg-yellow-100 text-yellow-800";
-                        } else if (status === "pristine") {
+                        } else if (condition === "pristine") {
                           badgeClass += "bg-green-100 text-green-800";
-                        } else if (status === "good") {
+                        } else if (condition === "good") {
                           badgeClass += "bg-blue-100 text-blue-800";
-                        } else if (status === "fair") {
+                        } else if (condition === "fair") {
                           badgeClass += "bg-orange-100 text-orange-800";
                         } else {
                           badgeClass += "text-[#666666]";
@@ -437,6 +440,21 @@ const ManageBooks = () => {
                     </td>
                     <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
                       {book.comment ? book.comment : "-"}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins'] text-center">
+                      {(() => {
+                        let badgeClass =
+                          "px-2 py-1 rounded-lg text-xs font-medium ";
+                        let label = book.status || "-";
+                        if (book.status === "Available") {
+                          badgeClass += "bg-green-100 text-green-800";
+                        } else if (book.status === "On Loan") {
+                          badgeClass += "bg-blue-100 text-blue-800";
+                        } else if (book.status === "Retired") {
+                          badgeClass += "bg-gray-200 text-gray-800";
+                        }
+                        return <span className={badgeClass}>{label}</span>;
+                      })()}
                     </td>
                     <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                       <button

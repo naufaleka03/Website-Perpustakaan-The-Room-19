@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 
-const statusOptions = ["Pristine", "Good", "Fair", "Not Specified"];
+const conditionOptions = ["Pristine", "Good", "Fair", "Not Specified"];
 
 const AdjustCopiesModal = ({ isOpen, onClose, book, onUpdate }) => {
-  const [status, setStatus] = useState(book?.status || "Not Specified");
+  const [condition, setCondition] = useState(
+    book?.condition || "Not Specified"
+  );
   const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (isOpen && book) {
-      setStatus(book.status || "Not Specified");
+      setCondition(book.condition || "Not Specified");
       setComment(book.comment || "");
     }
   }, [isOpen, book]);
@@ -18,7 +20,7 @@ const AdjustCopiesModal = ({ isOpen, onClose, book, onUpdate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onUpdate) {
-      onUpdate({ status, comment });
+      onUpdate({ condition, comment });
     }
   };
 
@@ -45,15 +47,15 @@ const AdjustCopiesModal = ({ isOpen, onClose, book, onUpdate }) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-              Status
+              Condition
             </label>
             <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              value={condition}
+              onChange={(e) => setCondition(e.target.value)}
               className="w-full h-10 px-4 bg-zinc-100 rounded-lg border border-stone-300 text-sm font-normal text-gray-900 focus:outline-none focus:border-lime-950"
               required
             >
-              {statusOptions.map((opt) => (
+              {conditionOptions.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>

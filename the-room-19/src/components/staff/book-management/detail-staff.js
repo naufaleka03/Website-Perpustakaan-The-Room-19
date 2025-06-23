@@ -347,7 +347,7 @@ const DetailStaff = () => {
                 {copies.length === 0 ? (
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-black font-medium">Status</span>
+                      <span className="text-black font-medium">Condition</span>
                     </div>
                     <div>
                       <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">
@@ -372,17 +372,17 @@ const DetailStaff = () => {
                     const copyItem = copies[selectedCopyIndex] || {};
                     let badgeClass =
                       "px-2 py-1 rounded-full text-xs font-medium ";
-                    const status = (copyItem.status || "").toLowerCase();
+                    const condition = (copyItem.condition || "").toLowerCase();
                     if (
-                      status === "not specified" ||
-                      status === "not_specified"
+                      condition === "not specified" ||
+                      condition === "not_specified"
                     ) {
                       badgeClass += "bg-yellow-100 text-yellow-800";
-                    } else if (status === "pristine") {
+                    } else if (condition === "pristine") {
                       badgeClass += "bg-green-100 text-green-800";
-                    } else if (status === "good") {
+                    } else if (condition === "good") {
                       badgeClass += "bg-blue-100 text-blue-800";
-                    } else if (status === "fair") {
+                    } else if (condition === "fair") {
                       badgeClass += "bg-orange-100 text-orange-800";
                     } else {
                       badgeClass += "bg-gray-200 text-gray-800";
@@ -390,11 +390,13 @@ const DetailStaff = () => {
                     return (
                       <div className="grid grid-cols-2 gap-2 text-xs mt-2">
                         <div>
-                          <span className="text-black font-medium">Status</span>
+                          <span className="text-black font-medium">
+                            Condition
+                          </span>
                         </div>
                         <div>
                           <span className={badgeClass}>
-                            {copyItem.status || "Not specified"}
+                            {copyItem.condition || "Not specified"}
                           </span>
                         </div>
                         <div>

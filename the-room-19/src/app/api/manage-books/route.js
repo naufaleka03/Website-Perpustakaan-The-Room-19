@@ -35,7 +35,7 @@ export async function GET(request) {
     // Return all copies for this book
     try {
       const copies = await sql`
-        SELECT id, copy, status, comment, updated_at
+        SELECT id, copy, condition, status, comment, updated_at
         FROM manage_books
         WHERE book_id = ${book_id} AND is_retired = false
         ORDER BY copy ASC
@@ -50,7 +50,7 @@ export async function GET(request) {
   }
   try {
     const books = await sql`
-      SELECT mb.id, mb.book_id, mb.copy, mb.status, mb.comment, b.book_title
+      SELECT mb.id, mb.book_id, mb.copy, mb.condition, mb.status, mb.comment, b.book_title
       FROM manage_books mb
       JOIN books b ON mb.book_id = b.id
       WHERE mb.is_retired = false
@@ -69,7 +69,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { book_id, copies: numCopies } = body;
+    const { book_id, copies: numCopies, condition } = body;
     if (!book_id || typeof numCopies !== "number" || numCopies < 1) {
       return NextResponse.json(
         { success: false, error: "book_id and copies (>=1) are required" },
@@ -99,8 +99,10 @@ export async function POST(request) {
     for (let i = 0; i < toAdd; i++) {
       inserts.push(
         sql`
-          INSERT INTO manage_books (book_id, copy, status)
-          VALUES (${book_id}, ${availableCopies[i]}, 'Not Specified')
+          INSERT INTO manage_books (book_id, copy, condition, status)
+          VALUES (${book_id}, ${availableCopies[i]}, ${
+          condition || "Not Specified"
+        }, 'Available')
           RETURNING *
         `
       );
@@ -112,12 +114,10 @@ export async function POST(request) {
     if (numCopies > toAdd) {
       message = `Only ${toAdd} copy/copies added. Maximum 3 copies per book allowed.`;
     }
-
     // After adding, update the main book stock
     if (results.length > 0) {
       await updateBookStock(book_id);
     }
-
     return NextResponse.json(
       { success: true, data: results, message },
       { status: 201 }
@@ -130,11 +130,11 @@ export async function POST(request) {
   }
 }
 
-// PATCH: Update status and comment for a managed book, or retire book
+// PATCH: Update condition and comment for a managed book, or retire book
 export async function PATCH(request) {
   try {
     const body = await request.json();
-    const { id, status, comment, retire } = body;
+    const { id, condition, comment, retire } = body;
     if (!id) {
       return NextResponse.json(
         { success: false, error: "id is required" },
@@ -156,7 +156,7 @@ export async function PATCH(request) {
       const book = bookRows[0];
       // Mark as retired
       await sql`
-        UPDATE manage_books SET is_retired = true WHERE id = ${id}
+        UPDATE manage_books SET is_retired = true, status = 'Retired' WHERE id = ${id}
       `;
       // Insert log to inventory_logs
       const handle_by = body.handle_by || null;
@@ -166,22 +166,20 @@ export async function PATCH(request) {
           book.book_title + " (copy " + book.copy + ")"
         }, 1, 0, 'Retired (damaged and removed from inventory)', NOW(), ${handle_by})
       `;
-
       // After retiring, update the main book stock
       await updateBookStock(book.book_id);
-
       return NextResponse.json({ success: true });
     }
-    // Default: update status/comment
-    if (!status) {
+    // Default: update condition/comment
+    if (!condition) {
       return NextResponse.json(
-        { success: false, error: "status is required if not retiring" },
+        { success: false, error: "condition is required if not retiring" },
         { status: 400 }
       );
     }
     const result = await sql`
       UPDATE manage_books
-      SET status = ${status}, comment = ${comment || null}
+      SET condition = ${condition}, comment = ${comment || null}
       WHERE id = ${id}
       RETURNING *
     `;
