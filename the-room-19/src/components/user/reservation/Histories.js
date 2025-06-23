@@ -205,6 +205,14 @@ export default function Histories() {
     setSelectedEvent(null);
   };
 
+  const getStatus = (itemStatus, paymentStatus) => {
+    if (itemStatus === "canceled") return "Cancelled";
+    if (["capture", "settlement"].includes(paymentStatus)) return "Paid";
+    if (["deny", "cancel", "expire"].includes(paymentStatus))
+      return "Cancelled";
+    return "Pending";
+  };
+
   const filteredSessionHistory = sessionHistory.filter((session) => {
     const searchTerm = searchQuery.toLowerCase();
     const fullName = session.full_name.toLowerCase();
@@ -214,13 +222,26 @@ export default function Histories() {
       .substring(0, 5)
       .replace(":", ".")})`.toLowerCase();
 
-    return fullName.includes(searchTerm) || shiftDisplay.includes(searchTerm);
+    const searchMatch =
+      fullName.includes(searchTerm) || shiftDisplay.includes(searchTerm);
+
+    if (selectedOption === "All Status") {
+      return searchMatch;
+    }
+    const status = getStatus(session.status, session.payment_status);
+    return searchMatch && status === selectedOption;
   });
 
   const filteredEventHistory = eventHistory.filter((event) => {
     const searchTerm = searchQuery.toLowerCase();
     const eventName = event.event_name.toLowerCase();
-    return eventName.includes(searchTerm);
+    const searchMatch = eventName.includes(searchTerm);
+
+    if (selectedOption === "All Status") {
+      return searchMatch;
+    }
+    const status = getStatus(event.status, event.payment_status);
+    return searchMatch && status === selectedOption;
   });
 
   return (
@@ -330,14 +351,10 @@ export default function Histories() {
                   .replace(":", ".");
                 const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
 
-                const getStatus = (paymentStatus) => {
-                  if (["capture", "settlement"].includes(paymentStatus))
-                    return "Paid";
-                  if (["deny", "cancel", "expire"].includes(paymentStatus))
-                    return "Cancelled";
-                  return "Pending";
-                };
-                const status = getStatus(session.payment_status);
+                const status = getStatus(
+                  session.status,
+                  session.payment_status
+                );
 
                 return (
                   <ReservationHistoryCard
@@ -384,14 +401,7 @@ export default function Histories() {
                   .replace(":", ".");
                 const shiftDisplay = `${event.shift_name} (${startTime} - ${endTime})`;
 
-                const getStatus = (paymentStatus) => {
-                  if (["capture", "settlement"].includes(paymentStatus))
-                    return "Paid";
-                  if (["deny", "cancel", "expire"].includes(paymentStatus))
-                    return "Cancelled";
-                  return "Pending";
-                };
-                const status = getStatus(event.payment_status);
+                const status = getStatus(event.status, event.payment_status);
 
                 return (
                   <ReservationHistoryCard

@@ -201,7 +201,7 @@ async function seedManageBooks(tx) {
         CREATE TABLE IF NOT EXISTS manage_books (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             book_id UUID REFERENCES books(id),
-            copies INTEGER DEFAULT 0 NOT NULL,
+            copy INTEGER NOT NULL,
             status VARCHAR(50) DEFAULT 'Not Specified' NOT NULL,
             comment TEXT,
             is_retired BOOLEAN DEFAULT FALSE NOT NULL,

@@ -556,13 +556,13 @@ const Detail = ({ memberStatus = "guest" }) => {
                         disabled={copies.length === 1}
                         style={{ fontSize: "0.75rem", height: "1.75rem" }}
                       >
-                        {copies.map((copy, idx) => (
+                        {copies.map((copyItem, idx) => (
                           <option
-                            key={copy.id}
+                            key={copyItem.id}
                             value={idx}
                             className="rounded-full text-xs"
                           >
-                            Copy {copy.copy}
+                            Copy {copyItem.copy}
                           </option>
                         ))}
                       </select>
@@ -612,10 +612,10 @@ const Detail = ({ memberStatus = "guest" }) => {
                   </div>
                 ) : (
                   (() => {
-                    const copy = copies[selectedCopyIndex] || {};
+                    const copyItem = copies[selectedCopyIndex] || {};
                     let badgeClass =
                       "px-2 py-1 rounded-full text-xs font-medium ";
-                    const status = (copy.status || "").toLowerCase();
+                    const status = (copyItem.status || "").toLowerCase();
                     if (
                       status === "not specified" ||
                       status === "not_specified"
@@ -637,7 +637,7 @@ const Detail = ({ memberStatus = "guest" }) => {
                         </div>
                         <div>
                           <span className={badgeClass}>
-                            {copy.status || "Not specified"}
+                            {copyItem.status || "Not specified"}
                           </span>
                         </div>
                         <div>
@@ -646,7 +646,7 @@ const Detail = ({ memberStatus = "guest" }) => {
                           </span>
                         </div>
                         <div className="text-black">
-                          {copy.comment || "No description available"}
+                          {copyItem.comment || "No description available"}
                         </div>
                         <div>
                           <span className="text-black font-medium">
@@ -654,8 +654,8 @@ const Detail = ({ memberStatus = "guest" }) => {
                           </span>
                         </div>
                         <div className="text-black">
-                          {copy.updated_at
-                            ? new Date(copy.updated_at).toLocaleString()
+                          {copyItem.updated_at
+                            ? new Date(copyItem.updated_at).toLocaleString()
                             : "Not available"}
                         </div>
                       </div>
