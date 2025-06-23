@@ -4,65 +4,17 @@ import { FaFire, FaStar, FaUser, FaRegCalendarAlt, FaBook, FaClock, FaChevronRig
 import { AiFillStar } from 'react-icons/ai';
 import Link from "next/link";
 import { createClient } from '@/app/supabase/client';
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
-// Dummy images for the hero carousel and books with placeholder gradients
+// Dummy images for the hero carousel
 const heroImages = [
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2NmFkMTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojOGI3M2NmO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDEpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAxPC90ZXh0Pgo8L3N2Zz4K',
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y2OWQ2OTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZmY4YTgwO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDIpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAyPC90ZXh0Pgo8L3N2Zz4K',
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDQwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzM0ZDBjMTtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNDBkNGNmO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNncmFkaWVudDMpIi8+Cjx0ZXh0IHg9IjYwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SGVybyBJbWFnZSAzPC90ZXh0Pgo8L3N2Zz4K'
+  '/tr19-dashboard.jpg',
+  '/tr19-dashboard(2).jpg', 
+  '/tr19-dashboard(3).jpg',
 ];
 
-const recommendedBooks = [
-  { 
-    id: 1, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2NmFkMTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM4YjczY2Y7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzEpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgMTwvdGV4dD48L3N2Zz4=',
-    title: 'The Midnight Library', 
-    author: 'Matt Haig',
-    rating: 4.8,
-    genre: 'Fiction'
-  },
-  { 
-    id: 2, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMiIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y2OWQ2OTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmZjhhODA7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzIpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgMjwvdGV4dD48L3N2Zz4=',
-    title: 'Atomic Habits', 
-    author: 'James Clear',
-    rating: 4.9,
-    genre: 'Self-Help'
-  },
-  { 
-    id: 3, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnMyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzM0ZDBjMTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0MGQ0Y2Y7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzMpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgMzwvdGV4dD48L3N2Zz4=',
-    title: 'Dune', 
-    author: 'Frank Herbert',
-    rating: 4.7,
-    genre: 'Sci-Fi'
-  },
-  { 
-    id: 4, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Y1OWU0MjtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmZjkzMDA7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzQpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNDwvdGV4dD48L3N2Zz4=',
-    title: 'The Seven Moons', 
-    author: 'Rebecca Ross',
-    rating: 4.6,
-    genre: 'Fantasy'
-  },
-  { 
-    id: 5, 
-    cover: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDE4MCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnNSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzllNGVkZjtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNjMDg0ZmM7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyNTAiIGZpbGw9InVybCgjZzUpIi8+PHRleHQgeD0iOTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJvb2sgNTwvdGV4dD48L3N2Zz4=',
-    title: 'Digital Minimalism', 
-    author: 'Cal Newport',
-    rating: 4.5,
-    genre: 'Technology'
-  },
-];
-
-const quickActions = [
-  { id: 1, title: 'My Loans', icon: 'BookOpen', color: 'from-blue-500 to-blue-600', count: 3 },
-  { id: 2, title: 'Reserve Book', icon: 'Calendar', color: 'from-purple-500 to-purple-600', count: null },
-  { id: 3, title: 'Membership', icon: 'User', color: 'from-green-500 to-green-600', count: null },
-  { id: 4, title: 'Pay Fines', icon: 'Clock', color: 'from-red-500 to-red-600', count: '$12.50' },
-];
-
+// Recent activity data
 const recentActivity = [
   { id: 1, action: 'Borrowed', book: 'The Midnight Library', date: '2024-05-25', icon: 'BookOpen' },
   { id: 2, action: 'Reserved', book: 'Atomic Habits', date: '2024-05-24', icon: 'Calendar' },
@@ -70,7 +22,7 @@ const recentActivity = [
   { id: 4, action: 'Renewed', book: 'Digital Minimalism', date: '2024-05-22', icon: 'Clock' },
 ];
 
-// getBookInitials function for book cover placeholder
+// Helper functions
 const getBookInitials = (title) => {
   if (!title) return '';
   return title
@@ -81,7 +33,6 @@ const getBookInitials = (title) => {
     .toUpperCase();
 };
 
-// In recentActivity, use the correct icon:
 const activityIconMap = {
   BookOpen: FaBookOpen,
   Calendar: FaRegCalendarAlt,
@@ -120,7 +71,32 @@ export default function UserDashboard() {
   const [loadingLoans, setLoadingLoans] = useState(true);
   const [errorLoans, setErrorLoans] = useState(null);
   const [loanCovers, setLoanCovers] = useState({});
+  const [firstName, setFirstName] = useState('there');
+  const [personalizedRekom, setPersonalizedRekom] = useState([]);
+  const [loadingPersonalized, setLoadingPersonalized] = useState(true);
+  const [errorPersonalized, setErrorPersonalized] = useState(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchFirstName = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const { data, error } = await supabase
+          .from('visitors')
+          .select('name')
+          .eq('id', session.user.id)
+          .single();
+        if (data && data.name) {
+          setFirstName(data.name.split(' ')[0]);
+        }
+      } catch (err) {
+        setFirstName('there');
+      }
+    };
+    fetchFirstName();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -241,7 +217,7 @@ export default function UserDashboard() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User belum login');
+        if (!user) throw new Error('User has not logged in');
         const res = await fetch(`/api/loans?user_id=${user.id}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal mengambil data peminjaman');
@@ -276,8 +252,35 @@ export default function UserDashboard() {
     fetchLoans();
   }, []);
 
+  useEffect(() => {
+    const fetchPersonalized = async () => {
+      setLoadingPersonalized(true);
+      setErrorPersonalized(null);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User belum login');
+        const preferencesRes = await fetch(`/api/preferences?user_id=${user.id}`);
+        const preferencesData = await preferencesRes.json();
+        if (!preferencesData.id) throw new Error('No preferences found');
+        const prefId = preferencesData.id;
+        console.log('Preference ID sent to Flask:', prefId);
+        const res = await fetch(`http://localhost:5001/user-preferences/recommendation?id=${prefId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengambil rekomendasi personal');
+        setPersonalizedRekom(data.recommendations || []);
+      } catch (err) {
+        setErrorPersonalized(err.message || 'Gagal memuat rekomendasi.');
+        setPersonalizedRekom([]);
+      } finally {
+        setLoadingPersonalized(false);
+      }
+    };
+    fetchPersonalized();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br bg-[#5f5f2c]">
+    <div className="min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
       {/* Hero Carousel */}
       <div className="relative w-full h-[400px] overflow-hidden">
         {heroImages.map((image, index) => (
@@ -288,22 +291,20 @@ export default function UserDashboard() {
               index < currentHero ? '-translate-x-full' : 'translate-x-full'
             }`}
           >
-            <img
+            <Image
               src={image}
               alt={`Hero ${index + 1}`}
-              className="w-full h-full object-cover"
+              fill
+              style={{ objectFit: 'cover' }}
+              priority={index === 0}
+              sizes="(max-width: 768px) 100vw, 1200px"
             />
           </div>
         ))}
 
-        {/* Improved seamless gradient transition: taller, starts higher, overlaps bottom */}
-        <div className="pointer-events-none absolute left-0 w-full" style={{bottom: '-1px', height: '100px'}}>
-          <div className="w-full h-full bg-gradient-to-b from-transparent via-[#5f5f2c]/50 to-[#5f5f2c]" />
-        </div>
-
         {/* Welcome text */}
         <div className="absolute left-8 bottom-8 md:left-16 md:bottom-12 z-10">
-          <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back, <span className="text-[#d9e67b]">Sarah!</span></h1>
+          <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back, <span className="text-[#d9e67b]">{firstName}!</span></h1>
           <p className="text-base text-white/90 max-w-xl drop-shadow">Discover new worlds, continue your reading journey, and manage your library activities with ease.</p>
         </div>
         
@@ -324,8 +325,8 @@ export default function UserDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick Actions */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-            <FaFire className="mr-2" />
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center font-manrope">
+            <FaFire className="mr-2 text-white" />
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -344,22 +345,26 @@ export default function UserDashboard() {
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
                 <FaRegCalendarAlt className="text-white text-lg" />
               </div>
-              <span className="font-semibold text-slate-800 text-sm">Reserve Book</span>
+              <span className="font-semibold text-slate-800 text-sm">Loan a Book</span>
               <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
             </button>
-            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60">
+            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60"
+              onClick={() => router.push('/user/dashboard/reservation/session-reservation')}
+            >
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
+                <FaClock className="text-white text-lg" />
+              </div>
+              <span className="font-semibold text-slate-800 text-sm">Reserve a Session</span>
+              <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            </button>
+            <button 
+              className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60"
+              onClick={() => router.push('/user/dashboard/membership')}
+            >
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
                 <FaUser className="text-white text-lg" />
               </div>
               <span className="font-semibold text-slate-800 text-sm">Membership</span>
-              <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
-            </button>
-            <button className="group flex items-center bg-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center mr-3">
-                <FaClock className="text-white text-lg" />
-              </div>
-              <span className="font-semibold text-slate-800 text-sm">Pay Fines</span>
-              <span className="ml-2 text-xs text-slate-600 font-medium">$12.50</span>
               <FaChevronRight className="ml-auto w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
             </button>
           </div>
@@ -368,57 +373,59 @@ export default function UserDashboard() {
         {/* Personalized Recommendation */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center">
-              <FaStar className="mr-2 text-yellow-400" />
+            <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
+              <FaStar className="mr-2 text-white" />
               Personalized Recommendation
             </h2>
-            <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center">
+            <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
+              onClick={() => router.push('/user/dashboard/books/recommendation-all-personalized')}
+            >
               View All <FaChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
           <div className="flex space-x-6 overflow-x-auto p-4 scrollbar-hide">
-            {recommendedBooks.map((book) => (
-              <div key={book.id} className="flex-none w-48 group">
-                <div className="relative mb-4">
-                  <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-gray-200 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-transform duration-300">
-                    {book.cover ? (
-                      <img
-                        src={book.cover}
-                        alt={book.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-500">
-                        {getBookInitials(book.title)}
-                      </div>
-                    )}
-                  </div>
+            {loadingPersonalized ? (
+              [1,2,3].map((i) => (
+                <div key={i} className="flex-none w-48 group animate-pulse">
+                  <div className="aspect-[3/4] w-full rounded-2xl bg-gray-200 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-[#d9e67b] transition-colors">
-                    {book.title}
-                  </h3>
-                  <p className="text-slate-50 text-xs">{book.author}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full">
-                      {book.genre}
-                    </span>
-                    <div className="flex items-center">
-                      <AiFillStar className="text-yellow-400 w-3 h-3" />
-                      <span className="text-xs text-white ml-1">{book.rating}</span>
+              ))
+            ) : errorPersonalized ? (
+              <div className="text-red-500 text-sm">{errorPersonalized}</div>
+            ) : personalizedRekom.length === 0 ? (
+              <div className="text-gray-500 text-sm">No personalized recommendations available.</div>
+            ) : (
+              personalizedRekom.map((rec) => (
+                <Link
+                  key={rec.book_id}
+                  href={`/user/dashboard/books/catalog/detail?id=${rec.book_id}`}
+                  className="flex-none w-48 group transition-transform duration-200 hover:scale-105"
+                >
+                  <div className="relative mb-4">
+                    <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden bg-gray-200 shadow-lg group-hover:shadow-xl group-hover:scale-101 transition-transform duration-300 flex items-center justify-center">
+                      <span className="text-[#52570d] font-bold text-3xl select-none">
+                        {rec.book_title ? rec.book_title.slice(0,2).toUpperCase() : 'BK'}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                  <div className="flex flex-col justify-between min-h-[88px]">
+                    <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-[#d9e67b] transition-colors min-h-[40px] max-h-[40px] overflow-hidden">
+                      {rec.book_title}
+                    </h3>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </section>
 
         {/* Interaction Based Recommendation */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center">
-              <FaStar className="mr-2 text-yellow-400" />
+            <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
+              <FaStar className="mr-2 text-white" />
               {isPopularGenre
                 ? 'Popular Genre Recommendations'
                 : `Similar to your last borrowed book${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
@@ -483,8 +490,8 @@ export default function UserDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Reservations */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <span className="text-purple-600">📅</span>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+              <FaRegCalendarAlt className="mr-2 text-white" />
               Upcoming Reservations
             </h2>
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
@@ -523,8 +530,8 @@ export default function UserDashboard() {
 
           {/* Current Loans */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <span className="text-blue-600">📚</span>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+              <FaBookOpen className="mr-2 text-white" />
               Current Loans
             </h2>
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">
@@ -544,7 +551,7 @@ export default function UserDashboard() {
                     >
                       <div className="flex items-center space-x-3">
                         {/* Cover Buku */}
-                        <div className="w-10 h-14 rounded overflow-hidden bg-gradient-to-b bg-[#eff0c3] flex items-center justify-center">
+                        <div className="w-10 h-14 rounded overflow-hidden bg-[#eff0c3] flex items-center justify-center">
                           {loanCovers[loan.id]?.cover ? (
                             <img
                               src={loanCovers[loan.id].cover}
@@ -573,8 +580,8 @@ export default function UserDashboard() {
 
         {/* Recent Activity */}
         <section>
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-            <span className="text-green-600">⌛</span>
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
+            <FaClock className="mr-2 text-white" />
             Recent Activity
           </h2>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/60">

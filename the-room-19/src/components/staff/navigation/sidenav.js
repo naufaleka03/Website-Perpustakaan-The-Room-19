@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import NavLinks from './nav-links';
+import NavLinks from "./nav-links";
 import { IoLogOut } from "react-icons/io5";
-import { clsx } from 'clsx';
-import { createClient } from '@/app/supabase/client';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { clsx } from "clsx";
+import { createClient } from "@/app/supabase/client";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function SideNav({ isExpanded }) {
   const router = useRouter();
@@ -85,19 +86,20 @@ export default function SideNav({ isExpanded }) {
       await supabase.auth.signOut();
       router.replace('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     } finally {
       setIsLoggingOut(false);
     }
   };
 
   return (
-    <nav className={clsx(
-      'h-[calc(100vh-72px)] bg-white shadow-lg flex flex-col flex-grow border-solid border-y-0 border transition-all duration-300',
-      isExpanded ? 'w-[250px]' : 'w-[75px]'
-    )}>
+    <nav
+      className={clsx(
+        "h-[calc(100vh-72px)] bg-white shadow-lg flex flex-col flex-grow border-solid border-y-0 border transition-all duration-300",
+        isExpanded ? "w-[250px]" : "w-[75px]"
+      )}
+    >
       <div className="px-4 py-2 flex flex-col h-full">
-        
         {isExpanded && (
           <>
             <Link href="/staff/dashboard/profile">
@@ -131,7 +133,9 @@ export default function SideNav({ isExpanded }) {
                     </div>
                   </div>
                   {position && (
-                    <div className="text-[#5d7285] text-xs mt-1">{position}</div>
+                    <div className="text-[#5d7285] text-xs mt-1">
+                      {position}
+                    </div>
                   )}
                 </div>
               </div>
@@ -146,8 +150,8 @@ export default function SideNav({ isExpanded }) {
         </div>
 
         <div className="mt-auto pt-2 border-t border-[#767676]/30">
-          <NavItem 
-            icon={<IoLogOut size={20} />} 
+          <NavItem
+            icon={<IoLogOut size={20} />}
             label={isLoggingOut ? "Logging out..." : "Logout"}
             collapsed={!isExpanded}
             onClick={handleLogout}
@@ -156,22 +160,29 @@ export default function SideNav({ isExpanded }) {
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
-function NavItem({ icon, label, isActive = false, collapsed = false, onClick, disabled = false }) {
+function NavItem({
+  icon,
+  label,
+  isActive = false,
+  collapsed = false,
+  onClick,
+  disabled = false,
+}) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={clsx(
-        'w-full flex items-center gap-3 px-3 py-2 rounded cursor-pointer hover:bg-gray-100 transition-colors',
+        "w-full flex items-center gap-3 px-3 py-2 rounded cursor-pointer hover:bg-gray-100 transition-colors",
         {
-          'bg-[#eff0c3] text-[#52570d]': isActive,
-          'text-[#5d7285]': !isActive,
-          'justify-center': collapsed,
-          'opacity-50 cursor-not-allowed': disabled,
-          'hover:bg-gray-100': !disabled
+          "bg-[#eff0c3] text-[#52570d]": isActive,
+          "text-[#5d7285]": !isActive,
+          "justify-center": collapsed,
+          "opacity-50 cursor-not-allowed": disabled,
+          "hover:bg-gray-100": !disabled,
         }
       )}
     >
@@ -182,9 +193,5 @@ function NavItem({ icon, label, isActive = false, collapsed = false, onClick, di
 }
 
 function SubNavItem({ label }) {
-  return (
-    <div className="ml-12 text-[#5d7285] py-2">
-      {label}
-    </div>
-  )
+  return <div className="ml-12 text-[#5d7285] py-2">{label}</div>;
 }

@@ -6,6 +6,7 @@ import { IoChevronBackOutline, IoChevronForwardOutline, IoClose } from "react-ic
 import { AiFillStar } from "react-icons/ai";
 import { IoIosArrowDown } from "react-icons/io";
 import Link from "next/link";
+import { BsCart3 } from "react-icons/bs";
 
 // Genres list
 const allGenres = [
@@ -413,8 +414,11 @@ const CatalogStaff = () => {
               ) : error ? (
                 <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
               ) : books.length === 0 ? (
-                <div className="col-span-4 text-center py-10">
-                  No books available. Add a new book to get started!
+                <div className="col-span-4 flex flex-col items-center justify-center py-24 text-center">
+                  <span className="text-5xl mb-4 text-[#232323]">
+                    <BsCart3 />
+                  </span>
+                  <span className="text-lg font-semibold text-[#232323]">No books available. Add a new book to get started!</span>
                 </div>
               ) : (
                 books.map((book) => (

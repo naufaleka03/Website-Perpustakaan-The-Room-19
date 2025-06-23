@@ -276,7 +276,12 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
                     {book.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
                   </div>
                 )}
-                <span className="text-gray-800 font-medium line-clamp-2 text-xs sm:text-sm break-words" style={{wordBreak:'break-word'}}>{book.title}</span>
+                <div>
+                  <span className="text-gray-800 font-medium line-clamp-2 text-xs sm:text-sm break-words" style={{wordBreak:'break-word'}}>{book.title}</span>
+                  {typeof borrowingData.copies !== 'undefined' && (
+                    <div className="text-[10px] text-gray-500 mt-1">Copy: {borrowingData.copies}</div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

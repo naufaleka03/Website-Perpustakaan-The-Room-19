@@ -1,28 +1,28 @@
-import { NextResponse } from 'next/server';
-import postgres from 'postgres';
+import { NextResponse } from "next/server";
+import postgres from "postgres";
 
-const sql = postgres(process.env.POSTGRES_URL, { ssl: 'require' });
+const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
 // Helper function to update genre book counts
 async function updateGenreBookCount(genreName) {
   if (!genreName) return;
-  
+
   try {
     // Get the current count of books with this genre
     const books = await sql`
       SELECT COUNT(*) as count FROM books 
       WHERE genre = ${genreName}
     `;
-    
+
     const count = books[0]?.count || 0;
-    
+
     // Update the genre count in the genres table
     await sql`
       UPDATE genres 
       SET number_of_books = ${count}
       WHERE genre_name = ${genreName}
     `;
-    
+
     console.log(`Updated book count for genre ${genreName}: ${count}`);
   } catch (error) {
     console.error(`Error updating genre count for ${genreName}:`, error);
@@ -32,22 +32,19 @@ async function updateGenreBookCount(genreName) {
 export async function GET(request, { params }) {
   try {
     const { id } = params;
-    
+
     const books = await sql`
       SELECT * FROM books WHERE id = ${id}
     `;
-    
+
     if (books.length === 0) {
-      return NextResponse.json(
-        { error: 'Book not found' }, 
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
-    
+
     return NextResponse.json({ book: books[0] }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching book:', error);
-    return NextResponse.json({ error: 'Error fetching book' }, { status: 500 });
+    console.error("Error fetching book:", error);
+    return NextResponse.json({ error: "Error fetching book" }, { status: 500 });
   }
 }
 
@@ -59,32 +56,29 @@ export async function DELETE(request, { params }) {
     const books = await sql`
       SELECT id, genre FROM books WHERE id = ${id}
     `;
-    
+
     if (books.length === 0) {
-      return NextResponse.json(
-        { error: 'Book not found' }, 
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
-    
+
     const bookGenre = books[0].genre;
-    
+
     // If book exists, delete it
     await sql`DELETE FROM books WHERE id = ${id}`;
-    
+
     // Update genre book count if the book had a genre
     if (bookGenre) {
       await updateGenreBookCount(bookGenre);
     }
-    
+
     return NextResponse.json(
-      { message: 'Book deleted successfully' }, 
+      { message: "Book deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting book:', error);
+    console.error("Error deleting book:", error);
     return NextResponse.json(
-      { error: 'Failed to delete book' }, 
+      { error: "Failed to delete book" },
       { status: 500 }
     );
   }
@@ -94,22 +88,19 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
-    
+
     // Check if book exists and get its current genre
     const existingBooks = await sql`
       SELECT id, genre FROM books WHERE id = ${id}
     `;
-    
+
     if (existingBooks.length === 0) {
-      return NextResponse.json(
-        { error: 'Book not found' }, 
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
-    
+
     const oldGenre = existingBooks[0].genre;
     const newGenre = body.genre;
-    
+
     // Update the book
     const updatedBooks = await sql`
       UPDATE books
@@ -134,7 +125,7 @@ export async function PUT(request, { params }) {
       WHERE id = ${id}
       RETURNING *
     `;
-    
+
     // Update genre book counts if the genre has changed
     if (oldGenre !== newGenre) {
       if (oldGenre) {
@@ -144,16 +135,13 @@ export async function PUT(request, { params }) {
         await updateGenreBookCount(newGenre);
       }
     }
-    
-    return NextResponse.json(
-      { book: updatedBooks[0] }, 
-      { status: 200 }
-    );
+
+    return NextResponse.json({ book: updatedBooks[0] }, { status: 200 });
   } catch (error) {
-    console.error('Error updating book:', error);
+    console.error("Error updating book:", error);
     return NextResponse.json(
-      { error: 'Failed to update book' }, 
+      { error: "Failed to update book" },
       { status: 500 }
     );
   }
-} 
+}

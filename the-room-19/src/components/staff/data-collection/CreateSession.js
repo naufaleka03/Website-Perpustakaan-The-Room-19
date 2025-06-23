@@ -249,7 +249,7 @@ export default function CreateSession() {
             isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
           } font-manrope`}
         >
-          {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+          {isSubmitting ? 'Submit...' : 'Submit'}
         </button>
       </div>
     </form>

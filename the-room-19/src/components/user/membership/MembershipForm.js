@@ -177,7 +177,7 @@ const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], o
   );
 };
 
-export default function MembershipForm({ application }) {
+export default function MembershipForm({ application, memberStatus, showForm, setShowForm }) {
   console.log('MembershipForm application prop:', application);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [file, setFile] = useState(null);
@@ -550,13 +550,205 @@ export default function MembershipForm({ application }) {
     }
   }, [submitStatus]);
 
-  // Loading skeleton
+  useEffect(() => {
+    if (submitStatus === 'success') {
+      const timer = setTimeout(() => {
+        window.location.href = '/user/dashboard';
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus]);
+
+  // Active member state
+  if (memberStatus === 'member') {
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
+          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
+                MEMBERSHIP
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
+                Access exclusive borrowing privileges and be part of The Room 19 community.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-green-100 p-3 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">Active Membership</h2>
+            </div>
+            <p className="text-[#666666] mb-6">
+              You are currently an active member of The Room 19 Library. As a member, you enjoy the following benefits:
+            </p>
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="bg-[#2e3105] p-1 rounded-full mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#111010]">Book Borrowing</h3>
+                  <p className="text-sm text-[#666666]">You can borrow up to 2 books for 7 days (extendable)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-[#2e3105] p-1 rounded-full mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#111010]">Ability to Borrow Books</h3>
+                  <p className="text-sm text-[#666666]">Priority access to new books and reading spaces</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3">
+              <FaInfoCircle className="text-blue-500 text-lg flex-shrink-0 mt-1" />
+              <p className="text-sm text-blue-800">
+                Visit the <a href="/user/dashboard/books/catalog" className="font-medium underline">book catalog</a> to start borrowing books or check our <a href="/user/dashboard/reservation/event-list" className="font-medium underline">upcoming events</a> to participate in our community activities.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Revision or rejected state
+  if (application && (application.status === 'revision' || application.status === 'rejected') && showForm !== 'revision') {
+    const isRevision = application.status === 'revision';
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
+          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
+                MEMBERSHIP
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
+                {isRevision ? 'Revision Required' : 'Application Rejected'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+          <div className={`bg-white rounded-xl shadow-md p-8 mb-8 flex flex-col items-center ${isRevision ? '' : 'border border-red-200'}`}> 
+            <div className="mb-6 flex items-center gap-3">
+              <div className={isRevision ? 'bg-red-100 p-3 rounded-full' : 'bg-red-200 p-3 rounded-full'}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRevision ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' : 'M6 18L18 6M6 6l12 12'} />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">{isRevision ? 'Revision Required' : 'Application Rejected'}</h2>
+            </div>
+            <p className="text-[#666666] mb-4 text-center max-w-xl">
+              {isRevision
+                ? 'Your application needs some revisions before it can be approved. Please submit a new application with the following changes:'
+                : "We're sorry, but your membership application has been rejected."}
+            </p>
+            <div className="p-3 bg-white rounded mt-3 text-red-700 text-sm border border-red-200 mb-4">
+              <strong>{isRevision ? '' : 'Reason: '}</strong>{application.notes || (isRevision ? 'Please provide clearer photos of your ID or update your contact information.' : 'Your application does not meet our current membership criteria.')}
+            </div>
+            {isRevision ? null : (
+              <p className="text-red-700 text-sm mb-4 text-center">
+                If you believe this is a mistake or would like to apply again, please contact our support team or submit a new application after addressing the issues mentioned above.
+              </p>
+            )}
+            <button
+              onClick={() => setShowForm && setShowForm('revision')}
+              className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope"
+            >
+              Revise Application
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading skeleton/animation
   if (isLoading) {
-    return <MembershipFormSkeleton />;
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20 animate-pulse">
+        <div className="w-full h-[240px] bg-gray-300"></div>
+        <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mt-8">
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If the application is already submitted and pending, show a confirmation card
+  if (application && application.status === 'request') {
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
+          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
+                MEMBERSHIP
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
+                Check your membership application status
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8 flex flex-col items-center">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-yellow-100 p-3 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">Application Pending Review</h2>
+            </div>
+            <p className="text-[#666666] mb-4 text-center max-w-xl">
+              Your application has been submitted and is waiting for review by our staff. We usually process applications within 1-2 business days.
+            </p>
+            <div className="mb-4 text-yellow-700 text-sm">Application submitted: {new Date(application.created_at).toLocaleDateString()}</div>
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3 mb-6">
+              <FaInfoCircle className="text-blue-500 text-lg flex-shrink-0 mt-1" />
+              <div className="text-sm text-blue-800">
+                <p className="mb-1 font-medium">What happens next?</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>You will receive a notification email once your membership is approved.</li>
+                  <li>If additional information is needed, our staff will contact you.</li>
+                  <li>Once approved, you can access and borrow books from our book catalog.</li>
+                </ul>
+              </div>
+            </div>
+            <button
+              onClick={() => window.location.href = '/user/dashboard'}
+              className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope"
+            >
+              Go to Dashboard Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
+    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
         <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
@@ -573,34 +765,9 @@ export default function MembershipForm({ application }) {
       </div>
 
       {/* Form Section */}
-      <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
-        {submitStatus === 'success' && (
-          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-            <FaCheckCircle className="text-green-500 text-xl flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="font-semibold text-green-800">Application Submitted Successfully!</h3>
-              <p className="text-green-700 text-sm">
-                Your membership application has been received. Our staff will review it shortly, and you'll be notified once it's approved.
-                You'll be redirected to the dashboard in a few seconds.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {submitStatus === 'error' && (
-          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <FaExclamationCircle className="text-red-500 text-xl flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="font-semibold text-red-800">Something went wrong!</h3>
-              <p className="text-red-700 text-sm">
-                There was an error submitting your application. Please try again later or contact support if the problem persists.
-              </p>
-            </div>
-          </div>
-        )}
-
+      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-          <h2 className="text-xl font-semibold text-[#111010] mb-6 font-manrope">Membership Application Form</h2>
+          <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">Membership Application Form</h2>
           <p className="text-[#666666] mb-6 text-sm">
             Please fill out the form below to apply for membership at The Room 19 Library. Membership allows you to borrow books and access exclusive features.
           </p>
@@ -864,17 +1031,67 @@ export default function MembershipForm({ application }) {
               </div>
             </div>
 
-            {/* Important Notice */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3">
-              <FaInfoCircle className="text-blue-500 text-lg flex-shrink-0 mt-1" />
-              <div className="text-sm text-blue-800">
-                <p className="mb-1 font-medium">Important Notice:</p>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li>Your application will be reviewed by our staff within 1-2 business days.</li>
-                  <li>You will receive a notification email once your membership is approved.</li>
-                  <li>Membership allows you to borrow books for a duration of 7 days.</li>
-                  <li>Please provide accurate information for verification purposes.</li>
-                </ul>
+            {/* Important Notice & Status Message */}
+            <div className={`mt-6 p-4 rounded-lg flex items-start gap-3 border ${
+              submitStatus === 'success'
+                ? 'bg-green-50 border-green-200'
+                : submitStatus === 'error' || errors.submit
+                ? 'bg-red-50 border-red-200'
+                : Object.keys(errors).length > 0
+                ? 'bg-yellow-50 border-yellow-200'
+                : 'bg-blue-50 border-blue-100'
+            }`}>
+              {submitStatus === 'success' ? (
+                <FaCheckCircle className="text-green-500 text-lg flex-shrink-0 mt-1" />
+              ) : submitStatus === 'error' || errors.submit ? (
+                <FaExclamationCircle className="text-red-500 text-lg flex-shrink-0 mt-1" />
+              ) : Object.keys(errors).length > 0 ? (
+                <FaExclamationCircle className="text-yellow-500 text-lg flex-shrink-0 mt-1" />
+              ) : (
+                <FaInfoCircle className="text-blue-500 text-lg flex-shrink-0 mt-1" />
+              )}
+              <div className={`text-sm ${
+                submitStatus === 'success'
+                  ? 'text-green-800'
+                  : submitStatus === 'error' || errors.submit
+                  ? 'text-red-800'
+                  : Object.keys(errors).length > 0
+                  ? 'text-yellow-800'
+                  : 'text-blue-800'
+              }`}>
+                {submitStatus === 'success' && (
+                  <>
+                    <p className="mb-1 font-medium">Application Submitted Successfully!</p>
+                    <p>Your membership application has been received. Our staff will review it shortly, and you'll be notified once it's approved. You'll be redirected to the dashboard in a few seconds.</p>
+                  </>
+                )}
+                {(submitStatus === 'error' || errors.submit) && (
+                  <>
+                    <p className="mb-1 font-medium">Something went wrong!</p>
+                    <p>{errors.submit || 'There was an error submitting your application. Please try again later or contact support if the problem persists.'}</p>
+                  </>
+                )}
+                {Object.keys(errors).length > 0 && !errors.submit && submitStatus !== 'error' && submitStatus !== 'success' && (
+                  <>
+                    <p className="mb-1 font-medium">Please fix the following errors:</p>
+                    <ul className="list-disc pl-4 space-y-1">
+                      {Object.entries(errors).map(([field, msg]) => (
+                        <li key={field} className="text-xs">{msg}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {(!submitStatus && Object.keys(errors).length === 0) && (
+                  <>
+                    <p className="mb-1 font-medium">Important Notice:</p>
+                    <ul className="list-disc pl-4 space-y-1">
+                      <li>Your application will be reviewed by our staff within 1-2 business days.</li>
+                      <li>You will receive a notification email once your membership is approved.</li>
+                      <li>Membership allows you to borrow books for a duration of 7 days.</li>
+                      <li>Please provide accurate information for verification purposes.</li>
+                    </ul>
+                  </>
+                )}
               </div>
             </div>
 
@@ -882,17 +1099,17 @@ export default function MembershipForm({ application }) {
             <button 
               type="submit"
               disabled={isSubmitting}
-              className={`h-[45px] w-full bg-[#111010] rounded-3xl text-white text-base font-semibold font-manrope flex items-center justify-center gap-2 transition ${
-                isSubmitting ? 'opacity-75' : 'hover:bg-[#333] transition-colors'
+              className={`h-[45px] w-full bg-[#2e3105] text-white rounded-3xl text-base font-semibold font-manrope flex items-center justify-center gap-2 transition ${
+                isSubmitting ? 'opacity-75' : 'hover:bg-[#404615]'
               }`}
             >
               {isSubmitting ? (
                 <>
                   <RiLoader4Line className="animate-spin text-xl" />
-                  PROCESSING...
+                  Processing...
                 </>
               ) : (
-                'SUBMIT APPLICATION'
+                'Submit Application'
               )}
             </button>
           </form>
@@ -920,80 +1137,4 @@ export default function MembershipForm({ application }) {
 MembershipForm.defaultProps = {
   application: undefined,
 };
-
-function MembershipFormSkeleton() {
-  const skeletonClass = "bg-[#f0f0f0] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-[#f8f8f8] before:to-transparent";
-
-  return (
-    <div className="w-full min-h-screen mx-auto bg-white px-0 pb-20">
-      {/* Hero Section Skeleton */}
-      <div className="relative mb-8 mt-0">
-        <div className="w-full h-[240px] bg-gradient-to-r from-[#e9eacd] to-[#f0f0f0]" />
-        <div className="absolute inset-0 flex items-center w-full mx-auto px-4 lg:px-8">
-          <div className="max-w-[1200px] mx-auto w-full">
-            <div className={`h-12 ${skeletonClass} rounded w-1/3 mb-2`}></div>
-            <div className={`h-4 ${skeletonClass} rounded w-1/2`}></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Form Section Skeleton */}
-      <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
-        <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-          <div className={`h-8 ${skeletonClass} rounded w-1/3 mb-6`}></div>
-          <div className={`h-4 ${skeletonClass} rounded w-full mb-8`}></div>
-
-          <div className="space-y-6">
-            {/* Personal Information Section */}
-            <div className="pb-4 border-b border-[#f0f0f0]">
-              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
-              
-              <div className="space-y-6">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i}>
-                    <div className={`h-4 ${skeletonClass} rounded w-1/5 mb-2`}></div>
-                    <div className={`h-10 ${skeletonClass} rounded-lg w-full mb-1`}></div>
-                    <div className={`h-3 ${skeletonClass} rounded w-2/3`}></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Emergency Contact Section */}
-            <div className="pb-4 border-b border-[#f0f0f0]">
-              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
-              
-              <div className="space-y-6">
-                {[1, 2].map(i => (
-                  <div key={i}>
-                    <div className={`h-4 ${skeletonClass} rounded w-1/5 mb-2`}></div>
-                    <div className={`h-10 ${skeletonClass} rounded-lg w-full mb-1`}></div>
-                    <div className={`h-3 ${skeletonClass} rounded w-2/3`}></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ID Card Upload Section */}
-            <div className="pb-4 border-b border-[#f0f0f0]">
-              <div className={`h-5 ${skeletonClass} rounded w-1/4 mb-4`}></div>
-              <div className={`h-[200px] ${skeletonClass} rounded-lg w-full mb-2`}></div>
-              <div className={`h-3 ${skeletonClass} rounded w-2/3 mb-1`}></div>
-              <div className={`h-3 ${skeletonClass} rounded w-1/2`}></div>
-            </div>
-
-            {/* Terms and Notice Section */}
-            <div className="space-y-4">
-              <div className={`h-6 ${skeletonClass} rounded w-3/4`}></div>
-              <div className={`h-[120px] ${skeletonClass} rounded-lg w-full`}></div>
-            </div>
-
-            {/* Submit Button Skeleton */}
-            <div className={`h-[45px] ${skeletonClass} rounded-3xl w-full mt-8`}></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
   

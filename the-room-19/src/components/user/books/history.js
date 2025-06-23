@@ -256,6 +256,7 @@ const History = () => {
           fine: selectedLoan.fine,
           fine_amount: selectedLoan.fine_amount,
           max_due: selectedLoan.max_due,
+          copies: selectedLoan.copies,
           books: [
             {
               title: selectedLoan.book_title1,

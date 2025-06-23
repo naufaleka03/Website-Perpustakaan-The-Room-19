@@ -90,7 +90,9 @@ export async function POST(request) {
       loan_due: loan_due, // 7 hari dari sekarang (WIB)
       status: 'On Going',
       extend_count: 0,
-      fine: 0
+      fine: 0,
+      copies: requestData.copies || null,
+      copies_id: requestData.copies_id || null
     };
 
     try {
@@ -99,7 +101,7 @@ export async function POST(request) {
         INSERT INTO loans ${sql(newLoan, 
           'user_id', 'book_id1', 'book_id2', 'book_title1', 'book_title2', 
           'genre1', 'genre2', 'cover_image1', 'cover_image2', 'price1', 'price2',
-          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count'
+          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count', 'fine', 'copies', 'copies_id'
         )}
         RETURNING *
       `;

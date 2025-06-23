@@ -25,6 +25,8 @@ export default function PaymentSummaryModal({ isOpen, onClose, book, borrowDate,
         full_name: book.full_name,
         email: book.email,
         phone_number: book.phone_number || '-',
+        copies: book.copies,
+        copies_id: book.copies_id
       };
       localStorage.setItem('loanBookData', JSON.stringify(loanData));
 

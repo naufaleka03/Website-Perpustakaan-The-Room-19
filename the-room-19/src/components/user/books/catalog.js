@@ -5,6 +5,7 @@ import { IoChevronBackOutline, IoChevronForwardOutline, IoClose } from "react-ic
 import { AiFillStar } from "react-icons/ai";
 import { BsCart3 } from "react-icons/bs";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Catalog = () => {
   const [books, setBooks] = useState([]);
@@ -22,6 +23,10 @@ const Catalog = () => {
   const booksPerPage = 60;
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
   const [genres, setGenres] = useState([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const themeFilter = searchParams.get('theme');
+  const [selectedTheme, setSelectedTheme] = useState(themeFilter || null);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -36,6 +41,10 @@ const Catalog = () => {
         
         if (selectedGenres.length === 1) {
           params.append('genre', selectedGenres[0]);
+        }
+        
+        if (selectedTheme) {
+          params.append('theme', selectedTheme);
         }
         
         if (bookType.local && !bookType.international) {
@@ -69,7 +78,7 @@ const Catalog = () => {
     };
 
     fetchBooks();
-  }, [searchQuery, selectedGenres, highRatingOnly, bookType, currentPage]);
+  }, [searchQuery, selectedGenres, highRatingOnly, bookType, currentPage, selectedTheme]);
 
   // Reset to page 1 when filters/search change
   useEffect(() => {
@@ -91,6 +100,14 @@ const Catalog = () => {
     };
     fetchGenres();
   }, []);
+
+  useEffect(() => {
+    if (themeFilter) {
+      setSelectedTheme(themeFilter);
+    } else {
+      setSelectedTheme(null);
+    }
+  }, [themeFilter]);
 
   // Function to get book title initials
   const getBookInitials = (title) => {
@@ -325,12 +342,34 @@ const Catalog = () => {
     );
   };
 
+  // Filter books by selectedTheme if present
+  const filteredBooks = selectedTheme
+    ? books.filter(book => Array.isArray(book.themes) && book.themes.includes(selectedTheme))
+    : books;
+
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
       <div className="w-full h-full relative bg-white px-12 py-8">
         <div className="w-full mx-auto max-w-[1200px]">
-          {/* Search Bar and Cart */}
-          <div className="flex justify-center items-center mb-6">
+          {/* Search Bar and Cart + Theme Heading */}
+          <div className={`flex items-center mb-6 ${selectedTheme ? "justify-between" : "justify-center"}`}>
+            {/* Theme Heading (left) */}
+            {selectedTheme && (
+              <div className="flex items-center whitespace-nowrap mr-4">
+                <span className="text-lg font-semibold text-[#2e3105] font-manrope mr-2">
+                  Books with "{selectedTheme}" themes
+                </span>
+                <button
+                  className="text-xs text-red-500 underline hover:text-red-700"
+                  onClick={() => {
+                    router.push('/user/dashboard/books/catalog');
+                  }}
+                >
+                  Clear theme filter
+                </button>
+              </div>
+            )}
+            {/* Search Bar and Cart (center/right) */}
             <div className="w-[600px] flex items-center gap-3">
               {/* Search Bar */}
               <div className="flex-1">
@@ -359,12 +398,15 @@ const Catalog = () => {
                 <LoadingSkeleton />
               ) : error ? (
                 <div className="col-span-4 text-center py-10 text-red-500">{error}</div>
-              ) : books.length === 0 ? (
-                <div className="col-span-4 text-center py-10">
-                  No books available based on your search criteria.
+              ) : filteredBooks.length === 0 ? (
+                <div className="col-span-4 flex flex-col items-center justify-center py-24 text-center">
+                  <span className="text-5xl mb-4 text-[#232323]">
+                    <BsCart3 />
+                  </span>
+                  <span className="text-lg font-semibold text-[#232323]">No books available based on your search criteria.</span>
                 </div>
               ) : (
-                books.map((book) => (
+                filteredBooks.map((book) => (
                   <BookCard
                     key={book.id}
                     id={book.id}
