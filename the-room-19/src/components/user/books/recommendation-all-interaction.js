@@ -113,7 +113,7 @@ export default function RecommendationAllInteraction() {
             </button>
           </Link>
           <h1 className="text-2xl font-bold text-white ml-2">
-            {isPopularGenre ? 'Rekomendasi Genre Populer' : `Rekomendasi Buku Mirip${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
+            {isPopularGenre ? 'Popular Genre Recommendations' : `Similar Book Recommendations ${lastBookTitle ? `: "${lastBookTitle}"` : ''}`}
           </h1>
         </div>
         {loading ? (

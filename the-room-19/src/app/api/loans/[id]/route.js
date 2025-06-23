@@ -10,7 +10,28 @@ export async function PUT(request, context) {
   try {
     const body = await request.json();
     let result;
-    if (body.loan_due) {
+    if (typeof body.fine !== 'undefined' && body.fine === false && body.payFine === true) {
+      // Pembayaran denda: update fine, status, dan loan_due ke hari ini (WIB)
+      const now = new Date();
+      const wibOffset = 7 * 60;
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const wibNow = new Date(utc + (wibOffset * 60000));
+      const todayWIB = wibNow.toISOString().split('T')[0];
+      result = await sql`
+        UPDATE loans
+        SET fine = false, status = 'Due Date', loan_due = ${todayWIB}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (typeof body.fine !== 'undefined') {
+      // Update kolom fine (boolean)
+      result = await sql`
+        UPDATE loans
+        SET fine = ${body.fine}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else if (body.loan_due) {
       // Update loan_due, status ke 'On Going', dan increment extend_count
       result = await sql`
         UPDATE loans

@@ -569,8 +569,10 @@ export default function DataCollection() {
     }
   };
 
+  // PATCH ke /api/loans setiap kali tab borrowing diakses
   useEffect(() => {
-    if (activeTab === "borrowing") {
+    if (activeTab === 'borrowing') {
+      fetch('/api/loans', { method: 'PATCH' });
       fetchLoans();
     }
   }, [activeTab]);
@@ -593,6 +595,7 @@ export default function DataCollection() {
         status: borrowingData.status,
         email: borrowingData.email,
         phone: borrowingData.phone_number,
+        copies: borrowingData.copies,
       };
 
       setSelectedBorrowingData(formattedData);
@@ -700,6 +703,21 @@ export default function DataCollection() {
       await fetchLoans();
     } finally {
       setIsRefreshingBorrowing(false);
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Returned":
+        return "bg-green-100 text-green-800";
+      case "On Going":
+        return "bg-yellow-100 text-yellow-800";
+      case "Due Date":
+        return "bg-yellow-100 text-yellow-800"; 
+      case "Over Due":
+        return "bg-red-100 text-red-800"; 
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -1493,27 +1511,14 @@ export default function DataCollection() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-[#eaeaea]">
-                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          No
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Name
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Book
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Email
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Phone Number
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Status
-                        </th>
-                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Action
-                        </th>
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Borrowing Date</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Return Date</th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1551,12 +1556,9 @@ export default function DataCollection() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {item.email}
-                            </td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {item.phone_number}
-                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_start)}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_due)}</td>
                             <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
                               <span
                                 className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${

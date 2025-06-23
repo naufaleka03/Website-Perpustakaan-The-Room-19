@@ -29,6 +29,7 @@ async function recreateBooksTable() {
         cover_image TEXT,
         themes TEXT[],
         stock INTEGER DEFAULT 0 NOT NULL,
+        total_borrow INTEGER DEFAULT 0 NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `;

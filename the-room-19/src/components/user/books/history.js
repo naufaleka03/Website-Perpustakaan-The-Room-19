@@ -7,6 +7,23 @@ import { createClient } from '@/app/supabase/client';
 import { useRouter } from "next/navigation";
 import DetailBorrowingModal from "./detail-borrowing-modal";
 
+const getBorrowingStatus = (returnDate, status) => {
+  if (status === 'Returned') return 'Returned';
+  // Gunakan waktu WIB
+  const now = new Date();
+  const wibOffset = 7 * 60; // menit
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibNow = new Date(utc + (wibOffset * 60000));
+  let returnDateObj = null;
+  if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+    returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
+  } else {
+    returnDateObj = new Date(returnDate);
+  }
+  if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'Over Due';
+  return 'On Going';
+};
+
 const History = () => {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -62,6 +79,11 @@ const History = () => {
     }
   }, []);
 
+  // Panggil PATCH /api/loans setiap kali halaman diakses/refresh
+  useEffect(() => {
+    fetch('/api/loans', { method: 'PATCH' });
+  }, []);
+
   const handleSelectOption = (option) => {
     setSelectedOption(option);
     setIsDropdownOpen(false);
@@ -78,11 +100,12 @@ const History = () => {
       loan.book_title1.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (loan.book_title2 && loan.book_title2.toLowerCase().includes(searchQuery.toLowerCase()));
 
+    const currentStatus = getBorrowingStatus(loan.loan_due || loan.return_date, loan.status);
     const matchesStatus =
       selectedOption === "All Book" ||
-      (selectedOption === "On Going" && loan.status === "On Going") ||
-      (selectedOption === "Over Due" && loan.status === "Over Due") ||
-      (selectedOption === "Returned" && loan.status === "Returned");
+      (selectedOption === "On Going" && currentStatus === "On Going") ||
+      (selectedOption === "Over Due" && currentStatus === "Over Due") ||
+      (selectedOption === "Returned" && currentStatus === "Returned");
 
     return matchesSearch && matchesStatus;
   });
@@ -93,28 +116,13 @@ const History = () => {
         return "bg-green-100 text-green-800";
       case "On Going":
         return "bg-yellow-100 text-yellow-800";
+      case "Due Date":
+        return "bg-yellow-100 text-yellow-800";
       case "Over Due":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
-
-  const getBorrowingStatus = (returnDate, status) => {
-    if (status === 'Returned') return 'Returned';
-    // Gunakan waktu WIB
-    const now = new Date();
-    const wibOffset = 7 * 60; // menit
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const wibNow = new Date(utc + (wibOffset * 60000));
-    let returnDateObj = null;
-    if (typeof returnDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
-      returnDateObj = new Date(returnDate + 'T00:00:00+07:00');
-    } else {
-      returnDateObj = new Date(returnDate);
-    }
-    if (wibNow.setHours(0,0,0,0) > returnDateObj.setHours(0,0,0,0)) return 'Over Due';
-    return 'On Going';
   };
 
   if (loading) {
@@ -215,8 +223,8 @@ const History = () => {
                       </div>
                     )}
 
-                    <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(getBorrowingStatus(loan.loan_due || loan.return_date, loan.status))}`}>
-                      {getBorrowingStatus(loan.loan_due || loan.return_date, loan.status)}
+                    <div className={`inline-block px-3 py-1 text-[10px] font-semibold rounded-xl mt-1 ${getStatusStyle(loan.status)}`}>
+                      {loan.status}
                     </div>
                   </div>
 
@@ -245,6 +253,10 @@ const History = () => {
           status: selectedLoan.status,
           price: selectedLoan.total_price,
           extend_count: selectedLoan.extend_count,
+          fine: selectedLoan.fine,
+          fine_amount: selectedLoan.fine_amount,
+          max_due: selectedLoan.max_due,
+          copies: selectedLoan.copies,
           books: [
             {
               title: selectedLoan.book_title1,

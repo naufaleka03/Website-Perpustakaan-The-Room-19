@@ -16,6 +16,7 @@ async function recreateTransactionTable() {
         payment_id VARCHAR(255),
         payment_status VARCHAR(50),
         payment_method VARCHAR(50),
+        amount NUMERIC(12,2),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `;

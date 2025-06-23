@@ -34,8 +34,13 @@ async function fixLoansTable() {
         phone_number VARCHAR(20) NOT NULL,
         loan_start DATE NOT NULL DEFAULT CURRENT_DATE,
         loan_due DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '7 days'),
+        max_due DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '30 days'),
         status VARCHAR(50) DEFAULT 'On Going' NOT NULL,
         extend_count INTEGER DEFAULT 0 NOT NULL,
+        fine BOOLEAN DEFAULT FALSE,
+        fine_amount NUMERIC(10, 2) DEFAULT 0,
+        copies INTEGER,
+        copies_id UUID REFERENCES manage_books(id) ON DELETE SET NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `;

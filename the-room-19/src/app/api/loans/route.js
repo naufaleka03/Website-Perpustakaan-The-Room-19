@@ -89,7 +89,10 @@ export async function POST(request) {
       loan_start: loan_start, // Format tanggal YYYY-MM-DD WIB
       loan_due: loan_due, // 7 hari dari sekarang (WIB)
       status: 'On Going',
-      extend_count: 0
+      extend_count: 0,
+      fine: 0,
+      copies: requestData.copies || null,
+      copies_id: requestData.copies_id || null
     };
 
     try {
@@ -98,21 +101,23 @@ export async function POST(request) {
         INSERT INTO loans ${sql(newLoan, 
           'user_id', 'book_id1', 'book_id2', 'book_title1', 'book_title2', 
           'genre1', 'genre2', 'cover_image1', 'cover_image2', 'price1', 'price2',
-          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count'
+          'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count', 'fine', 'copies', 'copies_id'
         )}
         RETURNING *
       `;
       let transactionRow = null;
       if (insertedLoan && insertedLoan.length > 0 && (requestData.payment_id || requestData.payment_status || requestData.payment_method)) {
         // Insert ke tabel transaction jika ada data payment
+        const amount = (requestData.price1 ? Number(requestData.price1) : 0) + (requestData.price2 ? Number(requestData.price2) : 0);
         const transactionData = {
           loan_id: insertedLoan[0].id,
           payment_id: requestData.payment_id || null,
           payment_status: requestData.payment_status || null,
-          payment_method: requestData.payment_method || null
+          payment_method: requestData.payment_method || null,
+          amount: amount
         };
         const insertedTransaction = await sql`
-          INSERT INTO transaction ${sql(transactionData, 'loan_id', 'payment_id', 'payment_status', 'payment_method')}
+          INSERT INTO transaction ${sql(transactionData, 'loan_id', 'payment_id', 'payment_status', 'payment_method', 'amount')}
           RETURNING *
         `;
         transactionRow = insertedTransaction && insertedTransaction.length > 0 ? insertedTransaction[0] : null;
@@ -121,6 +126,10 @@ export async function POST(request) {
         // Kurangi stok buku setelah peminjaman berhasil
         await sql`
           UPDATE books SET stock = stock - 1 WHERE id = ${requestData.book_id1}
+        `;
+        // Tambah total_borrow setiap kali buku dipinjam
+        await sql`
+          UPDATE books SET total_borrow = total_borrow + 1 WHERE id = ${requestData.book_id1}
         `;
         return Response.json({ success: true, loan: insertedLoan[0], transaction: transactionRow }, { status: 201 });
       } else {
@@ -142,7 +151,7 @@ export async function POST(request) {
   }
 }
 
-// PATCH handler untuk update status Over Due
+// PATCH handler untuk update status Over Due dan fine
 export async function PATCH(request) {
   try {
     // Hitung tanggal hari ini (WIB)
@@ -152,14 +161,34 @@ export async function PATCH(request) {
     const wibNow = new Date(utc + (wibOffset * 60000));
     const todayWIB = wibNow.toISOString().split('T')[0];
 
-    // Update semua loan yang return_date < hari ini (WIB) dan status masih 'On Going'
-    const updated = await sql`
-      UPDATE loans
-      SET status = 'Over Due'
-      WHERE status = 'On Going' AND loan_due < ${todayWIB}
-      RETURNING *
+    // Ambil semua loan yang overdue dan belum dikembalikan
+    const overdueLoans = await sql`
+      SELECT id, loan_due, status
+      FROM loans
+      WHERE status != 'Returned' AND loan_due < ${todayWIB}
     `;
-    return Response.json({ success: true, updated_count: updated.length, updated });
+
+    for (const loan of overdueLoans) {
+      // Hitung selisih hari keterlambatan
+      const dueDate = new Date(loan.loan_due + 'T00:00:00+07:00');
+      const daysOverdue = Math.ceil((wibNow.setHours(0,0,0,0) - dueDate.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+      const isOverdue = daysOverdue > 0;
+      await sql`
+        UPDATE loans SET fine = ${isOverdue}, fine_amount = ${isOverdue ? daysOverdue * 5000 : 0}, status = 'Over Due' WHERE id = ${loan.id}
+      `;
+    }
+
+    // Update loan yang sudah tidak overdue/fine harus false
+    const notOverdue = await sql`
+      SELECT id, loan_due, status FROM loans WHERE status != 'Returned' AND loan_due >= ${todayWIB}
+    `;
+    for (const loan of notOverdue) {
+      await sql`
+        UPDATE loans SET fine = false WHERE id = ${loan.id}
+      `;
+    }
+
+    return Response.json({ success: true, updated_count: overdueLoans.length });
   } catch (error) {
     return Response.json({ success: false, error: error.message }, { status: 500 });
   }
