@@ -33,6 +33,7 @@ const Detail = ({ memberStatus = "guest" }) => {
   const [rekomCovers, setRekomCovers] = useState({});
   const [copies, setCopies] = useState([]);
   const [selectedCopyIndex, setSelectedCopyIndex] = useState(0);
+  const [selectedCopyForLoan, setSelectedCopyForLoan] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -168,6 +169,11 @@ const Detail = ({ memberStatus = "guest" }) => {
       setError("Book data not available");
       return;
     }
+    const selectedCopy = copies[selectedCopyIndex];
+    if (!selectedCopy || selectedCopy.status !== "Available") {
+      setError("Please select an available copy to borrow.");
+      return;
+    }
     // CEK JUMLAH PEMINJAMAN ON GOING
     try {
       const response = await fetch(`/api/loans?user_id=${user.id}`);
@@ -192,6 +198,7 @@ const Detail = ({ memberStatus = "guest" }) => {
     setBorrowDate(today);
     setReturnDate(returnDt);
     setShowPaymentModal(true);
+    setSelectedCopyForLoan(selectedCopy);
   };
 
   // Callback setelah pembayaran sukses
@@ -204,6 +211,7 @@ const Detail = ({ memberStatus = "guest" }) => {
       const loanData = {
         user_id: user.id,
         book_id1: book.id,
+        manage_book_id: selectedCopyForLoan.id,
         book_id2: null,
         book_title1: book.book_title,
         book_title2: null,
@@ -556,13 +564,16 @@ const Detail = ({ memberStatus = "guest" }) => {
                         disabled={copies.length === 1}
                         style={{ fontSize: "0.75rem", height: "1.75rem" }}
                       >
-                        {copies.map((copyItem, idx) => (
+                        {copies.map((copy, idx) => (
                           <option
-                            key={copyItem.id}
+                            key={copy.id}
                             value={idx}
                             className="rounded-full text-xs"
+                            disabled={copy.status !== "Available"}
                           >
-                            Copy {copyItem.copy}
+                            {`Copy ${copy.copy} - ${
+                              copy.condition || "Not specified"
+                            } (${copy.status || "-"})`}
                           </option>
                         ))}
                       </select>
