@@ -286,7 +286,7 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                           application.status === 'processing' ? 'Under Review' :
                           application.status === 'verified' ? 'Approved' :
                           application.status === 'revision' ? 'Needs Revision' :
-                          'Rejected'
+                          'Revoked'
                         }</span>
                         {application.staff_name && (
                           <span className="text-gray-600"> by {application.staff_name}</span>
@@ -394,10 +394,9 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
               )}
               
               {/* Status Update Form - Enhanced */}
-              {application.status !== 'revoked' && (
+              {application.status !== 'revoked' && application.status !== 'verified' && (
                 <div className="mt-6 border-t pt-4">
                   <h5 className="text-sm text-[#111010] font-medium mb-3">Update Application Status</h5>
-                  
                   <div className="mb-4">
                     <label className="block text-xs text-gray-600 font-medium mb-1">
                       Review Notes {application.status === 'revision' || application.status === 'rejected' ? '(Required)' : '(Optional)'}
@@ -411,7 +410,6 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                         "Add notes for the applicant or for internal reference..."}
                     ></textarea>
                   </div>
-                  
                   <div className="flex flex-wrap gap-2 justify-end">
                     <button
                       type="button"
@@ -426,7 +424,6 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                       )}
                       Approve Membership
                     </button>
-                    
                     <button
                       type="button"
                       className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs hover:bg-orange-200 transition-colors disabled:opacity-50"

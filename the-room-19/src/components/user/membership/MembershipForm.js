@@ -244,10 +244,10 @@ export default function MembershipForm({ application, memberStatus, showForm, se
           router.push('/login');
           return;
         }
-        
         setUserId(session.user.id);
-        await fetchUserProfile(session.user.id);
-
+        if (!application) {
+          await fetchUserProfile(session.user.id);
+        }
         // Fetch genres from API
         const response = await fetch('/api/genres');
         const data = await response.json();
@@ -263,9 +263,8 @@ export default function MembershipForm({ application, memberStatus, showForm, se
         setIsLoading(false);
       }
     };
-    
     fetchSession();
-  }, [router]);
+  }, [router, application]);
 
   // Fetch user profile data for auto-filling the form
   const fetchUserProfile = async (userId) => {
