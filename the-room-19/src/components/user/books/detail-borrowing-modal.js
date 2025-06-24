@@ -93,15 +93,25 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
 
   useEffect(() => { setLoanData(borrowingData); }, [borrowingData]);
 
+  // Helper untuk ambil tanggal pengembalian dengan fallback
+  const getLoanDue = () => {
+    if (loanData && loanData.loan_due) return loanData.loan_due;
+    if (loanData && loanData.return_date) return loanData.return_date;
+    if (borrowingData && borrowingData.loan_due) return borrowingData.loan_due;
+    if (borrowingData && borrowingData.return_date) return borrowingData.return_date;
+    return null;
+  };
+
   // Validasi opsi extend berdasarkan max_due
   useEffect(() => {
     if (!loanData) return;
-    const { return_date, max_due } = loanData;
+    const loan_due = getLoanDue();
+    const { max_due } = loanData;
     let returnDateObj = null;
-    if (typeof return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(return_date)) {
-      returnDateObj = new Date(return_date + 'T00:00:00+07:00');
+    if (typeof loan_due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(loan_due)) {
+      returnDateObj = new Date(loan_due + 'T00:00:00+07:00');
     } else {
-      returnDateObj = new Date(return_date);
+      returnDateObj = new Date(loan_due);
     }
     let maxDueObj = null;
     if (typeof max_due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(max_due)) {
@@ -139,11 +149,11 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
       </div>
     );
   }
-  const status = getBorrowingStatus(loanData.return_date, loanData.status);
+  const status = getBorrowingStatus(getLoanDue(), loanData.status);
   const isFined = loanData.fine === true;
   // Prioritaskan field fine dari database jika ada
-  const fine = typeof loanData.fine !== 'undefined' ? loanData.fine : getFineAmount(loanData.return_date, loanData.status);
-  const fineAmount = loanData.fine_amount || getFineAmount(loanData.return_date, loanData.status);
+  const fine = typeof loanData.fine !== 'undefined' ? loanData.fine : getFineAmount(getLoanDue(), loanData.status);
+  const fineAmount = loanData.fine_amount || getFineAmount(getLoanDue(), loanData.status);
 
   // Hanya bisa extend jika fine === false
   const canExtend = (status === 'ongoing' || status === 'overdue') && !isFined;
@@ -186,10 +196,11 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   // Proses extend setelah pilih durasi
   const handleSelectExtend = (week) => {
     let returnDateObj = null;
-    if (typeof borrowingData.return_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(borrowingData.return_date)) {
-      returnDateObj = new Date(borrowingData.return_date + 'T00:00:00+07:00');
+    const loan_due = getLoanDue();
+    if (typeof loan_due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(loan_due)) {
+      returnDateObj = new Date(loan_due + 'T00:00:00+07:00');
     } else {
-      returnDateObj = new Date(borrowingData.return_date);
+      returnDateObj = new Date(loan_due);
     }
     // Hitung charge jika overdue
     let chargeAmount = 0;
@@ -204,11 +215,11 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
     const newReturnDate = new Date(returnDateObj.getTime() + week * 7 * 24 * 60 * 60 * 1000);
     const newReturnDateStr = newReturnDate.toISOString().split('T')[0];
     setExtendData({
-      bookTitle: borrowingData.books && borrowingData.books[0] ? borrowingData.books[0].title : '-',
-      price: parseInt(borrowingData.price) * week,
+      bookTitle: loanData.books && loanData.books[0] ? loanData.books[0].title : '-',
+      price: parseInt(loanData.price) * week,
       denda: chargeAmount,
       newReturnDate: newReturnDateStr,
-      loanId: borrowingData.id
+      loanId: loanData.id
     });
     if (typeof window !== 'undefined') {
       localStorage.setItem('extendNewReturnDate', newReturnDateStr);
@@ -235,9 +246,9 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
 
         <h2 className="text-sm font-semibold text-[#111010] mb-4 font-['Poppins']">📚 Borrowing Detail</h2>
         <div className="space-y-2 border-t border-b py-2 text-xs font-['Poppins']">
-          <Row label="Borrowing Date" value={formatDate(borrowingData.borrowing_date)} />
-          <Row label="Return Date" value={formatDate(borrowingData.return_date)} />
-          <Row label="Total Price" value={borrowingData.price}/>
+          <Row label="Borrowing Date" value={formatDate(loanData.borrowing_date)} />
+          <Row label="Return Date" value={formatDate(getLoanDue())} />
+          <Row label="Total Price" value={loanData.price}/>
           <Row
             label="Status"
             value={
