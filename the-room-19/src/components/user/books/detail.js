@@ -469,7 +469,7 @@ const Detail = ({ memberStatus = 'guest' }) => {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-2 mb-4">
+                  {/* <div className="flex items-center gap-2 mb-4"> */}
                     {/* Rating and Reviews */}
                     {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
@@ -479,11 +479,11 @@ const Detail = ({ memberStatus = 'guest' }) => {
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
-                    </div> */}
-                    {/* <div className="text-[#666666] text-xs ml-4">
+                    </div>
+                    <div className="text-[#666666] text-xs ml-4">
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
-                    </div> */}
-                  </div>
+                    </div>
+                  </div> */}
                 </div>
               </div>
 

@@ -378,7 +378,7 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
               <FaStar className="mr-2 text-white" />
-              Personalized Recommendation
+              Based On Your Preferences!
             </h2>
             <button className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
               onClick={() => router.push('/user/dashboard/books/recommendation-all-personalized')}

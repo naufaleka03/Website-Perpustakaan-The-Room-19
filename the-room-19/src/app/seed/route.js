@@ -11,6 +11,7 @@ async function seedUsers(tx) {
         CREATE TABLE IF NOT EXISTS visitors (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
+            gender VARCHAR(20),
             email TEXT NOT NULL UNIQUE,
             phone_number VARCHAR(20),
             member_status VARCHAR(20) NOT NULL DEFAULT 'guest',

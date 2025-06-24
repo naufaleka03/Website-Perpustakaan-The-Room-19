@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiSearch, FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
+import { FaPlus } from 'react-icons/fa';
 import { createGenre, updateGenre, deleteGenre } from "@/app/lib/actions";
 import { useRouter } from 'next/navigation';
 
@@ -216,9 +217,9 @@ const GenreSettings = () => {
             </div>
             <button
               onClick={() => handleOpenModal()}
-              className="flex items-center gap-2 px-4 h-10 bg-lime-950 text-white rounded-lg text-xs font-normal font-['Poppins'] hover:bg-lime-900 transition-colors mt-4 sm:mt-0"
+              className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins'] transition-colors duration-200 hover:bg-[#232323] mt-4 sm:mt-0"
             >
-              <FiPlus className="w-4 h-4" />
+              <FaPlus size={12} />
               Add Genre
             </button>
           </div>
@@ -283,13 +284,13 @@ const GenreSettings = () => {
                     <button
                       type="button"
                       onClick={handleCloseModal}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-lime-950 text-white rounded-lg text-sm font-medium hover:bg-lime-900"
+                      className="px-3 py-1.5 bg-[#2e3105] text-white rounded-lg text-sm hover:bg-[#404615]"
                     >
                       {editingGenre ? "Update" : "Submit"}
                     </button>
@@ -310,13 +311,13 @@ const GenreSettings = () => {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={handleCloseDeleteModal}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleDelete(genreToDelete?.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
                   >
                     Delete
                   </button>

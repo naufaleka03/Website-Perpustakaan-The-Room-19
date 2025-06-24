@@ -253,20 +253,15 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                     application.status === 'processing' ? 'bg-blue-100 text-blue-800' :
                     application.status === 'verified' ? 'bg-green-100 text-green-800' :
                     application.status === 'revision' ? 'bg-orange-100 text-orange-800' :
+                    application.status === 'revoked' ? 'bg-red-100 text-red-800' :
                     'bg-red-100 text-red-800'
                   }`}>
-                    {
-                     application.status === 'request' ? 'Pending Review' :
-                     application.status === 'processing' ? 'Under Review' :
-                     application.status === 'verified' ? 'Approved' :
-                     application.status === 'revision' ? 'Needs Revision' : ''
-                    }
+                    {application.status === 'revoked' ? 'Revoked' :
+                    application.status === 'request' ? 'Pending Review' :
+                    application.status === 'processing' ? 'Under Review' :
+                    application.status === 'verified' ? 'Approved' :
+                    application.status === 'revision' ? 'Needs Revision' : ''}
                   </span>
-                  {application.staff_id && (
-                    <p className="text-xs text-gray-500">
-                      Reviewed by: {application.staff_name || 'Staff Member'}
-                    </p>
-                  )}
                 </div>
               </div>
               
@@ -346,9 +341,9 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
               </div>
               
               {/* Review Notes Section - Enhanced */}
-              {application.notes && (
+              {application.status === 'revoked' ? (
                 <div className="mb-6">
-                  <h5 className="text-xs text-[#666666] font-medium mb-1">Review Notes</h5>
+                  <h5 className="text-xs text-[#666666] font-medium mb-1">Revoked Reason</h5>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0">
@@ -370,10 +365,36 @@ export default function DetailMembershipModal({ isOpen, onClose, membershipId })
                     </div>
                   </div>
                 </div>
+              ) : (
+                application.notes && (
+                  <div className="mb-6">
+                    <h5 className="text-xs text-[#666666] font-medium mb-1">Review Notes</h5>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#2e3105] flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">
+                              {application.staff_name ? application.staff_name.charAt(0).toUpperCase() : 'S'}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {application.staff_name || 'Staff Member'}
+                          </p>
+                          <p className="text-sm text-gray-700 mt-1">{application.notes}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {application.updated_at && new Date(application.updated_at).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
               )}
               
               {/* Status Update Form - Enhanced */}
-              {application.status !== 'verified' && application.status !== 'rejected' && (
+              {application.status !== 'revoked' && (
                 <div className="mt-6 border-t pt-4">
                   <h5 className="text-sm text-[#111010] font-medium mb-3">Update Application Status</h5>
                   

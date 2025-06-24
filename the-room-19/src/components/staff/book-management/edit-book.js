@@ -195,15 +195,23 @@ const EditBook = () => {
         
         const data = await response.json();
         if (data.book) {
-          // Ensure no select value is null
+          // Ensure no select or input value is null
           const safeBook = { ...data.book };
           [
+            'book_title',
+            'isbn_code',
+            'language',
+            'author',
+            'publisher',
+            'cover_type',
+            'usage',
+            'price',
+            'published_year',
+            'description',
             'book_type',
             'content_type',
             'genre',
-            'language',
-            'cover_type',
-            'usage',
+            'cover_image'
           ].forEach((key) => {
             if (safeBook[key] === null) safeBook[key] = '';
           });
@@ -481,11 +489,29 @@ const EditBook = () => {
                 className="w-full h-full flex items-center justify-center cursor-pointer"
               >
                 {selectedImage ? (
-                  <img
-                    src={selectedImage}
-                    alt="Book Cover Preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <img
+                      src={selectedImage}
+                      alt="Book Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedImage(null);
+                        setImageFile(null);
+                        setFormData(prev => ({
+                          ...prev,
+                          cover_image: ""
+                        }));
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow hover:bg-red-600"
+                      title="Remove Image"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center bg-[#f2f2f2] w-full h-full">
                     <FaPlus className="text-[#666666] text-xl mb-1" />

@@ -747,6 +747,27 @@ export default function MembershipForm({ application, memberStatus, showForm, se
     );
   }
 
+  if (application && application.status === 'revoked') {
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-md p-8 max-w-lg mx-auto mt-20">
+          <h2 className="text-2xl font-semibold text-red-700 mb-4">Membership Revoked</h2>
+          <p className="text-[#666666] mb-4">
+            Your membership has been revoked by the staff. You can no longer borrow books or submit a new membership application.
+          </p>
+          {application.notes && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm mb-4">
+              <strong>Reason:</strong> {application.notes}
+            </div>
+          )}
+          <a href="/user/dashboard" className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope">
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
       {/* Hero Section */}

@@ -35,10 +35,11 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+export async function PUT(req, context) {
+  const { params } = await context;
+  const id = params.id;
   try {
-    const { id } = params;
-    const body = await request.json();
+    const body = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Application ID is required' }, { status: 400 });
@@ -67,6 +68,26 @@ export async function PUT(request, { params }) {
           SET member_status = 'member'
           WHERE id = (SELECT user_id FROM memberships WHERE id = ${id})
         `;
+      }
+
+      if (body.status === 'revoked') {
+        // Update membership status
+        await sql`
+          UPDATE memberships
+          SET status = 'revoked',
+              notes = ${body.notes},
+              updated_at = NOW()
+          WHERE id = ${id}
+        `;
+        // Update visitor
+        await sql`
+          UPDATE visitors
+          SET membership_applied = false,
+              revoked_reason = ${body.notes},
+              member_status = 'guest'
+          WHERE id = (SELECT user_id FROM memberships WHERE id = ${id})
+        `;
+        return NextResponse.json({ success: true });
       }
 
       return NextResponse.json({

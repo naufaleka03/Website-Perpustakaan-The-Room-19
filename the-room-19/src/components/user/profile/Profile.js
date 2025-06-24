@@ -254,7 +254,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c] p-8">
       {errorMessage && (
         <div className="max-w-[1200px] mx-auto mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>{errorMessage}</p>

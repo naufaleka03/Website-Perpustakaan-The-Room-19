@@ -472,7 +472,7 @@ const Catalog = () => {
                     )}
                   </div>
                 </div>
-                {/* Ratings */}
+                {/* Ratings
                 <div>
                   <h3 className="text-black text-sm font-medium mb-4">Ratings</h3>
                   <label className="flex items-center gap-2">
@@ -490,7 +490,7 @@ const Catalog = () => {
                       </span>
                     </div>
                   </label>
-                </div>
+                </div> */}
                 {/* Book Types */}
                 <div>
                   <h3 className="text-black text-sm font-medium mb-4">

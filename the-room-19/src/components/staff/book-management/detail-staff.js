@@ -5,6 +5,7 @@ import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
+import DeleteConfirmationModal from '../inventory/DeleteConfirmationModal';
 
 const DetailStaff = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const DetailStaff = () => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -63,10 +65,6 @@ const DetailStaff = () => {
   }, [bookId]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this book?')) {
-      return;
-    }
-
     try {
       setLoading(true);
       console.log('Deleting book with ID:', bookId);
@@ -201,6 +199,12 @@ const DetailStaff = () => {
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        item={{ item_name: book?.book_title }}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
@@ -232,7 +236,7 @@ const DetailStaff = () => {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-4 mb-4">
+                  {/* <div className="flex items-center gap-4 mb-4">
                     <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
@@ -246,7 +250,7 @@ const DetailStaff = () => {
                     <div className="text-[#666666] text-xs">
                       Borrowed {lendCount} times
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -417,7 +421,7 @@ const DetailStaff = () => {
                   </button>
                 </Link>
                 <button 
-                  onClick={handleDelete}
+                  onClick={() => setIsDeleteModalOpen(true)}
                   className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >
                   Delete
