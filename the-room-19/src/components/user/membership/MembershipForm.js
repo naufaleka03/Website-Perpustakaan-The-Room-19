@@ -856,12 +856,12 @@ export default function MembershipForm({ application, memberStatus, showForm, se
                   <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">
                     Address
                   </label>
-                  <input 
-                    type="text"
+                  <textarea
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className={`h-[40px] w-full rounded-lg border ${errors.address ? 'border-red-500' : 'border-[#666666]/30'} px-4 text-sm font-normal font-['Poppins'] text-[#666666]`}
+                    rows="3"
+                    className={`w-full rounded-lg border ${errors.address ? 'border-red-500' : 'border-[#666666]/30'} px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666]`}
                     placeholder="Enter your current address"
                   />
                   <p className="text-xs text-[#666666]/80 mt-1">Your current residential address</p>
