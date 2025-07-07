@@ -16,7 +16,8 @@ export async function GET() {
         e.shift_end,
         e.max_participants,
         e.ticket_fee,
-        e.additional_notes
+        e.additional_notes,
+        e.is_deleted AS event_is_deleted
       FROM eventreservations er
       LEFT JOIN events e ON 
         er.event_name = e.event_name AND
@@ -36,10 +37,40 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const data = await request.json();
+    const body = await request.json();
+    console.log("Received form data:", body);
 
+    // Convert camelCase to snake_case for database consistency
+    const dbFormData = {
+      user_id: body.user_id,
+      event_name: body.event_name,
+      description: body.description,
+      event_date: body.event_date,
+      shift_name: body.shift_name,
+      shift_start: body.shift_start,
+      shift_end: body.shift_end,
+      max_participants: body.max_participants,
+      ticket_fee: body.ticket_fee,
+      additional_notes: body.additional_notes,
+      full_name: body.full_name,
+      members: body.members || [],
+      status: "not_attended",
+      payment_id: body.payment_id,
+      payment_status: body.payment_status,
+      payment_method: body.payment_method,
+    };
+
+    // Validation
+    if (!dbFormData.user_id) throw new Error("User not logged in");
+    if (!dbFormData.event_name) throw new Error("Event name is required");
+    if (!dbFormData.event_date) throw new Error("Event date is required");
+    if (!dbFormData.shift_name) throw new Error("Shift name is required");
+    if (!dbFormData.full_name) throw new Error("Full name is required");
+
+    // Insert reservation into database
     const result = await sql`
       INSERT INTO eventreservations (
+        user_id,
         event_name,
         description,
         event_date,
@@ -57,40 +88,49 @@ export async function POST(request) {
         status,
         payment_id,
         payment_status,
-        payment_method
-      ) VALUES (
-        ${data.event_name},
-        ${data.description},
-        ${data.event_date},
-        ${data.shift_name},
-        ${data.shift_start},
-        ${data.shift_end},
-        ${data.max_participants},
-        ${data.ticket_fee},
-        ${data.additional_notes},
-        ${data.full_name},
-        ${data.members?.[0] || null},
-        ${data.members?.[1] || null},
-        ${data.members?.[2] || null},
-        ${data.members?.[3] || null},
-        ${data.status || "not_attended"},
-        ${data.payment_id || null},
-        ${data.payment_status || null},
-        ${data.payment_method || null}
+        payment_method,
+        created_at
+      )
+      VALUES (
+        ${dbFormData.user_id},
+        ${dbFormData.event_name},
+        ${dbFormData.description},
+        ${dbFormData.event_date},
+        ${dbFormData.shift_name},
+        ${dbFormData.shift_start},
+        ${dbFormData.shift_end},
+        ${dbFormData.max_participants},
+        ${dbFormData.ticket_fee},
+        ${dbFormData.additional_notes},
+        ${dbFormData.full_name},
+        ${dbFormData.members[0] || null},
+        ${dbFormData.members[1] || null},
+        ${dbFormData.members[2] || null},
+        ${dbFormData.members[3] || null},
+        ${dbFormData.status},
+        ${dbFormData.payment_id},
+        ${dbFormData.payment_status},
+        ${dbFormData.payment_method},
+        NOW()
       )
       RETURNING *
     `;
 
-    return NextResponse.json({
-      success: true,
-      data: result[0],
-    });
+    console.log("Event reservation created:", result);
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result[0],
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Error creating event reservation:", error);
+    console.error("Event reservation submission error:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to create event reservation",
+        error: error.message || "Failed to submit event reservation",
       },
       { status: 500 }
     );

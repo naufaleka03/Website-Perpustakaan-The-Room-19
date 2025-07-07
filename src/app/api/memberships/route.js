@@ -19,7 +19,7 @@ export async function GET() {
     const stats = {
       totalMembers: memberships.filter(m => m.status === 'verified').length,
       totalRequests: memberships.filter(m => m.status === 'request' || m.status === 'processing').length,
-      totalRevisions: memberships.filter(m => m.status === 'revision' || m.status === 'revoked').length
+      totalRevisions: memberships.filter(m => m.status === 'revision' || m.status === 'rejected').length
     };
 
     return NextResponse.json({
@@ -84,17 +84,6 @@ export async function PUT(request) {
         await sql`
           UPDATE visitors
           SET member_status = 'member'
-          WHERE id = ${existingApplication.user_id}
-        `;
-      }
-
-      // If application is revoked, update the user's member_status to guest
-      if (body.status === 'revoked') {
-        console.log('Updating visitor to guest for user_id:', existingApplication.user_id);
-        await sql`
-          UPDATE visitors
-          SET member_status = 'guest',
-              revoked_reason = ${body.notes}
           WHERE id = ${existingApplication.user_id}
         `;
       }

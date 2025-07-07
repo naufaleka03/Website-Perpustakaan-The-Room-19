@@ -101,46 +101,52 @@ export async function PUT(request, { params }) {
   }
 }
 
-// Delete item
+// Retire item (soft delete)
 export async function DELETE(request, { params }) {
   try {
-    // Get the item's category before deletion
-    const item = await sql`
-      SELECT category_id FROM inventory WHERE id = ${params.id}
+    const result = await sql.begin(async (sql) => {
+      // Get the item's category and stock before retiring
+      const [itemToRetire] = await sql`
+        SELECT category_id, stock_quantity FROM inventory WHERE id = ${params.id}
     `;
 
-    if (item.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Item not found" },
-        { status: 404 }
-      );
-    }
+      if (!itemToRetire) {
+        throw new Error("Item not found");
+      }
 
-    // Decrease the category's number_of_items if item has a category
-    if (item[0].category_id) {
-      await sql`
+      // Mark the item as retired
+      const [retiredItem] = await sql`
+        UPDATE inventory
+        SET 
+          is_retired = TRUE, 
+          retired_at = NOW(),
+          stock_quantity = 0
+        WHERE id = ${params.id}
+        RETURNING *
+      `;
+
+      // Decrease the category's number_of_items if item has a category
+      if (itemToRetire.category_id) {
+        await sql`
         UPDATE categories
         SET number_of_items = number_of_items - 1
-        WHERE id = ${item[0].category_id}
+          WHERE id = ${itemToRetire.category_id} AND number_of_items > 0
       `;
-    }
+      }
 
-    const result = await sql`
-      DELETE FROM inventory
-      WHERE id = ${params.id}
-      RETURNING *
-    `;
+      return retiredItem;
+    });
 
     revalidatePath("/staff/dashboard/inventory/inventory-list");
     return NextResponse.json({
       success: true,
-      message: "Item deleted successfully",
-      data: result[0],
+      message: "Item retired successfully",
+      data: result,
     });
   } catch (error) {
     console.error("Database Error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to delete item" },
+      { success: false, error: "Failed to retire item" },
       { status: 500 }
     );
   }

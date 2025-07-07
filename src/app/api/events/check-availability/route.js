@@ -15,13 +15,11 @@ export async function POST(request) {
         COALESCE(
           (
             SELECT SUM(
-              CASE 
-                WHEN er.group_member1 IS NOT NULL THEN 
-                  1 + (CASE WHEN er.group_member2 IS NOT NULL THEN 1 ELSE 0 END) +
-                  (CASE WHEN er.group_member3 IS NOT NULL THEN 1 ELSE 0 END) +
-                  (CASE WHEN er.group_member4 IS NOT NULL THEN 1 ELSE 0 END)
-                ELSE 1
-              END
+              1 + 
+                (CASE WHEN er.group_member1 IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN er.group_member2 IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN er.group_member3 IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN er.group_member4 IS NOT NULL THEN 1 ELSE 0 END)
             )
             FROM eventreservations er
             WHERE er.event_name = e.event_name
