@@ -1,0 +1,31 @@
+# Database (Supabase/Postgres) settings
+POSTGRES_URL="postgres://postgres.bsrqchgbsrbuwzuspbkw:DpahxFR7GxInfEJd@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+POSTGRES_PRISMA_URL="postgres://postgres.bsrqchgbsrbuwzuspbkw:DpahxFR7GxInfEJd@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+SUPABASE_URL="https://bsrqchgbsrbuwzuspbkw.supabase.co"
+NEXT_PUBLIC_SUPABASE_URL="https://bsrqchgbsrbuwzuspbkw.supabase.co"
+POSTGRES_URL_NON_POOLING="postgres://postgres.bsrqchgbsrbuwzuspbkw:DpahxFR7GxInfEJd@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
+SUPABASE_JWT_SECRET="6Bm8ye1CUHIMMLg2vjCMj0fp4IQlt7OVdY0UxchzXy6/Do8FjusZsLI+J2ADN/wBiJNI59i4PnczUnSTRnzg1A=="
+POSTGRES_USER="postgres"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcnFjaGdic3JidXd6dXNwYmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2MzA4NjksImV4cCI6MjA1NjIwNjg2OX0.Gw_eLOWws6P16F6UAVfNFwI3TPMSV88mm6cqjuY4Cs8"
+POSTGRES_PASSWORD="DpahxFR7GxInfEJd"
+POSTGRES_DATABASE="postgres"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcnFjaGdic3JidXd6dXNwYmt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDYzMDg2OSwiZXhwIjoyMDU2MjA2ODY5fQ.80feRWW9GBvUwQe1mXc5pPYtSIcXMiUP1y5wpMjM_EM"
+POSTGRES_HOST="db.bsrqchgbsrbuwzuspbkw.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcnFjaGdic3JidXd6dXNwYmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2MzA4NjksImV4cCI6MjA1NjIwNjg2OX0.Gw_eLOWws6P16F6UAVfNFwI3TPMSV88mm6cqjuY4Cs8"
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://bsrqchgbsrbuwzuspbkw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcnFjaGdic3JidXd6dXNwYmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2MzA4NjksImV4cCI6MjA1NjIwNjg2OX0.Gw_eLOWws6P16F6UAVfNFwI3TPMSV88mm6cqjuY4Cs8
+
+# Resend
+RESEND_API_KEY=re_9xivgrhd_Q8PZxZNMjTwWtuvyoLRPFZN4
+
+# Midtrans
+MIDTRANS_SERVER_KEY=SB-Mid-server-4GS-HMlEmvpY574UdgPz878v
+NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=SB-Mid-client-zw0Kv1jJ8kGnG8hK
+
+# Flask settings
+FLASK_ENV=development
+FLASK_DEBUG=1
+SECRET_KEY=your_flask_secret_key_here
+DATABASE_URL=postgresql://postgres.bsrqchgbsrbuwzuspbkw:DpahxFR7GxInfEJd@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require

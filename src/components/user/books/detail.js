@@ -509,8 +509,13 @@ const Detail = ({ memberStatus = "guest" }) => {
                       Rp {parseInt(book.price).toLocaleString("id-ID")}
                     </div>
                   )}
+<<<<<<< HEAD:the-room-19/src/components/user/books/detail.js
 
                   <div className="flex items-center gap-2 mb-4">
+=======
+                  
+                  {/* <div className="flex items-center gap-2 mb-4"> */}
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/user/books/detail.js
                     {/* Rating and Reviews */}
                     {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
@@ -523,11 +528,16 @@ const Detail = ({ memberStatus = "guest" }) => {
                     </div>
                     <div className="text-[#666666] text-xs ml-4">
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
+<<<<<<< HEAD:the-room-19/src/components/user/books/detail.js
                     </div> */}
                     <div className="text-[#666666] text-xs">
                       Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
                     </div>
                   </div>
+=======
+                    </div>
+                  </div> */}
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/user/books/detail.js
                 </div>
               </div>
 
