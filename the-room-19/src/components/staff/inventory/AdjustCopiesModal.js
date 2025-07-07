@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const conditionOptions = ["Pristine", "Good", "Fair", "Not Specified"];
+const conditionOptions = ["Pristine", "Good", "Fair", "Poor", "Not Specified"];
 
 const AdjustCopiesModal = ({ isOpen, onClose, book, onUpdate }) => {
   const [condition, setCondition] = useState(

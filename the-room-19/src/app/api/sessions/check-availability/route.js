@@ -21,13 +21,12 @@ export async function POST(request) {
     // Only count non-canceled sessions
     const existingReservations = await sql`
       SELECT 
-        CASE 
-          WHEN group_member1 IS NOT NULL THEN 
-            1 + (CASE WHEN group_member2 IS NOT NULL THEN 1 ELSE 0 END) +
+        1 + 
+          (CASE WHEN group_member1 IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN group_member2 IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN group_member3 IS NOT NULL THEN 1 ELSE 0 END) +
             (CASE WHEN group_member4 IS NOT NULL THEN 1 ELSE 0 END)
-          ELSE 1
-        END as total_people
+        as total_people
       FROM sessions 
       WHERE arrival_date = ${arrival_date}
       AND shift_name = ${shift_name}

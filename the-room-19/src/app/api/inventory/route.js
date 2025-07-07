@@ -9,6 +9,7 @@ export async function GET() {
       SELECT i.*, c.category_name
       FROM inventory i
       LEFT JOIN categories c ON i.category_id = c.id
+      WHERE i.is_retired = false
       ORDER BY i.created_at DESC
     `;
 

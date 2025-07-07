@@ -1,4 +1,6 @@
+import { NextResponse } from "next/server";
 import postgres from "postgres";
+import { revalidatePath } from "next/cache";
 
 const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
 
@@ -13,19 +15,19 @@ export async function GET(request, { params }) {
     `;
 
     if (category.length === 0) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Category not found" },
         { status: 404 }
       );
     }
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
       data: category[0],
     });
   } catch (error) {
     console.error("Error fetching category:", error);
-    return Response.json(
+    return NextResponse.json(
       {
         success: false,
         error:
@@ -46,7 +48,7 @@ export async function PUT(request, { params }) {
     const { category_name } = body;
 
     if (!category_name) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Category name is required" },
         { status: 400 }
       );
@@ -59,7 +61,7 @@ export async function PUT(request, { params }) {
     `;
 
     if (existingCategory.length === 0) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Category not found" },
         { status: 404 }
       );
@@ -73,7 +75,7 @@ export async function PUT(request, { params }) {
     `;
 
     if (duplicateCheck.length > 0) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Category name already exists" },
         { status: 400 }
       );
@@ -83,19 +85,19 @@ export async function PUT(request, { params }) {
     const updatedCategory = await sql`
       UPDATE categories
       SET 
-        category_name = ${category_name},
-        updated_at = NOW()
+        category_name = ${category_name}
       WHERE id = ${id}
       RETURNING *
     `;
 
-    return Response.json({
+    revalidatePath("/staff/dashboard/inventory/categorization-inventory");
+    return NextResponse.json({
       success: true,
       data: updatedCategory[0],
     });
   } catch (error) {
     console.error("Error updating category:", error);
-    return Response.json(
+    return NextResponse.json(
       {
         success: false,
         error:
@@ -120,14 +122,14 @@ export async function DELETE(request, { params }) {
     `;
 
     if (category.length === 0) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Category not found" },
         { status: 404 }
       );
     }
 
     if (category[0].number_of_items > 0) {
-      return Response.json(
+      return NextResponse.json(
         { success: false, error: "Cannot delete category with existing items" },
         { status: 400 }
       );
@@ -139,13 +141,14 @@ export async function DELETE(request, { params }) {
       WHERE id = ${id}
     `;
 
-    return Response.json({
+    revalidatePath("/staff/dashboard/inventory/categorization-inventory");
+    return NextResponse.json({
       success: true,
       message: "Category deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting category:", error);
-    return Response.json(
+    return NextResponse.json(
       {
         success: false,
         error:

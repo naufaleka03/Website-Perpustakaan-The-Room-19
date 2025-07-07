@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { BiSearch } from "react-icons/bi";
 import { IoIosArrowDown } from "react-icons/io";
 import DetailSessionModal from "./DetailSessionModal";
@@ -123,6 +124,7 @@ const TabButton = ({ isActive, onClick, children }) => {
 };
 
 export default function Histories() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("session");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -135,6 +137,13 @@ export default function Histories() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab");
+    if (tabFromUrl && (tabFromUrl === "session" || tabFromUrl === "event")) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchSessionHistory = async () => {
@@ -332,46 +341,48 @@ export default function Histories() {
             )}
             {!loading &&
               !error &&
-              filteredSessionHistory.map((session) => {
-                const arrival = new Date(session.arrival_date);
-                const date = arrival.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                });
-                const time = session.shift_start
-                  .substring(0, 5)
-                  .replace(":", ".");
-                const displayDate = `${date} ${time}`;
-                const startTime = session.shift_start
-                  .substring(0, 5)
-                  .replace(":", ".");
-                const endTime = session.shift_end
-                  .substring(0, 5)
-                  .replace(":", ".");
-                const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
+              filteredSessionHistory
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map((session) => {
+                  const arrival = new Date(session.arrival_date);
+                  const date = arrival.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  });
+                  const time = session.shift_start
+                    .substring(0, 5)
+                    .replace(":", ".");
+                  const displayDate = `${date} ${time}`;
+                  const startTime = session.shift_start
+                    .substring(0, 5)
+                    .replace(":", ".");
+                  const endTime = session.shift_end
+                    .substring(0, 5)
+                    .replace(":", ".");
+                  const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
 
-                const status = getStatus(
-                  session.status,
-                  session.payment_status
-                );
+                  const status = getStatus(
+                    session.status,
+                    session.payment_status
+                  );
 
-                return (
-                  <ReservationHistoryCard
-                    key={session.id}
-                    name={session.full_name}
-                    shift={shiftDisplay}
-                    transactionId={session.payment_id || "N/A"}
-                    amount={
-                      session.amount
-                        ? `Rp${session.amount.toLocaleString("id-ID")}`
-                        : "Free"
-                    }
-                    status={status}
-                    onDetailClick={() => openModal(session)}
-                  />
-                );
-              })}
+                  return (
+                    <ReservationHistoryCard
+                      key={session.id}
+                      name={session.full_name}
+                      shift={shiftDisplay}
+                      transactionId={session.payment_id || "N/A"}
+                      amount={
+                        session.amount
+                          ? `Rp${session.amount.toLocaleString("id-ID")}`
+                          : "Free"
+                      }
+                      status={status}
+                      onDetailClick={() => openModal(session)}
+                    />
+                  );
+                })}
           </div>
         )}
 
@@ -392,29 +403,31 @@ export default function Histories() {
             )}
             {!loading &&
               !error &&
-              filteredEventHistory.map((event) => {
-                const startTime = event.shift_start
-                  .substring(0, 5)
-                  .replace(":", ".");
-                const endTime = event.shift_end
-                  .substring(0, 5)
-                  .replace(":", ".");
-                const shiftDisplay = `${event.shift_name} (${startTime} - ${endTime})`;
+              filteredEventHistory
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map((event) => {
+                  const startTime = event.shift_start
+                    .substring(0, 5)
+                    .replace(":", ".");
+                  const endTime = event.shift_end
+                    .substring(0, 5)
+                    .replace(":", ".");
+                  const shiftDisplay = `${event.shift_name} (${startTime} - ${endTime})`;
 
-                const status = getStatus(event.status, event.payment_status);
+                  const status = getStatus(event.status, event.payment_status);
 
-                return (
-                  <ReservationHistoryCard
-                    key={event.id}
-                    name={event.event_name}
-                    shift={shiftDisplay}
-                    transactionId={event.payment_id || "N/A"}
-                    amount={`Rp${event.ticket_fee.toLocaleString("id-ID")}`}
-                    status={status}
-                    onDetailClick={() => openEventModal(event)}
-                  />
-                );
-              })}
+                  return (
+                    <ReservationHistoryCard
+                      key={event.id}
+                      name={event.event_name}
+                      shift={shiftDisplay}
+                      transactionId={event.payment_id || "N/A"}
+                      amount={`Rp${event.ticket_fee.toLocaleString("id-ID")}`}
+                      status={status}
+                      onDetailClick={() => openEventModal(event)}
+                    />
+                  );
+                })}
           </div>
         )}
       </div>

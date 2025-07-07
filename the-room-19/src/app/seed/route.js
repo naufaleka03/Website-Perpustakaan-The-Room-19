@@ -130,6 +130,8 @@ async function seedEvents(tx) {
             additional_notes TEXT,
             event_poster TEXT,
             status VARCHAR(50) DEFAULT 'open' NOT NULL,
+            is_deleted BOOLEAN DEFAULT false NOT NULL,
+            deleted_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
             FOREIGN KEY (shift_name, shift_start, shift_end) 
                 REFERENCES shifts(shift_name, shift_start, shift_end)
@@ -237,6 +239,8 @@ async function seedInventory(tx) {
             item_image TEXT,
             comment TEXT,
             category_id UUID REFERENCES categories(id),
+            is_retired BOOLEAN DEFAULT false NOT NULL,
+            retired_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }

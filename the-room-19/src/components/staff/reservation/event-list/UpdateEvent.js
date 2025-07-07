@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IoCalendarOutline } from "react-icons/io5";
-import { submitEventUpdate } from "@/app/lib/actions";
+import { GoTriangleDown } from "react-icons/go";
 import { createClient } from "@/app/supabase/client";
 
 export default function UpdateEvent() {
@@ -170,13 +170,19 @@ export default function UpdateEvent() {
         event_poster: posterUrl,
       };
 
-      const result = await submitEventUpdate(eventId, formData);
+      const result = await fetch(`/api/events/${eventId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      if (result.success) {
+      const response = await result.json();
+
+      if (response.success) {
         router.push("/staff/dashboard/reservation/event-list");
         router.refresh();
       } else {
-        setError(result.error || "Failed to update event");
+        setError(response.error || "Failed to update event");
       }
     } catch (err) {
       console.error("Error updating event:", err);

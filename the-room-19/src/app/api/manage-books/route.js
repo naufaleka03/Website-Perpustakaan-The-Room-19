@@ -31,32 +31,51 @@ async function updateBookStock(book_id) {
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const book_id = searchParams.get("id");
-  if (book_id) {
-    // Return all copies for this book
-    try {
-      const copies = await sql`
-        SELECT id, copy, condition, status, comment, updated_at
+  try {
+    let copies;
+    if (book_id) {
+      // Return all copies for this book
+      copies = await sql`
+        SELECT id, copy, condition, status, comment, updated_at, is_retired
         FROM manage_books
-        WHERE book_id = ${book_id} AND is_retired = false
+        WHERE book_id = ${book_id}
         ORDER BY copy ASC
       `;
-      return NextResponse.json({ success: true, data: copies });
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
+    } else {
+      // Return all copies for all books
+      copies = await sql`
+        SELECT mb.id, mb.book_id, mb.copy, mb.condition, mb.status, mb.comment, mb.updated_at, mb.is_retired, b.book_title
+        FROM manage_books mb
+        JOIN books b ON mb.book_id = b.id
+        ORDER BY b.book_title ASC, mb.copy ASC
+      `;
     }
-  }
-  try {
-    const books = await sql`
-      SELECT mb.id, mb.book_id, mb.copy, mb.condition, mb.status, mb.comment, b.book_title
-      FROM manage_books mb
-      JOIN books b ON mb.book_id = b.id
-      WHERE mb.is_retired = false
-      ORDER BY b.book_title ASC, mb.copy ASC
-    `;
-    return NextResponse.json({ success: true, data: books });
+    // For each copy, determine dynamic status
+    const copyIds = copies.map((c) => c.id);
+    let loans = [];
+    if (copyIds.length > 0) {
+      loans = await sql`
+        SELECT id, copies_id, status FROM loans WHERE copies_id = ANY(${copyIds}) AND status = 'On Going'
+      `;
+    }
+    const loanMap = new Map();
+    for (const loan of loans) {
+      loanMap.set(loan.copies_id, loan);
+    }
+    const result = copies.map((copy) => {
+      let dynamic_status = copy.status;
+      if (copy.is_retired) {
+        dynamic_status = "Retired";
+      } else if (loanMap.has(copy.id)) {
+        dynamic_status = "On Loan";
+      } else if (copy.status === "Retired") {
+        dynamic_status = "Retired";
+      } else {
+        dynamic_status = "Available";
+      }
+      return { ...copy, dynamic_status };
+    });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
@@ -81,26 +100,18 @@ export async function POST(request) {
       SELECT copy FROM manage_books WHERE book_id = ${book_id} ORDER BY copy ASC
     `;
     const existingCopies = existing.map((row) => row.copy);
-    // Find available copy numbers (1,2,3)
-    const maxCopies = 3;
-    const availableCopies = [];
-    for (let i = 1; i <= maxCopies; i++) {
-      if (!existingCopies.includes(i)) availableCopies.push(i);
+    // Cari nomor copy berikutnya yang belum dipakai, tanpa batas maksimal
+    let nextCopy = 1;
+    if (existingCopies.length > 0) {
+      // Cari copy terbesar, lalu lanjutkan
+      nextCopy = Math.max(...existingCopies) + 1;
     }
-    if (availableCopies.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Maximum 3 copies per book allowed." },
-        { status: 400 }
-      );
-    }
-    // Only add up to the number of available copies
-    const toAdd = Math.min(numCopies, availableCopies.length);
     const inserts = [];
-    for (let i = 0; i < toAdd; i++) {
+    for (let i = 0; i < numCopies; i++) {
       inserts.push(
         sql`
           INSERT INTO manage_books (book_id, copy, condition, status)
-          VALUES (${book_id}, ${availableCopies[i]}, ${
+          VALUES (${book_id}, ${nextCopy + i}, ${
           condition || "Not Specified"
         }, 'Available')
           RETURNING *
@@ -109,126 +120,11 @@ export async function POST(request) {
     }
     const inserted = await Promise.all(inserts);
     const results = inserted.map((r) => r[0]);
-    // If user requested more than available, inform them
-    let message = undefined;
-    if (numCopies > toAdd) {
-      message = `Only ${toAdd} copy/copies added. Maximum 3 copies per book allowed.`;
-    }
-    // After adding, update the main book stock
+    // Setelah menambah, update stok utama buku
     if (results.length > 0) {
       await updateBookStock(book_id);
     }
-    return NextResponse.json(
-      { success: true, data: results, message },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-// PATCH: Update condition and comment for a managed book, or retire book
-export async function PATCH(request) {
-  try {
-    const body = await request.json();
-    const { id, condition, comment, retire } = body;
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: "id is required" },
-        { status: 400 }
-      );
-    }
-    if (retire === true) {
-      // Soft delete (retire) the book
-      // Get book info for logging
-      const bookRows = await sql`
-        SELECT mb.*, b.book_title FROM manage_books mb JOIN books b ON mb.book_id = b.id WHERE mb.id = ${id}
-      `;
-      if (bookRows.length === 0) {
-        return NextResponse.json(
-          { success: false, error: "Entry not found" },
-          { status: 404 }
-        );
-      }
-      const book = bookRows[0];
-      // Mark as retired
-      await sql`
-        UPDATE manage_books SET is_retired = true, status = 'Retired' WHERE id = ${id}
-      `;
-      // Insert log to inventory_logs
-      const handle_by = body.handle_by || null;
-      await sql`
-        INSERT INTO inventory_logs (mode, item_name, stock_before, stock_after, comment, created_at, handle_by)
-        VALUES ('reduce', ${
-          book.book_title + " (copy " + book.copy + ")"
-        }, 1, 0, 'Retired (damaged and removed from inventory)', NOW(), ${handle_by})
-      `;
-      // After retiring, update the main book stock
-      await updateBookStock(book.book_id);
-      return NextResponse.json({ success: true });
-    }
-    // Default: update condition/comment
-    if (!condition) {
-      return NextResponse.json(
-        { success: false, error: "condition is required if not retiring" },
-        { status: 400 }
-      );
-    }
-    const result = await sql`
-      UPDATE manage_books
-      SET condition = ${condition}, comment = ${comment || null}
-      WHERE id = ${id}
-      RETURNING *
-    `;
-    if (result.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Entry not found" },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json({ success: true, data: result[0] });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE: Remove a managed book (retire book)
-export async function DELETE(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: "id is required" },
-        { status: 400 }
-      );
-    }
-    // We need to know the book_id before deleting
-    const beforeDelete = await sql`
-      SELECT book_id FROM manage_books WHERE id = ${id}
-    `;
-    if (beforeDelete.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Entry not found" },
-        { status: 404 }
-      );
-    }
-    const { book_id } = beforeDelete[0];
-
-    const result = await sql`
-      DELETE FROM manage_books WHERE id = ${id} RETURNING *
-    `;
-
-    // After deleting, update the main book stock
-    await updateBookStock(book_id);
-
-    return NextResponse.json({ success: true, data: result[0] });
+    return NextResponse.json({ success: true, data: results }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },

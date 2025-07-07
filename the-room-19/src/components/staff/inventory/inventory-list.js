@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiMoreVertical } from "react-icons/fi";
 import { BiSearch } from "react-icons/bi";
 import { useRouter } from "next/navigation";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import RetireConfirmationModal from "./RetireConfirmationModal";
 import ItemDetailModal from "./ItemDetailModal";
 import AdjustStockModal from "./AdjustStockModal";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
@@ -22,7 +22,7 @@ export default function InventoryList() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
+  const [retireModal, setRetireModal] = useState({ isOpen: false, item: null });
   const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
   const [adjustStockModal, setAdjustStockModal] = useState({
     isOpen: false,
@@ -159,7 +159,7 @@ export default function InventoryList() {
     setActiveDropdown(activeDropdown === itemId ? null : itemId);
   };
 
-  const handleDelete = async (item) => {
+  const handleRetire = async (item) => {
     try {
       const response = await fetch(`/api/inventory/${item.id}`, {
         method: "DELETE",
@@ -168,12 +168,12 @@ export default function InventoryList() {
 
       if (data.success) {
         setInventory(inventory.filter((i) => i.id !== item.id));
-        setDeleteModal({ isOpen: false, item: null });
+        setRetireModal({ isOpen: false, item: null });
       } else {
-        setError(data.error || "Failed to delete item");
+        setError(data.error || "Failed to retire item");
       }
     } catch (error) {
-      setError("An error occurred while deleting the item");
+      setError("An error occurred while retiring the item");
     }
   };
 
@@ -189,8 +189,8 @@ export default function InventoryList() {
       case "adjust-stock":
         setAdjustStockModal({ isOpen: true, item });
         break;
-      case "delete":
-        setDeleteModal({ isOpen: true, item });
+      case "retire":
+        setRetireModal({ isOpen: true, item });
         break;
       default:
         break;
@@ -283,12 +283,12 @@ export default function InventoryList() {
 
   return (
     <div className="flex-1 min-h-screen bg-white">
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={deleteModal.isOpen}
-        item={deleteModal.item}
-        onClose={() => setDeleteModal({ isOpen: false, item: null })}
-        onConfirm={handleDelete}
+      {/* Retire Confirmation Modal */}
+      <RetireConfirmationModal
+        isOpen={retireModal.isOpen}
+        item={retireModal.item}
+        onClose={() => setRetireModal({ isOpen: false, item: null })}
+        onRetire={() => handleRetire(retireModal.item)}
       />
 
       {/* Item Detail Modal */}
@@ -378,10 +378,10 @@ export default function InventoryList() {
                               Adjust Stock
                             </button>
                             <button
-                              onClick={() => handleAction("delete", item)}
+                              onClick={() => handleAction("retire", item)}
                               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-red-600"
                             >
-                              Delete
+                              Retire
                             </button>
                           </div>
                         )}
@@ -404,7 +404,15 @@ export default function InventoryList() {
                           {item.description}
                         </p>
                         <div className="flex justify-end items-center">
-                          <span className="text-xs text-[#666666]">
+                          <span
+                            className={`text-xs ${
+                              item.stock_quantity === 1
+                                ? "text-red-600 font-bold"
+                                : item.stock_quantity <= 3
+                                ? "text-orange-500 font-semibold"
+                                : "text-[#666666]"
+                            }`}
+                          >
                             Stock: {item.stock_quantity}
                           </span>
                         </div>

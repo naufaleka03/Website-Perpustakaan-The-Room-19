@@ -213,7 +213,7 @@ const Detail = ({ memberStatus = "guest" }) => {
       if (!selectedCopy) {
         setBorrowResult({
           success: false,
-          message: 'Copy buku tidak tersedia atau belum dipilih.'
+          message: "Copy buku tidak tersedia atau belum dipilih.",
         });
         setIsBorrowing(false);
         return;
@@ -238,7 +238,7 @@ const Detail = ({ memberStatus = "guest" }) => {
         payment_status: paymentResult.transaction_status,
         payment_method: paymentResult.payment_type,
         copies: selectedCopy.copy,
-        copies_id: selectedCopy.id
+        copies_id: selectedCopy.id,
       };
       const response = await fetch("/api/loans", {
         method: "POST",
@@ -472,7 +472,7 @@ const Detail = ({ memberStatus = "guest" }) => {
             email: user?.email,
             phone_number: user?.phone_number,
             copies: copies[selectedCopyIndex]?.copy,
-            copies_id: copies[selectedCopyIndex]?.id
+            copies_id: copies[selectedCopyIndex]?.id,
           }}
           borrowDate={borrowDate}
           returnDate={returnDate}
@@ -533,7 +533,11 @@ const Detail = ({ memberStatus = "guest" }) => {
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
                     </div> */}
                     <div className="text-[#666666] text-xs">
-                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
+                      Borrowed:{" "}
+                      <span className="font-bold">
+                        {book.total_borrow ?? 0}
+                      </span>{" "}
+                      times
                     </div>
                   </div>
                 </div>
@@ -586,11 +590,11 @@ const Detail = ({ memberStatus = "guest" }) => {
                             key={copy.id}
                             value={idx}
                             className="rounded-full text-xs"
-                            disabled={copy.status !== "Available"}
+                            disabled={copy.dynamic_status !== "Available"}
                           >
                             {`Copy ${copy.copy} - ${
                               copy.condition || "Not specified"
-                            } (${copy.status || "-"})`}
+                            } (${copy.dynamic_status || copy.status || "-"})`}
                           </option>
                         ))}
                       </select>

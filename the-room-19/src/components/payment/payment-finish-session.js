@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function PaymentFinishEventPage() {
+export default function PaymentFinishSessionPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
   const status = searchParams.get("transaction_status");
@@ -94,7 +94,7 @@ export default function PaymentFinishEventPage() {
             {statusInfo.message}
           </h2>
           <p className="text-[#666] text-xs font-['Poppins'] mb-3">
-            Your event reservation has been confirmed.
+            Your session reservation has been confirmed.
             <br />
             Payment status:{" "}
             <span className="font-semibold capitalize">{status}</span>.
@@ -114,10 +114,10 @@ export default function PaymentFinishEventPage() {
             </div>
           </div>
           <Link
-            href="/user/dashboard/reservation/histories?tab=event"
+            href="/user/dashboard/reservation/histories?tab=session"
             className="inline-block bg-[#2e3105] text-white text-xs font-['Poppins'] px-6 py-2 rounded-lg w-full hover:bg-[#3e4310] transition-colors font-medium shadow"
           >
-            View My Event History
+            View My Session History
           </Link>
         </div>
       </div>

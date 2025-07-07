@@ -1,12 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch, FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
-import {
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 
 const CategorizationInventory = () => {
@@ -75,7 +70,15 @@ const CategorizationInventory = () => {
     try {
       let result;
       if (editingCategory) {
-        result = await updateCategory(editingCategory.id, formData);
+        const response = await fetch(`/api/categories/${editingCategory.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category_name: formData.get("category_name"),
+          }),
+        });
+        result = await response.json();
+
         if (result.success) {
           handleCloseModal();
           await fetchCategories();
@@ -84,7 +87,15 @@ const CategorizationInventory = () => {
           setError(result.error);
         }
       } else {
-        result = await createCategory(formData);
+        const response = await fetch("/api/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category_name: formData.get("category_name"),
+          }),
+        });
+        result = await response.json();
+
         if (result.success) {
           handleCloseModal();
           await fetchCategories();
@@ -111,10 +122,18 @@ const CategorizationInventory = () => {
         return;
       }
 
-      await deleteCategory(id);
-      handleCloseDeleteModal();
-      await fetchCategories();
-      router.refresh();
+      const response = await fetch(`/api/categories/${id}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        handleCloseDeleteModal();
+        await fetchCategories();
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
     } catch (error) {
       console.error("Error:", error);
       setError(error.message);

@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { IoCalendarOutline } from "react-icons/io5";
 
-export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
+export default function DetailEventModal({ isOpen, onClose, eventId }) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -14,22 +13,22 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!sessionId) return;
+      if (!eventId) return;
       try {
-        const endpoint = `/api/sessions/${sessionId}`;
+        const endpoint = `/api/eventreservations/${eventId}`;
         const response = await fetch(endpoint);
         const responseData = await response.json();
         setData(responseData);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching session data:", error);
+        console.error("Error fetching event data:", error);
       }
     };
 
     if (isOpen) {
       fetchData();
     }
-  }, [sessionId, isOpen]);
+  }, [eventId, isOpen]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -55,7 +54,7 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
         </button>
 
         <h2 className="text-xl font-semibold text-[#111010] mb-6">
-          Session Reservation Detail
+          Event Reservation Detail
         </h2>
 
         {isLoading ? (
@@ -75,21 +74,37 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
               <p className="text-sm text-[#666666]">{data.full_name}</p>
             </div>
 
-            {/* Category Field - Only for Sessions */}
+            {/* Event Specific Fields */}
             <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Category:
+                Event Name:
               </label>
-              <p className="text-sm text-[#666666]">{data.category}</p>
+              <p className="text-sm text-[#666666]">{data.event_name}</p>
             </div>
 
-            {/* Arrival Date Field */}
             <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Arrival Date:
+                Description:
+              </label>
+              <p className="text-sm text-[#666666]">{data.description}</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Ticket Fee:
               </label>
               <p className="text-sm text-[#666666]">
-                {formatDate(data.arrival_date)}
+                Rp {data.ticket_fee?.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Date Field */}
+            <div className="mb-4">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Event Date:
+              </label>
+              <p className="text-sm text-[#666666]">
+                {formatDate(data.event_date)}
               </p>
             </div>
 
@@ -153,6 +168,22 @@ export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
                 </label>
                 <p className="text-sm text-red-800">
                   {data.cancellation_reason}
+                </p>
+              </div>
+            )}
+
+            {/* Payment Information - Only show for event reservations */}
+            {data.payment_id && (
+              <div className="mb-4">
+                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                  Payment Information:
+                </label>
+                <p className="text-sm text-[#666666]">ID: {data.payment_id}</p>
+                <p className="text-sm text-[#666666]">
+                  Status: {data.payment_status}
+                </p>
+                <p className="text-sm text-[#666666]">
+                  Method: {data.payment_method}
                 </p>
               </div>
             )}

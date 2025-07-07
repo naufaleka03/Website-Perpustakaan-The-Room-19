@@ -39,10 +39,10 @@ const DetailStaff = () => {
         const data = await response.json();
         console.log("Fetched book details:", data.book);
         setBook(data.book || null);
-        
+
         // Ambil total_borrow dan stock langsung dari data.book
         setLendCount(data.book?.total_borrow || 0);
-        
+
         // Fetch rating count
         const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
         if (ratingResponse.ok) {
@@ -259,9 +259,13 @@ const DetailStaff = () => {
                         ({ratingCount} reviews)
                       </span>
                     </div> */}
-                    
+
                     <div className="text-[#666666] text-xs">
-                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
+                      Borrowed:{" "}
+                      <span className="font-bold">
+                        {book.total_borrow ?? 0}
+                      </span>{" "}
+                      times
                     </div>
                   </div>
                 </div>
@@ -314,8 +318,13 @@ const DetailStaff = () => {
                             key={copyItem.id}
                             value={idx}
                             className="rounded-full text-xs"
+                            disabled={copyItem.dynamic_status !== "Available"}
                           >
-                            Copy {copyItem.copy}
+                            {`Copy ${copyItem.copy} - ${
+                              copyItem.condition || "Not specified"
+                            } (${
+                              copyItem.dynamic_status || copyItem.status || "-"
+                            })`}
                           </option>
                         ))}
                       </select>
