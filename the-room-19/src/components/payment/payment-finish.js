@@ -71,22 +71,42 @@ export default function PaymentFinishPage() {
         })
       })
       .then(res => res.json())
-      .then(res => {
+      .then(async res => {
         if (res.success) {
           setTransactionSaved(true);
           // Setelah transaksi dicatat, update loan sesuai jenis transaksi
           if (loanId && newReturnDate) {
             // EXTEND: update loan_due ke tanggal extend, status ke 'On Going'
-            fetch(`/api/loans/${loanId}`, {
+            let retry = 0;
+            let success = false;
+            let lastError = null;
+            while (retry < 3 && !success) {
+              try {
+                const putRes = await fetch(`/api/loans/${loanId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ loan_due: newReturnDate, status: 'On Going' })
-            })
-            .then(res => res.json())
-            .then(() => {
-              localStorage.removeItem('extendNewReturnDate');
-              localStorage.removeItem('extendAmount');
-            });
+                });
+                const putData = await putRes.json();
+                if (putRes.ok && putData.success) {
+                  localStorage.removeItem('extendNewReturnDate');
+                  localStorage.removeItem('extendAmount');
+                  localStorage.setItem('extendSuccess', '1');
+                  success = true;
+                } else {
+                  lastError = putData.error || 'Gagal update data extend';
+                  retry++;
+                  await new Promise(r => setTimeout(r, 500));
+                }
+              } catch (err) {
+                lastError = err.message || 'Gagal update data extend';
+                retry++;
+                await new Promise(r => setTimeout(r, 500));
+              }
+            }
+            if (!success) {
+              setTransactionError(lastError || 'Gagal update data extend');
+            }
           } else if (loanId && !newReturnDate) {
             // FINE: update loan_due ke hari ini, status ke 'Due Date', fine ke false
             const now = new Date();
@@ -94,15 +114,34 @@ export default function PaymentFinishPage() {
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const wibNow = new Date(utc + (wibOffset * 60000));
             const todayWIB = wibNow.toISOString().split('T')[0];
-            fetch(`/api/loans/${loanId}`, {
+            let retry = 0;
+            let success = false;
+            let lastError = null;
+            while (retry < 3 && !success) {
+              try {
+                const putRes = await fetch(`/api/loans/${loanId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ fine: false, payFine: true })
-            })
-            .then(res => res.json())
-            .then(() => {
+                });
+                const putData = await putRes.json();
+                if (putRes.ok && putData.success) {
             localStorage.removeItem('fineAmount');
-            });
+                  success = true;
+                } else {
+                  lastError = putData.error || 'Gagal update data fine';
+                  retry++;
+                  await new Promise(r => setTimeout(r, 500));
+                }
+              } catch (err) {
+                lastError = err.message || 'Gagal update data fine';
+                retry++;
+                await new Promise(r => setTimeout(r, 500));
+              }
+            }
+            if (!success) {
+              setTransactionError(lastError || 'Gagal update data fine');
+            }
           }
         } else {
           setTransactionError(res.error || 'Gagal menyimpan transaksi extend');
@@ -165,7 +204,7 @@ export default function PaymentFinishPage() {
           {/* Status Message */}
           <h2 className={`text-lg font-semibold ${statusInfo.color} mb-2 font-['Poppins']`}>{statusInfo.message}</h2>
           <p className="text-[#666] text-xs font-['Poppins'] mb-3">
-            Reservasi Anda telah dikonfirmasi.<br />Status pembayaran: <span className="font-semibold capitalize">{status}</span>.
+            Transaksi Anda telah dikonfirmasi.<br />Status pembayaran: <span className="font-semibold capitalize">{status}</span>.
           </p>
           <div className="w-full flex flex-col gap-1 mb-4">
             <div className="flex justify-between text-xs text-[#888] font-['Poppins']">

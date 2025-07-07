@@ -10,7 +10,7 @@ export async function GET(request) {
     const userId = searchParams.get('user_id');
 
     let loansData;
-    if (userId) {
+    if (userId && userId !== 'undefined' && userId !== 'null') {
       // Jika ada user_id, ambil data peminjaman untuk user tersebut
       loansData = await sql`
         SELECT * FROM loans 

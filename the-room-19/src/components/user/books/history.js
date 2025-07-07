@@ -46,6 +46,12 @@ const History = () => {
           return;
         }
 
+        if (!user.id) {
+          console.error('User ID is undefined');
+          setError('User authentication error');
+          return;
+        }
+
         const response = await fetch(`/api/loans?user_id=${user.id}`);
         const data = await response.json();
 
@@ -83,6 +89,32 @@ const History = () => {
   useEffect(() => {
     fetch('/api/loans', { method: 'PATCH' });
   }, []);
+
+  // Tambahkan polling untuk refetch data saat halaman history terbuka
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      // Refetch data setiap 3 detik
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user || !user.id) {
+          return; // Skip jika user tidak login atau user.id undefined
+        }
+
+        const response = await fetch(`/api/loans?user_id=${user.id}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setLoans(data.loans);
+        }
+      } catch (err) {
+        console.error('Error fetching loans:', err);
+      }
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [router]);
 
   const handleSelectOption = (option) => {
     setSelectedOption(option);
@@ -232,7 +264,7 @@ const History = () => {
                     <div className="text-right mb-6 pt-[15px]">
                       <p className="text-[#666666] text-xs font-semibold font-manrope">Total Cost</p>
                       <p className="text-black text-sm font-semibold font-manrope">
-                        Rp{loan.total_price?.toLocaleString('id-ID')}
+                        Rp{typeof loan.total_price === 'number' ? loan.total_price.toLocaleString('id-ID') : (parseInt(loan.total_price)?.toLocaleString('id-ID') || loan.total_price)}
                       </p>
                     </div>
                   </div>
@@ -249,7 +281,7 @@ const History = () => {
         borrowingData={selectedLoan ? {
           id: selectedLoan.id,
           borrowing_date: selectedLoan.loan_start,
-          return_date: selectedLoan.loan_due,
+          loan_due: selectedLoan.loan_due,
           status: selectedLoan.status,
           price: selectedLoan.total_price,
           extend_count: selectedLoan.extend_count,

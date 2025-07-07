@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IoMdClose } from 'react-icons/io';
 import PaymentSummaryExtend from '@/components/payment/payment-summary-extend';
 import PaymentSummaryFine from '@/components/payment/payment-summary-fine';
+import { createClient } from '@/app/supabase/client';
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -131,14 +132,55 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   }, [loanData]);
 
   const refetchLoan = async () => {
-    if (!borrowingData?.id) return;
-    const res = await fetch(`/api/loans?user_id=${borrowingData.user_id}`);
-    const data = await res.json();
-    if (res.ok && data.loans) {
-      const updated = data.loans.find(l => l.id === borrowingData.id);
-      if (updated) setLoanData(updated);
+    if (!borrowingData?.id || !borrowingData?.user_id) return;
+    
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user || !user.id) {
+        console.error('User not authenticated or user ID undefined');
+        return;
+      }
+
+      const res = await fetch(`/api/loans?user_id=${user.id}`);
+      const data = await res.json();
+      if (res.ok && data.loans) {
+        const updated = data.loans.find(l => l.id === borrowingData.id);
+        if (updated) setLoanData(updated);
+      }
+    } catch (error) {
+      console.error('Error refetching loan:', error);
     }
   };
+
+  // Tambahkan efek untuk listen perubahan extend dari PaymentFinishPage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = () => {
+      // Jika ada flag extendSuccess di localStorage, refetch data
+      if (localStorage.getItem('extendSuccess') === '1') {
+        refetchLoan();
+        localStorage.removeItem('extendSuccess');
+      }
+    };
+    window.addEventListener('storage', handler);
+    // Cek juga saat mount
+    handler();
+    return () => window.removeEventListener('storage', handler);
+  }, [loanData]);
+
+  // Tambahkan polling untuk refetch data saat modal terbuka
+  useEffect(() => {
+    if (!isOpen || !borrowingData?.id) return;
+    
+    // Refetch data setiap 2 detik saat modal terbuka
+    const interval = setInterval(() => {
+      refetchLoan();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen, borrowingData?.id]);
 
   if (!isOpen || !borrowingData) return null;
 
@@ -248,7 +290,7 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
         <div className="space-y-2 border-t border-b py-2 text-xs font-['Poppins']">
           <Row label="Borrowing Date" value={formatDate(loanData.borrowing_date)} />
           <Row label="Return Date" value={formatDate(getLoanDue())} />
-          <Row label="Total Price" value={loanData.price}/>
+          <Row label="Total Price" value={typeof loanData.price === 'number' ? `Rp${loanData.price.toLocaleString('id-ID')}` : (parseInt(loanData.price) ? `Rp${parseInt(loanData.price).toLocaleString('id-ID')}` : loanData.price)} />
           <Row
             label="Status"
             value={
@@ -394,7 +436,11 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
       {showPaymentModal && extendData && (
         <PaymentSummaryExtend
           isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
+          onClose={async () => {
+            setShowPaymentModal(false);
+            // Setelah modal pembayaran ditutup, refetch data pinjaman agar loan_due terupdate
+            await refetchLoan();
+          }}
           bookTitle={extendData.bookTitle}
           price={extendData.price}
           denda={extendData.denda}
