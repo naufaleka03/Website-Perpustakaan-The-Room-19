@@ -4,7 +4,6 @@ import { GoTriangleDown } from "react-icons/go";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/app/supabase/client";
 
 export default function CreateSession() {
   const router = useRouter();

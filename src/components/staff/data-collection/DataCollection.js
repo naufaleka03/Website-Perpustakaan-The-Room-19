@@ -7,13 +7,10 @@ import {
   FaSort,
   FaSyncAlt,
 } from "react-icons/fa";
-import { sessionData } from "./data/sessionData";
-import { eventData } from "./data/eventData";
 import CancelConfirmationModal from "./CancelConfirmationModal";
 import { useRouter } from "next/navigation";
 import DetailSessionModal from "./DetailSessionModal";
 import DetailMembershipModal from "./DetailMembershipModal";
-import { updateSessionStatus } from "@/app/lib/actions";
 import DetailBorrowingModal from './DetailBorrowingModal';
 import RevokeConfirmationModal from './RevokeConfirmationModal';
 import DetailEventModal from "./DetailEventModal";

@@ -8,7 +8,6 @@ import {
   FiMoreVertical,
   FiRefreshCw,
 } from "react-icons/fi";
-import { updateBookStock, deleteBook } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 import AddBookModal from "./AddBookModal";
 import DetailModal from "./DetailModal";
