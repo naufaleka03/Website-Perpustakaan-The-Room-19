@@ -17,8 +17,12 @@ const DetailStaff = () => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
+<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
   const [copies, setCopies] = useState([]);
   const [selectedCopyIndex, setSelectedCopyIndex] = useState(0);
+=======
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -67,10 +71,13 @@ const DetailStaff = () => {
   }, [bookId]);
 
   const handleDelete = async () => {
+<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
     if (!window.confirm("Are you sure you want to delete this book?")) {
       return;
     }
 
+=======
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
     try {
       setLoading(true);
       console.log("Deleting book with ID:", bookId);
@@ -245,9 +252,15 @@ const DetailStaff = () => {
                         : `Rp ${parseInt(book.price).toLocaleString("id-ID")}`}
                     </div>
                   )}
+<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
 
                   <div className="flex items-center gap-4 mb-4">
                     {/* <div className="flex items-center">
+=======
+                  
+                  {/* <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center">
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
                         {(typeof book.rating === "number"
@@ -567,8 +580,13 @@ const DetailStaff = () => {
                     Edit
                   </button>
                 </Link>
+<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
                 <button
                   onClick={handleDelete}
+=======
+                <button 
+                  onClick={() => setIsDeleteModalOpen(true)}
+>>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
                   className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >
                   Delete
