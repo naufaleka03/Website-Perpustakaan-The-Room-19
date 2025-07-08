@@ -1,5 +1,10 @@
-import DetailStaff from "@/components/staff/book-management/detail-staff";
+import { Suspense } from "react";
+import DetailStaff, { DetailLoadingSkeleton } from "@/components/staff/book-management/detail-staff";
 
 export default function StaffBookDetail() {
-  return <DetailStaff />;
+  return (
+    <Suspense fallback={<DetailLoadingSkeleton />}>
+      <DetailStaff />
+    </Suspense>
+  );
 } 
