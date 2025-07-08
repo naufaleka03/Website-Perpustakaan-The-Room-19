@@ -6,6 +6,101 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
 
+// Loading skeleton for the detail page
+const DetailLoadingSkeleton = () => (
+  <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+    <div className="w-full h-full relative bg-white">
+      <div className="w-full mx-auto px-12 py-8">
+        <div className="flex gap-8 animate-pulse">
+          {/* Book Cover Skeleton */}
+          <div className="w-[180px] h-[250px] rounded-2xl bg-gray-200"></div>
+
+          {/* Book Details Skeleton */}
+          <div className="flex-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center">
+                    <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+            </div>
+
+            {/* Themes Skeleton */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {[1, 2, 3].map((i) => (
+                <Fragment key={i}>
+                  <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                </Fragment>
+              ))}
+            </div>
+
+            {/* Condition Skeleton */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
+              <div className="grid grid-cols-2 gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Fragment key={i}>
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* Tabs Skeleton */}
+            <div className="border-b border-[#767676]/40 mt-4">
+              <div className="h-8 bg-gray-200 rounded w-24"></div>
+            </div>
+
+            {/* Description Skeleton */}
+            <div className="py-4">
+              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+
+            {/* Details Skeleton */}
+            <div className="mb-6">
+              <div className="border-b border-[#767676]/40">
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
+              </div>
+              <div className="py-4">
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Fragment key={i}>
+                      <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      <div className="h-4 bg-gray-200 rounded w-32"></div>
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Book Status Card Skeleton */}
+          <div className="w-[280px] h-fit bg-white rounded-2xl border border-[#cdcdcd] p-6">
+            <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+            <hr className="border-[#767676]/40 mb-4" />
+
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+              <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const DetailStaff = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -93,102 +188,6 @@ const DetailStaff = () => {
       setLoading(false);
     }
   };
-
-  // Loading skeleton for the detail page
-  const DetailLoadingSkeleton = () => (
-    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
-      <div className="w-full h-full relative bg-white">
-        <div className="w-full mx-auto px-12 py-8">
-          <div className="flex gap-8 animate-pulse">
-            {/* Book Cover Skeleton */}
-            <div className="w-[180px] h-[250px] rounded-2xl bg-gray-200"></div>
-
-            {/* Book Details Skeleton */}
-            <div className="flex-1">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center">
-                      <div className="h-4 w-16 bg-gray-200 rounded"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
-              </div>
-
-              {/* Themes Skeleton */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-6 w-20 bg-gray-200 rounded-full"
-                  ></div>
-                ))}
-              </div>
-
-              {/* Condition Skeleton */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="grid grid-cols-2 gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <Fragment key={i}>
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </Fragment>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tabs Skeleton */}
-              <div className="border-b border-[#767676]/40 mt-4">
-                <div className="h-8 bg-gray-200 rounded w-24"></div>
-              </div>
-
-              {/* Description Skeleton */}
-              <div className="py-4">
-                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </div>
-
-              {/* Details Skeleton */}
-              <div className="mb-6">
-                <div className="border-b border-[#767676]/40">
-                  <div className="h-8 bg-gray-200 rounded w-24"></div>
-                </div>
-                <div className="py-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <Fragment key={i}>
-                        <div className="h-4 bg-gray-200 rounded w-24"></div>
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                      </Fragment>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Book Status Card Skeleton */}
-            <div className="w-[280px] h-fit bg-white rounded-2xl border border-[#cdcdcd] p-6">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
-              <hr className="border-[#767676]/40 mb-4" />
-
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-              </div>
-
-              <div className="space-y-3 mt-6">
-                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
-                <div className="h-9 bg-gray-200 rounded-2xl w-full"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return <DetailLoadingSkeleton />;
@@ -584,3 +583,4 @@ const DetailStaff = () => {
 };
 
 export default DetailStaff;
+export { DetailLoadingSkeleton };
