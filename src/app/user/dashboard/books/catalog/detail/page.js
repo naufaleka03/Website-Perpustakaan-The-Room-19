@@ -1,6 +1,7 @@
 "use client";
 
-import Detail from "@/components/user/books/detail";
+import { Suspense } from "react";
+import Detail, { DetailLoadingSkeleton } from "@/components/user/books/detail";
 import { useEffect, useState } from "react";
 import { createClient } from '@/app/supabase/client';
 
@@ -38,5 +39,9 @@ export default function Page() {
   }, []);
 
   if (loading) return null;
-  return <Detail memberStatus={memberStatus} />;
+  return (
+    <Suspense fallback={<DetailLoadingSkeleton />}>
+      <Detail memberStatus={memberStatus} />
+    </Suspense>
+  );
 }

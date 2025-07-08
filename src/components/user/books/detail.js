@@ -972,3 +972,4 @@ const Detail = ({ memberStatus = "guest" }) => {
 };
 
 export default Detail;
+export { DetailLoadingSkeleton };
