@@ -2,12 +2,7 @@
 import { useState, useEffect } from "react";
 import { IoCalendarOutline } from "react-icons/io5";
 
-export default function DetailSessionModal({
-  isOpen,
-  onClose,
-  sessionId,
-  type = "session",
-}) {
+export default function DetailSessionModal({ isOpen, onClose, sessionId }) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,23 +16,20 @@ export default function DetailSessionModal({
     const fetchData = async () => {
       if (!sessionId) return;
       try {
-        const endpoint =
-          type === "session"
-            ? `/api/sessions/${sessionId}`
-            : `/api/eventreservations/${sessionId}`;
+        const endpoint = `/api/sessions/${sessionId}`;
         const response = await fetch(endpoint);
         const responseData = await response.json();
         setData(responseData);
         setIsLoading(false);
       } catch (error) {
-        console.error(`Error fetching ${type} data:`, error);
+        console.error("Error fetching session data:", error);
       }
     };
 
     if (isOpen) {
       fetchData();
     }
-  }, [sessionId, isOpen, type]);
+  }, [sessionId, isOpen]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -63,7 +55,7 @@ export default function DetailSessionModal({
         </button>
 
         <h2 className="text-xl font-semibold text-[#111010] mb-6">
-          {type === "session" ? "Session" : "Event"} Reservation Detail
+          Session Reservation Detail
         </h2>
 
         {isLoading ? (
@@ -83,53 +75,21 @@ export default function DetailSessionModal({
               <p className="text-sm text-[#666666]">{data.full_name}</p>
             </div>
 
-            {type === "session" && (
-              /* Category Field - Only for Sessions */
-              <div className="mb-4">
-                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                  Category:
-                </label>
-                <p className="text-sm text-[#666666]">{data.category}</p>
-              </div>
-            )}
-
-            {type === "event" && (
-              /* Event Specific Fields */
-              <>
-                <div className="mb-4">
-                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                    Event Name:
-                  </label>
-                  <p className="text-sm text-[#666666]">{data.event_name}</p>
-                </div>
-
-                <div className="mb-4">
-                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                    Description:
-                  </label>
-                  <p className="text-sm text-[#666666]">{data.description}</p>
-                </div>
-
-                <div className="mb-4">
-                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                    Ticket Fee:
-                  </label>
-                  <p className="text-sm text-[#666666]">
-                    Rp {data.ticket_fee?.toLocaleString()}
-                  </p>
-                </div>
-              </>
-            )}
-
-            {/* Date Field */}
+            {/* Category Field - Only for Sessions */}
             <div className="mb-4">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                {type === "session" ? "Arrival Date:" : "Event Date:"}
+                Category:
+              </label>
+              <p className="text-sm text-[#666666]">{data.category}</p>
+            </div>
+
+            {/* Arrival Date Field */}
+            <div className="mb-4">
+              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+                Arrival Date:
               </label>
               <p className="text-sm text-[#666666]">
-                {formatDate(
-                  type === "session" ? data.arrival_date : data.event_date
-                )}
+                {formatDate(data.arrival_date)}
               </p>
             </div>
 
@@ -193,22 +153,6 @@ export default function DetailSessionModal({
                 </label>
                 <p className="text-sm text-red-800">
                   {data.cancellation_reason}
-                </p>
-              </div>
-            )}
-
-            {/* Payment Information - Only show for event reservations */}
-            {type === "event" && data.payment_id && (
-              <div className="mb-4">
-                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                  Payment Information:
-                </label>
-                <p className="text-sm text-[#666666]">ID: {data.payment_id}</p>
-                <p className="text-sm text-[#666666]">
-                  Status: {data.payment_status}
-                </p>
-                <p className="text-sm text-[#666666]">
-                  Method: {data.payment_method}
                 </p>
               </div>
             )}

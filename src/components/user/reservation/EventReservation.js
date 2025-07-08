@@ -1,12 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { GoTriangleDown } from "react-icons/go";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
-import { submitEventReservation } from "@/app/lib/actions";
-import PaymentSummaryEventsModal from "@/components/payment/payment-summary-events";
 import { createClient } from "@/app/supabase/client";
+import PaymentSummaryEventsModal from "@/components/payment/payment-summary-events";
 
 export default function EventReservation() {
   const router = useRouter();
@@ -169,14 +168,20 @@ export default function EventReservation() {
         payment_method: paymentResult.payment_type,
       };
 
-      const result = await submitEventReservation(reservationData);
+      const result = await fetch("/api/eventreservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reservationData),
+      });
 
-      if (result.success) {
+      const response = await result.json();
+
+      if (response.success) {
         router.push(
           `/payment-finish?order_id=${paymentResult.order_id}&transaction_status=${paymentResult.transaction_status}`
         );
       } else {
-        throw new Error(result.error || "Failed to submit reservation");
+        throw new Error(response.error || "Failed to submit reservation");
       }
     } catch (err) {
       console.error("Reservation submission error:", err);

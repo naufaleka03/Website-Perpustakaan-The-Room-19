@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { GoTriangleDown } from "react-icons/go";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
-import { submitSessionReservation } from "@/app/lib/actions";
 import { useRouter } from "next/navigation";
 import PaymentSummaryModal from "@/components/payment/payment-summary";
 import { createClient } from "@/app/supabase/client";
@@ -50,10 +49,8 @@ export default function SessionReservation() {
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
     if (inputDate) {
-      const [year, month, day] = inputDate.split("-");
-      const formattedDate = `${month}-${day}-${year}`;
-      setDate(formattedDate);
-      fetchShiftAvailability(formattedDate);
+      setDate(inputDate);
+      fetchShiftAvailability(inputDate);
     } else {
       setDate("");
       setShiftAvailability({});
@@ -208,7 +205,13 @@ export default function SessionReservation() {
       // Log the final data being sent
       console.log("Session data being submitted:", sessionData);
 
-      const result = await submitSessionReservation(sessionData);
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sessionData),
+      });
+
+      const result = await response.json();
 
       if (result.success) {
         router.push(
@@ -249,7 +252,7 @@ export default function SessionReservation() {
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Reservation Type Selector */}
-            <div className="flex justify-center gap-2 mb-4">
+            <div className="flex justify-center gap-4 mb-4">
               <button
                 type="button"
                 onClick={() => handleReservationTypeChange("individual")}

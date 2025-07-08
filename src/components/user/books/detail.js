@@ -33,6 +33,7 @@ const Detail = ({ memberStatus = "guest" }) => {
   const [rekomCovers, setRekomCovers] = useState({});
   const [copies, setCopies] = useState([]);
   const [selectedCopyIndex, setSelectedCopyIndex] = useState(0);
+  const [selectedCopyForLoan, setSelectedCopyForLoan] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -168,6 +169,11 @@ const Detail = ({ memberStatus = "guest" }) => {
       setError("Book data not available");
       return;
     }
+    const selectedCopy = copies[selectedCopyIndex];
+    if (!selectedCopy || selectedCopy.status !== "Available") {
+      setError("Please select an available copy to borrow.");
+      return;
+    }
     // CEK JUMLAH PEMINJAMAN ON GOING
     try {
       const response = await fetch(`/api/loans?user_id=${user.id}`);
@@ -192,6 +198,7 @@ const Detail = ({ memberStatus = "guest" }) => {
     setBorrowDate(today);
     setReturnDate(returnDt);
     setShowPaymentModal(true);
+    setSelectedCopyForLoan(selectedCopy);
   };
 
   // Callback setelah pembayaran sukses
@@ -206,7 +213,7 @@ const Detail = ({ memberStatus = "guest" }) => {
       if (!selectedCopy) {
         setBorrowResult({
           success: false,
-          message: 'Copy buku tidak tersedia atau belum dipilih.'
+          message: "Copy buku tidak tersedia atau belum dipilih.",
         });
         setIsBorrowing(false);
         return;
@@ -214,6 +221,7 @@ const Detail = ({ memberStatus = "guest" }) => {
       const loanData = {
         user_id: user.id,
         book_id1: book.id,
+        manage_book_id: selectedCopyForLoan.id,
         book_id2: null,
         book_title1: book.book_title,
         book_title2: null,
@@ -230,7 +238,7 @@ const Detail = ({ memberStatus = "guest" }) => {
         payment_status: paymentResult.transaction_status,
         payment_method: paymentResult.payment_type,
         copies: selectedCopy.copy,
-        copies_id: selectedCopy.id
+        copies_id: selectedCopy.id,
       };
       const response = await fetch("/api/loans", {
         method: "POST",
@@ -464,7 +472,7 @@ const Detail = ({ memberStatus = "guest" }) => {
             email: user?.email,
             phone_number: user?.phone_number,
             copies: copies[selectedCopyIndex]?.copy,
-            copies_id: copies[selectedCopyIndex]?.id
+            copies_id: copies[selectedCopyIndex]?.id,
           }}
           borrowDate={borrowDate}
           returnDate={returnDate}
@@ -509,13 +517,8 @@ const Detail = ({ memberStatus = "guest" }) => {
                       Rp {parseInt(book.price).toLocaleString("id-ID")}
                     </div>
                   )}
-<<<<<<< HEAD:the-room-19/src/components/user/books/detail.js
 
                   <div className="flex items-center gap-2 mb-4">
-=======
-                  
-                  {/* <div className="flex items-center gap-2 mb-4"> */}
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/user/books/detail.js
                     {/* Rating and Reviews */}
                     {/* <div className="flex items-center">
                       <AiFillStar className="text-[#ECB43C] text-lg" />
@@ -525,19 +528,18 @@ const Detail = ({ memberStatus = "guest" }) => {
                       <span className="text-[#666666] text-xs ml-1">
                         ({ratingCount} reviews)
                       </span>
-                    </div>
-                    <div className="text-[#666666] text-xs ml-4">
+                    </div> */}
+                    {/* <div className="text-[#666666] text-xs ml-4">
                       Stok: <span className="font-bold">{book.stock ?? 0}</span>
-<<<<<<< HEAD:the-room-19/src/components/user/books/detail.js
                     </div> */}
                     <div className="text-[#666666] text-xs">
-                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
+                      Borrowed:{" "}
+                      <span className="font-bold">
+                        {book.total_borrow ?? 0}
+                      </span>{" "}
+                      times
                     </div>
                   </div>
-=======
-                    </div>
-                  </div> */}
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/user/books/detail.js
                 </div>
               </div>
 
@@ -583,13 +585,16 @@ const Detail = ({ memberStatus = "guest" }) => {
                         disabled={copies.length === 1}
                         style={{ fontSize: "0.75rem", height: "1.75rem" }}
                       >
-                        {copies.map((copyItem, idx) => (
+                        {copies.map((copy, idx) => (
                           <option
-                            key={copyItem.id}
+                            key={copy.id}
                             value={idx}
                             className="rounded-full text-xs"
+                            disabled={copy.dynamic_status !== "Available"}
                           >
-                            Copy {copyItem.copy}
+                            {`Copy ${copy.copy} - ${
+                              copy.condition || "Not specified"
+                            } (${copy.dynamic_status || copy.status || "-"})`}
                           </option>
                         ))}
                       </select>

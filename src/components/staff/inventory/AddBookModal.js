@@ -62,10 +62,6 @@ const AddBookModal = ({ onClose }) => {
       setError("Please select a book and enter a valid number of copies.");
       return;
     }
-    if (numCopies > 3) {
-      setError("Maximum allowed is 3 copies per book.");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/manage-books", {
@@ -125,7 +121,6 @@ const AddBookModal = ({ onClose }) => {
             <input
               type="number"
               min={1}
-              max={3}
               value={copies}
               onChange={(e) => setCopies(e.target.value)}
               className="w-full h-10 px-4 bg-zinc-100 rounded-lg border border-stone-300 text-sm font-medium text-gray-900 focus:outline-none focus:border-lime-950"

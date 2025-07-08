@@ -98,13 +98,19 @@ const ManageBooks = () => {
 
   const handleSubmit = async (formData) => {
     try {
-      const result = await updateBookStock(editingBook.id, formData);
-      if (result.success) {
+      const result = await fetch(`/api/books/${editingBook.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock: parseInt(formData.get("stock")) }),
+      });
+
+      const response = await result.json();
+      if (response.success) {
         handleCloseEditModal();
         await fetchBooks();
         router.refresh();
       } else {
-        setError(result.error);
+        setError(response.error);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -114,13 +120,22 @@ const ManageBooks = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteBook(id);
-      handleCloseDeleteModal();
-      await fetchBooks();
-      router.refresh();
+      const response = await fetch(`/api/books/${id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        handleCloseDeleteModal();
+        await fetchBooks();
+        router.refresh();
+      } else {
+        console.error("Error:", result.error);
+        setError(result.error || "Failed to delete book");
+      }
     } catch (error) {
       console.error("Error:", error);
-      setError(error.message);
+      setError(error.message || "Failed to delete book");
     }
   };
 
@@ -199,10 +214,10 @@ const ManageBooks = () => {
   const handleUpdateCopies = async ({ condition, comment }) => {
     if (!selectedBookAdjust) return;
     try {
-      const res = await fetch("/api/manage-books", {
+      const res = await fetch(`/api/manage-books/${selectedBookAdjust.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedBookAdjust.id, condition, comment }),
+        body: JSON.stringify({ condition, comment }),
       });
       const data = await res.json();
       if (data.success) {
@@ -231,10 +246,10 @@ const ManageBooks = () => {
       } = await supabase.auth.getSession();
       const staffId = session?.user?.id;
       if (!staffId) throw new Error("Staff ID not found in session");
-      const res = await fetch("/api/manage-books", {
+      const res = await fetch(`/api/manage-books/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, retire: true, handle_by: staffId }),
+        body: JSON.stringify({ retire: true, handle_by: staffId }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Failed to retire book");
@@ -432,6 +447,8 @@ const ManageBooks = () => {
                           badgeClass += "bg-blue-100 text-blue-800";
                         } else if (condition === "fair") {
                           badgeClass += "bg-orange-100 text-orange-800";
+                        } else if (condition === "poor") {
+                          badgeClass += "bg-red-200 text-red-800";
                         } else {
                           badgeClass += "text-[#666666]";
                         }
@@ -445,13 +462,15 @@ const ManageBooks = () => {
                       {(() => {
                         let badgeClass =
                           "px-2 py-1 rounded-lg text-xs font-medium ";
-                        let label = book.status || "-";
-                        if (book.status === "Available") {
+                        let label = book.dynamic_status || "-";
+                        if (label === "Available") {
                           badgeClass += "bg-green-100 text-green-800";
-                        } else if (book.status === "On Loan") {
+                        } else if (label === "On Loan") {
                           badgeClass += "bg-blue-100 text-blue-800";
-                        } else if (book.status === "Retired") {
+                        } else if (label === "Retired") {
                           badgeClass += "bg-gray-200 text-gray-800";
+                        } else {
+                          badgeClass += "bg-yellow-100 text-yellow-800";
                         }
                         return <span className={badgeClass}>{label}</span>;
                       })()}
@@ -472,39 +491,55 @@ const ManageBooks = () => {
                           ref={dropdownRef}
                           className="absolute right-0 top-1/2 -translate-y-1/2 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
                         >
-                          <button
-                            className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
-                            type="button"
-                            onClick={() => {
-                              setSelectedBookAdjust(book);
-                              setIsAdjustModalOpen(true);
-                              setOpenActionMenuId(null);
-                            }}
-                          >
-                            Adjust Condition
-                          </button>
-                          <button
-                            className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200"
-                            type="button"
-                            onClick={() => {
-                              setSelectedBookDetail(book);
-                              setIsDetailModalOpen(true);
-                              setOpenActionMenuId(null);
-                            }}
-                          >
-                            Detail
-                          </button>
-                          <button
-                            className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                            type="button"
-                            onClick={() => {
-                              setBookToRetire(book);
-                              setIsRetireModalOpen(true);
-                              setOpenActionMenuId(null);
-                            }}
-                          >
-                            Retire Book
-                          </button>
+                          {book.dynamic_status === "Retired" ? (
+                            <button
+                              className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
+                              type="button"
+                              onClick={() => {
+                                setSelectedBookDetail(book);
+                                setIsDetailModalOpen(true);
+                                setOpenActionMenuId(null);
+                              }}
+                            >
+                              Detail
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
+                                type="button"
+                                onClick={() => {
+                                  setSelectedBookAdjust(book);
+                                  setIsAdjustModalOpen(true);
+                                  setOpenActionMenuId(null);
+                                }}
+                              >
+                                Adjust Condition
+                              </button>
+                              <button
+                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200"
+                                type="button"
+                                onClick={() => {
+                                  setSelectedBookDetail(book);
+                                  setIsDetailModalOpen(true);
+                                  setOpenActionMenuId(null);
+                                }}
+                              >
+                                Detail
+                              </button>
+                              <button
+                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                type="button"
+                                onClick={() => {
+                                  setBookToRetire(book);
+                                  setIsRetireModalOpen(true);
+                                  setOpenActionMenuId(null);
+                                }}
+                              >
+                                Retire Book
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </td>
@@ -620,7 +655,7 @@ const ManageBooks = () => {
             isOpen={isRetireModalOpen}
             onClose={() => setIsRetireModalOpen(false)}
             onRetire={() => handleRetire(bookToRetire?.id)}
-            book={bookToRetire}
+            item={bookToRetire}
           />
         </div>
       </div>

@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GoTriangleDown } from "react-icons/go";
 import { IoCalendarOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
-import { submitEventCreation } from "@/app/lib/actions";
 import { createClient } from "@/app/supabase/client";
 
 export default function CreateEvent() {
@@ -135,13 +134,19 @@ export default function CreateEvent() {
       };
 
       console.log("Submitting event data:", formData);
-      const result = await submitEventCreation(formData);
+      const result = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      if (result.success) {
+      const response = await result.json();
+
+      if (response.success) {
         router.push("/staff/dashboard/reservation/event-list");
         router.refresh();
       } else {
-        setError(result.error || "Failed to create event");
+        setError(response.error || "Failed to create event");
       }
     } catch (err) {
       console.error("Error submitting event:", err);

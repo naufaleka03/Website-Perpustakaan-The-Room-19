@@ -11,7 +11,6 @@ async function seedUsers(tx) {
         CREATE TABLE IF NOT EXISTS visitors (
             id UUID PRIMARY KEY REFERENCES auth.users(id),
             name VARCHAR(255) NOT NULL,
-            gender VARCHAR(20),
             email TEXT NOT NULL UNIQUE,
             phone_number VARCHAR(20),
             member_status VARCHAR(20) NOT NULL DEFAULT 'guest',
@@ -131,6 +130,8 @@ async function seedEvents(tx) {
             additional_notes TEXT,
             event_poster TEXT,
             status VARCHAR(50) DEFAULT 'open' NOT NULL,
+            is_deleted BOOLEAN DEFAULT false NOT NULL,
+            deleted_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
             FOREIGN KEY (shift_name, shift_start, shift_end) 
                 REFERENCES shifts(shift_name, shift_start, shift_end)
@@ -238,6 +239,8 @@ async function seedInventory(tx) {
             item_image TEXT,
             comment TEXT,
             category_id UUID REFERENCES categories(id),
+            is_retired BOOLEAN DEFAULT false NOT NULL,
+            retired_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         )`;
 }

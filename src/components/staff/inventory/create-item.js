@@ -1,7 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { submitInventoryItem } from "@/app/lib/actions";
 import { createClient } from "@/app/supabase/client";
 
 export default function CreateItem() {
@@ -141,13 +140,19 @@ export default function CreateItem() {
 
       console.log("Submitting form data:", formData); // Debug log
 
-      const result = await submitInventoryItem(formData);
+      const result = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      if (result.success) {
+      const response = await result.json();
+
+      if (response.success) {
         router.push("/staff/dashboard/inventory/inventory-list");
         router.refresh();
       } else {
-        throw new Error(result.error || "Failed to create item");
+        throw new Error(response.error || "Failed to create item");
       }
     } catch (err) {
       console.error("Error submitting item:", err);

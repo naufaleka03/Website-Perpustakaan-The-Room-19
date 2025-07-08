@@ -14,9 +14,9 @@ import { useRouter } from "next/navigation";
 import DetailSessionModal from "./DetailSessionModal";
 import DetailMembershipModal from "./DetailMembershipModal";
 import { updateSessionStatus } from "@/app/lib/actions";
-import DetailBorrowingModal from './DetailBorrowingModal';
-import RevokeConfirmationModal from './RevokeConfirmationModal';
-import { createClient } from '@/app/supabase/client';
+import DetailBorrowingModal from "./DetailBorrowingModal";
+import DetailEventModal from "./DetailEventModal";
+import { createClient } from "@/app/supabase/client";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -99,10 +99,6 @@ export default function DataCollection() {
   const [isRefreshingEvent, setIsRefreshingEvent] = useState(false);
   const [isRefreshingMembership, setIsRefreshingMembership] = useState(false);
   const [isRefreshingBorrowing, setIsRefreshingBorrowing] = useState(false);
-  const [showRevokeModal, setShowRevokeModal] = useState(false);
-  const [revokeReason, setRevokeReason] = useState('');
-  const supabase = createClient();
-  const [staffId, setStaffId] = useState(null);
 
   // Simpan tab aktif ke localStorage setiap kali berubah
   useEffect(() => {
@@ -252,12 +248,15 @@ export default function DataCollection() {
   // Update handler untuk mengubah status session
   const handleSessionStatusChange = async (sessionId, newStatus) => {
     try {
-      const formData = new FormData();
-      formData.append("status", newStatus);
+      const result = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-      const result = await updateSessionStatus(sessionId, formData);
+      const response = await result.json();
 
-      if (result.success) {
+      if (response.success) {
         setSessionStatuses((prevStatuses) =>
           prevStatuses.map((status) =>
             status.id === sessionId ? { ...status, status: newStatus } : status
@@ -295,82 +294,39 @@ export default function DataCollection() {
 
   const handleCancelConfirm = async (id, reason) => {
     try {
-      const formData = new FormData();
-      formData.append("status", "canceled");
-      formData.append("cancellationReason", reason);
+      const result = await fetch(`/api/sessions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "canceled",
+          cancellationReason: reason,
+        }),
+      });
 
-      let response;
-      if (activeTab === "session") {
-        response = await updateSessionStatus(id, formData);
-      } else if (activeTab === "event") {
-        // Get current event reservation data to calculate slots to return
-        const currentReservation = await fetch(`/api/eventreservations/${id}`);
-        const reservationData = await currentReservation.json();
+      const response = await result.json();
 
-        if (!currentReservation.ok) {
-          throw new Error("Failed to fetch event reservation data");
-        }
-
-        // Calculate slots to return
-        const slotsToReturn =
-          1 + // Main person
-          (reservationData.group_member1 ? 1 : 0) +
-          (reservationData.group_member2 ? 1 : 0) +
-          (reservationData.group_member3 ? 1 : 0) +
-          (reservationData.group_member4 ? 1 : 0);
-
-        console.log(`Returning ${slotsToReturn} slots to event availability`);
-
-        // Update the event reservation status
-        response = await fetch(`/api/eventreservations/${id}`, {
-          method: "PUT",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to cancel event reservation");
-        }
-
-        response = await response.json();
-      }
-
-      if (
-        (activeTab === "session" && response.success) ||
-        (activeTab === "event" && response.success)
-      ) {
+      if (response.success) {
         // Update local state for status
-        if (activeTab === "session") {
-          setSessionStatuses((prevStatuses) =>
-            prevStatuses.map((status) =>
-              status.id === id
-                ? { ...status, status: "canceled", isCanceled: true }
-                : status
-            )
-          );
-        } else {
-          setEventStatuses((prevStatuses) =>
-            prevStatuses.map((status) =>
-              status.id === id
-                ? { ...status, status: "canceled", isCanceled: true }
-                : status
-            )
-          );
-        }
+        setSessionStatuses((prevStatuses) =>
+          prevStatuses.map((status) =>
+            status.id === id
+              ? { ...status, status: "canceled", isCanceled: true }
+              : status
+          )
+        );
 
         // Close the modal
         setIsModalOpen(false);
 
         // Show success message
         setSuccessMessage(
-          `${
-            activeTab === "session" ? "Session" : "Event"
-          } canceled successfully. Slots have been returned to availability.`
+          `Session canceled successfully. Slots have been returned to availability.`
         );
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
-      console.error(`Error canceling ${activeTab}:`, error);
-      setError(`Failed to cancel ${activeTab}. Please try again.`);
+      console.error(`Error canceling session:`, error);
+      setError(`Failed to cancel session. Please try again.`);
     }
   };
 
@@ -478,27 +434,25 @@ export default function DataCollection() {
   // Add handleEventStatusChange function
   const handleEventStatusChange = async (eventId, newStatus) => {
     try {
-      const formData = new FormData();
-      formData.append("status", newStatus);
-
-      const response = await fetch(`/api/eventreservations/${eventId}`, {
-        method: "PUT",
-        body: formData,
+      const result = await fetch(`/api/eventreservations/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update event status");
+      const response = await result.json();
+
+      if (response.success) {
+        // Update local state
+        setEventStatuses((prevStatuses) =>
+          prevStatuses.map((status) =>
+            status.id === eventId ? { ...status, status: newStatus } : status
+          )
+        );
+
+        setSuccessMessage("Event status updated successfully");
+        setTimeout(() => setSuccessMessage(""), 3000);
       }
-
-      // Update local state
-      setEventStatuses((prevStatuses) =>
-        prevStatuses.map((status) =>
-          status.id === eventId ? { ...status, status: newStatus } : status
-        )
-      );
-
-      setSuccessMessage("Event status updated successfully");
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating event status:", error);
       setError("Failed to update event status. Please try again.");
@@ -577,8 +531,8 @@ export default function DataCollection() {
 
   // PATCH ke /api/loans setiap kali tab borrowing diakses
   useEffect(() => {
-    if (activeTab === 'borrowing') {
-      fetch('/api/loans', { method: 'PATCH' });
+    if (activeTab === "borrowing") {
+      fetch("/api/loans", { method: "PATCH" });
       fetchLoans();
     }
   }, [activeTab]);
@@ -719,20 +673,13 @@ export default function DataCollection() {
       case "On Going":
         return "bg-yellow-100 text-yellow-800";
       case "Due Date":
-        return "bg-yellow-100 text-yellow-800"; 
+        return "bg-yellow-100 text-yellow-800";
       case "Over Due":
-        return "bg-red-100 text-red-800"; 
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
-  useEffect(() => {
-    const fetchStaffId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) setStaffId(session.user.id);
-    };
-    fetchStaffId();
-  }, []);
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -1192,7 +1139,13 @@ export default function DataCollection() {
                           })()}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {event.event_name}
+                          {event.event_is_deleted ? (
+                            <span className="line-through">
+                              {event.event_name}
+                            </span>
+                          ) : (
+                            event.event_name
+                          )}
                         </td>
                         <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
                           {formatDate(event.event_date)}
@@ -1430,59 +1383,40 @@ export default function DataCollection() {
                           {formatDate(item.created_at)}
                         </td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          <span className={`px-2 py-1 rounded-lg text-xs ${
-                            item.status === 'request' ? 'bg-yellow-100 text-yellow-800' :
-                            item.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                            item.status === 'verified' ? 'bg-green-100 text-green-800' :
-                            item.status === 'revision' ? 'bg-orange-100 text-orange-800' :
-                            item.status === 'revoked' ? 'bg-red-100 text-red-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {item.status === 'revoked' ? 'Revoked' :
-                             item.status === 'request' ? 'Pending Review' :
-                             item.status === 'processing' ? 'Under Review' :
-                             item.status === 'verified' ? 'Approved' :
-                             item.status === 'revision' ? 'Needs Revision' :
-                             'Rejected'}
+                          <span
+                            className={`px-2 py-1 rounded-lg text-xs ${
+                              item.status === "request"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : item.status === "processing"
+                                ? "bg-blue-100 text-blue-800"
+                                : item.status === "verified"
+                                ? "bg-green-100 text-green-800"
+                                : item.status === "revision"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {item.status === "request"
+                              ? "Pending Review"
+                              : item.status === "processing"
+                              ? "Under Review"
+                              : item.status === "verified"
+                              ? "Approved"
+                              : item.status === "revision"
+                              ? "Needs Revision"
+                              : "Rejected"}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                              handleMembershipDetail(item.id);
                             }}
                             className="hover:bg-gray-100 p-2 rounded-full"
                           >
                             <FaEllipsisV className="text-[#666666]" />
                           </button>
-                          {activeDropdown === item.id && (
-                            <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
-                              <button
-                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMembershipDetail(item.id);
-                                  setActiveDropdown(null);
-                                }}
-                              >
-                                Detail
-                              </button>
-                              {item.status === 'verified' && (
-                                <button
-                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedMembershipId(item.id);
-                                    setShowRevokeModal(true);
-                                    setActiveDropdown(null);
-                                  }}
-                                >
-                                  Revoke
-                                </button>
-                              )}
-                            </div>
-                          )}
                         </td>
                       </tr>
                     ))}
@@ -1543,14 +1477,30 @@ export default function DataCollection() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-[#eaeaea]">
-                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Borrowing Date</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Return Date</th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
-                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          No
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Book
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Phone Number
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Borrowing Date
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Return Date
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Action
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1588,9 +1538,15 @@ export default function DataCollection() {
                                 </span>
                               )}
                             </td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_start)}</td>
-                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_due)}</td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                              {item.phone_number}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                              {formatDate(item.loan_start)}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                              {formatDate(item.loan_due)}
+                            </td>
                             <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
                               <span
                                 className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
@@ -1666,12 +1622,21 @@ export default function DataCollection() {
         onConfirm={handleCancelConfirm}
         selectedBookingId={selectedBookingId}
       />
-      <DetailSessionModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        sessionId={selectedSessionId}
-        type={activeTab}
-      />
+      {/* Session & Event Detail Modals */}
+      {activeTab === "session" && (
+        <DetailSessionModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          sessionId={selectedSessionId}
+        />
+      )}
+      {activeTab === "event" && (
+        <DetailEventModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          eventId={selectedSessionId}
+        />
+      )}
       {/* Membership Detail Modal */}
       {isDetailMembershipModalOpen && (
         <DetailMembershipModal
@@ -1705,24 +1670,6 @@ export default function DataCollection() {
         borrowingData={selectedBorrowingData}
         onReturnBook={handleReturnBook}
       />
-      {showRevokeModal && (
-        <RevokeConfirmationModal
-          isOpen={showRevokeModal}
-          onClose={() => setShowRevokeModal(false)}
-          onConfirm={async (id, reason) => {
-            await fetch(`/api/memberships/${selectedMembershipId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'revoked', notes: reason, staff_id: staffId }),
-            });
-            setShowRevokeModal(false);
-            setRevokeReason('');
-            fetchMembershipsTab();
-          }}
-          selectedBookingId={selectedMembershipId}
-          isRevoke
-        />
-      )}
     </div>
   );
 }

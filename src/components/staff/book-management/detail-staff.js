@@ -5,7 +5,6 @@ import { AiFillStar } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
-import DeleteConfirmationModal from '../inventory/DeleteConfirmationModal';
 
 const DetailStaff = () => {
   const router = useRouter();
@@ -18,12 +17,8 @@ const DetailStaff = () => {
   const [error, setError] = useState(null);
   const [lendCount, setLendCount] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
-<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
   const [copies, setCopies] = useState([]);
   const [selectedCopyIndex, setSelectedCopyIndex] = useState(0);
-=======
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -44,10 +39,10 @@ const DetailStaff = () => {
         const data = await response.json();
         console.log("Fetched book details:", data.book);
         setBook(data.book || null);
-        
+
         // Ambil total_borrow dan stock langsung dari data.book
         setLendCount(data.book?.total_borrow || 0);
-        
+
         // Fetch rating count
         const ratingResponse = await fetch(`/api/books/${bookId}/rating-count`);
         if (ratingResponse.ok) {
@@ -72,13 +67,10 @@ const DetailStaff = () => {
   }, [bookId]);
 
   const handleDelete = async () => {
-<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
     if (!window.confirm("Are you sure you want to delete this book?")) {
       return;
     }
 
-=======
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
     try {
       setLoading(true);
       console.log("Deleting book with ID:", bookId);
@@ -216,12 +208,6 @@ const DetailStaff = () => {
 
   return (
     <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        item={{ item_name: book?.book_title }}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-      />
       <div className="w-full h-full relative bg-white">
         <div className="w-full mx-auto px-12 py-8">
           <div className="flex gap-8">
@@ -259,15 +245,9 @@ const DetailStaff = () => {
                         : `Rp ${parseInt(book.price).toLocaleString("id-ID")}`}
                     </div>
                   )}
-<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
 
                   <div className="flex items-center gap-4 mb-4">
                     {/* <div className="flex items-center">
-=======
-                  
-                  {/* <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center">
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
                       <AiFillStar className="text-[#ECB43C] text-lg" />
                       <span className="text-[#666666] text-xs ml-1">
                         {(typeof book.rating === "number"
@@ -279,11 +259,15 @@ const DetailStaff = () => {
                         ({ratingCount} reviews)
                       </span>
                     </div> */}
-                    
+
                     <div className="text-[#666666] text-xs">
-                      Borrowed: <span className="font-bold">{book.total_borrow ?? 0}</span> times
+                      Borrowed:{" "}
+                      <span className="font-bold">
+                        {book.total_borrow ?? 0}
+                      </span>{" "}
+                      times
                     </div>
-                  </div> */}
+                  </div>
                 </div>
               </div>
 
@@ -334,8 +318,13 @@ const DetailStaff = () => {
                             key={copyItem.id}
                             value={idx}
                             className="rounded-full text-xs"
+                            disabled={copyItem.dynamic_status !== "Available"}
                           >
-                            Copy {copyItem.copy}
+                            {`Copy ${copyItem.copy} - ${
+                              copyItem.condition || "Not specified"
+                            } (${
+                              copyItem.dynamic_status || copyItem.status || "-"
+                            })`}
                           </option>
                         ))}
                       </select>
@@ -578,13 +567,8 @@ const DetailStaff = () => {
                     Edit
                   </button>
                 </Link>
-<<<<<<< HEAD:the-room-19/src/components/staff/book-management/detail-staff.js
                 <button
                   onClick={handleDelete}
-=======
-                <button 
-                  onClick={() => setIsDeleteModalOpen(true)}
->>>>>>> 19658613ca1726b26e6acc2a3a848616d20b2a6f:src/components/staff/book-management/detail-staff.js
                   className="w-full h-[35px] border border-red-500 text-red-500 text-xs rounded-2xl hover:bg-red-50"
                 >
                   Delete
