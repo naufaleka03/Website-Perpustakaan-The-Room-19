@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Profile from '@/components/user/profile/profile';
+import Profile from '@/components/user/profile/Profile';
 import { createClient } from '@/app/supabase/client';
 
 export default function Page() {
