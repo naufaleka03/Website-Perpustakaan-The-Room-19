@@ -299,7 +299,11 @@ export default function DataCollection() {
 
   const handleCancelConfirm = async (id, reason) => {
     try {
-      const result = await fetch(`/api/sessions/${id}`, {
+      const endpoint =
+        activeTab === "event"
+          ? `/api/eventreservations/${id}`
+          : `/api/sessions/${id}`;
+      const result = await fetch(endpoint, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -311,27 +315,31 @@ export default function DataCollection() {
       const response = await result.json();
 
       if (response.success) {
-        // Update local state for status
-        setSessionStatuses((prevStatuses) =>
-          prevStatuses.map((status) =>
-            status.id === id
-              ? { ...status, status: "canceled", isCanceled: true }
-              : status
-          )
-        );
-
-        // Close the modal
+        if (activeTab === "event") {
+          setEventStatuses((prevStatuses) =>
+            prevStatuses.map((status) =>
+              status.id === id
+                ? { ...status, status: "canceled", isCanceled: true }
+                : status
+            )
+          );
+        } else {
+          setSessionStatuses((prevStatuses) =>
+            prevStatuses.map((status) =>
+              status.id === id
+                ? { ...status, status: "canceled", isCanceled: true }
+                : status
+            )
+          );
+        }
         setIsModalOpen(false);
-
-        // Show success message
         setSuccessMessage(
-          `Session canceled successfully. Slots have been returned to availability.`
+          `Booking canceled successfully. Slots have been returned to availability.`
         );
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
-      console.error(`Error canceling session:`, error);
-      setError(`Failed to cancel session. Please try again.`);
+      setError(`Failed to cancel booking. Please try again.`);
     }
   };
 
@@ -1584,15 +1592,15 @@ export default function DataCollection() {
                                   status === "returned"
                                     ? "text-green-800 bg-green-100"
                                     : status === "overdue"
-                                    ? "text-red-800 bg-red-100"
-                                    : "text-yellow-800 bg-yellow-100"
+                                      ? "text-red-800 bg-red-100"
+                                      : "text-yellow-800 bg-yellow-100"
                                 }`}
                               >
                                 {status === "returned"
                                   ? "Returned"
                                   : status === "overdue"
-                                  ? "Over Due"
-                                  : "On Going"}
+                                    ? "Over Due"
+                                    : "On Going"}
                               </span>
                             </td>
                             <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
