@@ -120,4 +120,28 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+}
+
+// DELETE /api/employees?id=... - Delete employee by id
+export async function DELETE(request) {
+  try {
+    const supabase = createClient();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'Missing employee id' }, { status: 400 });
+    }
+    const { error } = await supabase
+      .from('staffs')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('Error deleting employee:', error);
+      return NextResponse.json({ error: 'Failed to delete employee', details: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ message: 'Employee deleted successfully' });
+  } catch (error) {
+    console.error('Error in DELETE /api/employees:', error);
+    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
+  }
 } 

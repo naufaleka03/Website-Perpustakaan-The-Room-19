@@ -9,7 +9,8 @@ export default function EmployeeTable({
   dropdownRef,
   onOpenWarningModal,
   onOpenDetailsModal,
-  onOpenRevokeModal 
+  onOpenRevokeModal,
+  onDeleteEmployee 
 }) {
   return (
     <div className="mt-8 overflow-x-auto flex-1">
@@ -31,7 +32,7 @@ export default function EmployeeTable({
           <tbody className="bg-white divide-y divide-gray-200">
             {employees.length > 0 ? (
               employees.map((emp, index) => (
-                <tr key={emp.no} className="hover:bg-gray-50 transition-colors duration-150">
+                <tr key={emp.id || emp.no || index} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="w-16 py-3 px-4 text-sm text-gray-700 whitespace-nowrap">{emp.no}</td>
                   <td className="w-2/5 py-3 px-4 text-sm text-gray-700 whitespace-nowrap">{emp.name}</td>
                   <td className="py-3 px-4 text-sm text-gray-700 whitespace-nowrap">{emp.department}</td>
@@ -84,12 +85,22 @@ export default function EmployeeTable({
                                   Revoke
                                 </a>
                               </li>
+                              <li>
+                                <a href="#" className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors duration-150" role="menuitem" onClick={(e) => { e.preventDefault(); if (typeof onDeleteEmployee === 'function') onDeleteEmployee(emp); }}>
+                                  Delete
+                                </a>
+                              </li>
                             </>
                           ) : (
                             <>
                               <li>
                                 <a href="#" className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150" role="menuitem" onClick={(e) => { e.preventDefault(); onOpenRevokeModal(emp); }}>
                                   Reinstate
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors duration-150" role="menuitem" onClick={(e) => { e.preventDefault(); if (typeof onDeleteEmployee === 'function') onDeleteEmployee(emp); }}>
+                                  Delete
                                 </a>
                               </li>
                               <li>

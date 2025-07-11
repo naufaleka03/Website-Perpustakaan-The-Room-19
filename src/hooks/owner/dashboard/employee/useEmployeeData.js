@@ -35,6 +35,7 @@ export function useEmployeeData() {
       
       // Transform database data to match the expected format
       const transformedEmployees = data.employees.map((emp, index) => ({
+        id: emp.id, // Ensure id is present for delete feature
         no: emp.id || index + 1,
         name: emp.name,
         department: emp.department || emp.position,

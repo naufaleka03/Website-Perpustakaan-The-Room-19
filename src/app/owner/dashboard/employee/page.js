@@ -16,6 +16,10 @@ export default function Home() {
   const [notification, setNotification] = useState(null);
   const [showBlankPage, setShowBlankPage] = useState(false);
   const [showAttendance, setShowAttendance] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [evidenceModalUrl, setEvidenceModalUrl] = useState(null);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
 
   // Fetch staff for Payroll page
   const [payrollStaff, setPayrollStaff] = useState([]);
@@ -38,101 +42,28 @@ export default function Home() {
   // Fetch attendance data for Attendance page
   const [attendanceData, setAttendanceData] = useState([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
+  const [attendanceError, setAttendanceError] = useState(null);
   
   useEffect(() => {
     if (showAttendance) {
       setAttendanceLoading(true);
-      
-      // Simulate API loading delay
-      setTimeout(() => {
-        // Dummy attendance data for Dmars Staff
-        const dummyAttendanceData = [
-          {
-            id: 1,
-            employee_name: "Dmars Staff",
-            date: "2024-01-15",
-            check_in_time: "2024-01-15T08:00:00",
-            check_out_time: "2024-01-15T17:00:00",
-            status: "Present"
-          },
-          {
-            id: 2,
-            employee_name: "Dmars Staff",
-            date: "2024-01-16",
-            check_in_time: "2024-01-16T08:30:00",
-            check_out_time: "2024-01-16T17:30:00",
-            status: "Late"
-          },
-          {
-            id: 3,
-            employee_name: "Dmars Staff",
-            date: "2024-01-17",
-            check_in_time: "2024-01-17T07:45:00",
-            check_out_time: "2024-01-17T16:45:00",
-            status: "Present"
-          },
-          {
-            id: 4,
-            employee_name: "Dmars Staff",
-            date: "2024-01-18",
-            check_in_time: null,
-            check_out_time: null,
-            status: "Absent"
-          },
-          {
-            id: 5,
-            employee_name: "Dmars Staff",
-            date: "2024-01-19",
-            check_in_time: "2024-01-19T08:15:00",
-            check_out_time: "2024-01-19T17:15:00",
-            status: "Present"
-          },
-          {
-            id: 6,
-            employee_name: "Dmars Staff",
-            date: "2024-01-20",
-            check_in_time: "2024-01-20T09:00:00",
-            check_out_time: "2024-01-20T18:00:00",
-            status: "Late"
-          },
-          {
-            id: 7,
-            employee_name: "Dmars Staff",
-            date: "2024-01-21",
-            check_in_time: "2024-01-21T07:30:00",
-            check_out_time: "2024-01-21T16:30:00",
-            status: "Present"
-          },
-          {
-            id: 8,
-            employee_name: "Dmars Staff",
-            date: "2024-01-22",
-            check_in_time: "2024-01-22T08:00:00",
-            check_out_time: "2024-01-22T17:00:00",
-            status: "Present"
-          },
-          {
-            id: 9,
-            employee_name: "Dmars Staff",
-            date: "2024-01-23",
-            check_in_time: "2024-01-23T08:45:00",
-            check_out_time: "2024-01-23T17:45:00",
-            status: "Late"
-          },
-          {
-            id: 10,
-            employee_name: "Dmars Staff",
-            date: "2024-01-24",
-            check_in_time: "2024-01-24T07:50:00",
-            check_out_time: "2024-01-24T16:50:00",
-            status: "Present"
-          }
-        ];
-        
-        setAttendanceData(dummyAttendanceData);
-        setAttendanceLoading(false);
-      }, 500); // 500ms delay to simulate loading
+      setAttendanceError(null);
+      const fetchAttendance = async () => {
+        try {
+          // Fetch all records for today by default
+          const today = new Date().toISOString().split('T')[0];
+          const response = await fetch(`/api/staff/attendance/records?date=${today}`);
+          if (!response.ok) throw new Error('Failed to fetch attendance records');
+          const data = await response.json();
+          setAttendanceData(data.records || []);
+        } catch (err) {
+          setAttendanceError(err.message || 'Failed to fetch attendance records');
+          setAttendanceData([]);
+        } finally {
+          setAttendanceLoading(false);
+        }
+      };
+      fetchAttendance();
     }
   }, [showAttendance]);
 
@@ -318,6 +249,36 @@ export default function Home() {
     }
   };
 
+  // Handle delete employee (open modal)
+  const handleDeleteEmployee = (emp) => {
+    setEmployeeToDelete(emp);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete
+  const confirmDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+    const employeeId = employeeToDelete.id || employeeToDelete.no;
+    try {
+      const res = await fetch(`/api/employees?id=${employeeId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete employee');
+      setNotification({ type: 'success', message: `Deleted ${employeeToDelete.name} successfully.` });
+      await refreshEmployees();
+    } catch (err) {
+      setNotification({ type: 'error', message: err.message || 'Failed to delete employee.' });
+    } finally {
+      setShowDeleteModal(false);
+      setEmployeeToDelete(null);
+    }
+  };
+
+  // Cancel delete
+  const cancelDeleteEmployee = () => {
+    setShowDeleteModal(false);
+    setEmployeeToDelete(null);
+  };
+
   // Helper function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -405,82 +366,83 @@ export default function Home() {
       ) : showAttendance ? (
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Attendance History</h2>
-          
-          {/* Time Filter Dropdown */}
-          <div className="mb-6">
-            <select
-              value={selectedTimeFilter}
-              onChange={(e) => setSelectedTimeFilter(e.target.value)}
-              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors duration-200 bg-white text-gray-700 font-medium cursor-pointer hover:border-gray-400"
-            >
-              <option value="all" className="text-gray-700 font-medium">All Records</option>
-              <option value="today" className="text-gray-700 font-medium">Today</option>
-              <option value="last7days" className="text-gray-700 font-medium">Last 7 Days</option>
-              <option value="lastmonth" className="text-gray-700 font-medium">Last Month</option>
-            </select>
-          </div>
-          
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             {attendanceLoading ? (
               <div className="flex justify-center items-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
                 <span className="ml-2 text-gray-600">Loading attendance records...</span>
               </div>
+            ) : attendanceError ? (
+              <div className="flex justify-center items-center py-8">
+                <span className="text-red-500">{attendanceError}</span>
+              </div>
             ) : (
               <table className="min-w-full">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Employee Name</th>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Date</th>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Day</th>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Check In</th>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Check Out</th>
-                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Total Hours</th>
+                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Staff</th>
+                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Department</th>
                     <th className="py-3 px-4 text-left text-gray-700 font-semibold">Status</th>
+                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Date & Time</th>
+                    <th className="py-3 px-4 text-left text-gray-700 font-semibold">Evidence</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {getFilteredAttendanceData().length === 0 ? (
+                  {attendanceData.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-4 px-4 text-center text-gray-400">No attendance records found.</td>
+                      <td colSpan={5} className="py-4 px-4 text-center text-gray-400">No attendance records found.</td>
                     </tr>
                   ) : (
-                    getFilteredAttendanceData().map((record, idx) => {
-                      const checkInTime = formatTime(record.check_in_time);
-                      const checkOutTime = formatTime(record.check_out_time);
-                      const date = record.date ? formatDate(record.date) : '-';
-                      const day = record.date ? new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }) : '-';
-                      
-                      // Calculate total hours if both check-in and check-out times exist
-                      let totalHours = '-';
-                      if (record.check_in_time && record.check_out_time) {
-                        const checkIn = new Date(record.check_in_time);
-                        const checkOut = new Date(record.check_out_time);
-                        const diffMs = checkOut - checkIn;
-                        const diffHours = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
-                        totalHours = `${diffHours} hours`;
-                      }
-
+                    attendanceData.map((record, idx) => {
+                      const timestamp = new Date(record.timestamp);
+                      const dateStr = timestamp.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      });
+                      const timeStr = timestamp.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                      });
                       return (
-                        <tr key={record.id || idx} className="border-t border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-                          <td className="py-3 px-4 font-medium">{record.employee_name || 'Unknown'}</td>
-                          <td className="py-3 px-4">{date}</td>
-                          <td className="py-3 px-4">{day}</td>
-                          <td className="py-3 px-4">{checkInTime}</td>
-                          <td className="py-3 px-4">{checkOutTime}</td>
-                          <td className="py-3 px-4">{totalHours}</td>
+                        <tr key={`${record.staff_id}-${record.timestamp}-${idx}`} className="border-t border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+                          <td className="py-3 px-4 font-medium">{record.staff_name || 'Unknown'}</td>
+                          <td className="py-3 px-4">{record.department || '-'}</td>
                           <td className="py-3 px-4">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              record.status === 'Present' 
+                              record.status === 'P' 
                                 ? 'bg-green-100 text-green-800' 
-                                : record.status === 'Late' 
+                                : record.status === 'L' 
                                 ? 'bg-yellow-100 text-yellow-800' 
-                                : record.status === 'Absent' 
+                                : record.status === 'A' 
                                 ? 'bg-red-100 text-red-800' 
+                                : record.status === 'CO'
+                                ? 'bg-blue-100 text-blue-800'
+                                : record.status === 'ECO'
+                                ? 'bg-purple-100 text-purple-800'
                                 : 'bg-gray-100 text-gray-800'
                             }`}>
                               {record.status || 'Unknown'}
                             </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div>{dateStr}</div>
+                            <div className="text-xs text-gray-500 font-mono">{timeStr}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {record.evidence_url ? (
+                              <button
+                                className="px-3 py-1 bg-sky-500 text-white rounded hover:bg-sky-600 text-xs font-medium"
+                                onClick={() => { setEvidenceModalUrl(record.evidence_url); setShowEvidenceModal(true); }}
+                              >
+                                See Evidence
+                              </button>
+                            ) : (
+                              <span className="text-gray-400 text-xs">No Evidence</span>
+                            )}
                           </td>
                         </tr>
                       );
@@ -490,6 +452,21 @@ export default function Home() {
               </table>
             )}
           </div>
+          {/* Evidence Modal */}
+          {showEvidenceModal && evidenceModalUrl && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full flex flex-col items-center">
+                <h2 className="text-lg font-semibold mb-4">Evidence</h2>
+                <img src={evidenceModalUrl} alt="Evidence" className="max-w-full max-h-96 rounded border mb-4" />
+                <button
+                  onClick={() => setShowEvidenceModal(false)}
+                  className="px-4 py-2 rounded bg-sky-500 text-white hover:bg-sky-600"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <>
@@ -515,6 +492,30 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+                <h2 className="text-lg font-semibold mb-4 text-red-600">Delete Employee</h2>
+                <p className="mb-4">Are you sure you want to delete <span className="font-bold">{employeeToDelete?.name}</span>? This action cannot be undone.</p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={cancelDeleteEmployee}
+                    className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteEmployee}
+                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -576,6 +577,7 @@ export default function Home() {
                     onOpenWarningModal={handleOpenWarningModal}
                     onOpenDetailsModal={handleOpenDetailsModal}
                     onOpenRevokeModal={handleOpenRevokeModal}
+                    onDeleteEmployee={handleDeleteEmployee}
                   />
                 )}
               </div>

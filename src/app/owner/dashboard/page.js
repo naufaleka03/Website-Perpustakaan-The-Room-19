@@ -289,18 +289,42 @@ const EventAssignmentModal = ({ selectedDate, assignedEvents, onClose, onAssignE
   );
 };
 
-const StaffCard = ({ staff, index }) => (
-  <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex flex-col justify-center items-center">
-    {staff ? (
-      <>
-        <p className="font-semibold text-gray-800">{staff.name}</p>
-        <p className="text-sm text-gray-500">{staff.department}</p>
-      </>
-    ) : (
-      <p className="text-gray-500">{index === 0 ? 'No staff on duty' : '-'}</p>
-    )}
-  </div>
-);
+// StaffCard with hover animation for 'See Evidence'
+const StaffCard = ({ staff, index, onSeeEvidence }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  return (
+    <div
+      className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex flex-col justify-center items-center relative cursor-pointer transition-shadow duration-200 hover:shadow-lg"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ minHeight: 80 }}
+    >
+      {staff ? (
+        <>
+          <p className="font-semibold text-gray-800">{staff.name}</p>
+          <p className="text-sm text-gray-500">{staff.department}</p>
+        </>
+      ) : (
+        <p className="text-gray-500">{index === 0 ? 'No staff on duty' : '-'}</p>
+      )}
+      <AnimatePresence>
+        {isHovered && staff && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-lg z-10"
+            onClick={() => onSeeEvidence && onSeeEvidence(staff)}
+            style={{ cursor: 'pointer' }}
+          >
+            <span className="text-white font-semibold text-base">See Evidence</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const BorrowingActivityCard = ({ count, label, onClick, isHovered, onHoverChange }) => (
   <motion.div 
@@ -413,6 +437,32 @@ export default function DashboardPage() {
       { id: 3, title: 'Public Book Fair', type: 'public' }
     ]
   });
+
+  // Evidence modal state
+  const [evidenceModal, setEvidenceModal] = useState({ open: false, image: null, staffName: '', loading: false, error: '' });
+
+  // Handler to fetch and show evidence for a staff
+  const handleSeeEvidence = async (staff) => {
+    if (!staff || !staff.name) return;
+    setEvidenceModal({ open: true, image: null, staffName: staff.name, loading: true, error: '' });
+    try {
+      // Fetch the latest attendance record for this staff by name
+      const res = await fetch(`/api/staff/attendance/records?staff_name=${encodeURIComponent(staff.name)}&limit=1&order=desc`);
+      const data = await res.json();
+      if (res.ok && data.records && data.records.length > 0) {
+        const record = data.records[0];
+        if (record.evidence_url) {
+          setEvidenceModal({ open: true, image: record.evidence_url, staffName: staff.name, loading: false, error: '' });
+        } else {
+          setEvidenceModal({ open: true, image: null, staffName: staff.name, loading: false, error: `${staff.name} hasn't uploaded evidence yet.` });
+        }
+      } else {
+        setEvidenceModal({ open: true, image: null, staffName: staff.name, loading: false, error: `${staff.name} hasn't uploaded evidence yet.` });
+      }
+    } catch (err) {
+      setEvidenceModal({ open: true, image: null, staffName: staff.name, loading: false, error: 'Failed to fetch evidence.' });
+    }
+  };
 
   // Event handlers
   const handleAssignEvent = (event) => {
@@ -529,7 +579,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             {mounted ? (
               Array.from({ length: 4 }, (_, i) => (
-                <StaffCard key={i} staff={currentStaff[i]} index={i} />
+                <StaffCard key={i} staff={currentStaff[i]} index={i} onSeeEvidence={handleSeeEvidence} />
               ))
             ) : (
               Array.from({ length: 4 }, (_, i) => (
@@ -581,6 +631,28 @@ export default function DashboardPage() {
           onClose={() => setBorrowingModalOpen(false)}
         />
       </AnimatePresence>
+
+      {/* Evidence Modal for StaffCard */}
+      {evidenceModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full flex flex-col items-center">
+            <h2 className="text-lg font-semibold mb-4">Evidence for {evidenceModal.staffName}</h2>
+            {evidenceModal.loading ? (
+              <div className="text-gray-500">Loading...</div>
+            ) : evidenceModal.image ? (
+              <img src={evidenceModal.image} alt="Evidence" className="max-w-full max-h-96 rounded border mb-4" />
+            ) : (
+              <div className="text-red-500 font-medium mb-4">{evidenceModal.error}</div>
+            )}
+            <button
+              onClick={() => setEvidenceModal({ open: false, image: null, staffName: '', loading: false, error: '' })}
+              className="px-4 py-2 rounded bg-sky-500 text-white hover:bg-sky-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
