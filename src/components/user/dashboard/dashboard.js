@@ -513,7 +513,7 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white flex items-center font-manrope">
               <FaStar className="mr-2 text-white" />
-              Personalized Recommendation
+              Based on Your Preferences
             </h2>
             <button
               className="text-[#d9e67b] hover:text-white font-medium text-sm flex items-center"
@@ -813,6 +813,7 @@ export default function UserDashboard() {
         </div>
 
         {/* Recent Activity */}
+        {/*
         <section>
           <h2 className="text-xl font-bold text-white mb-4 flex items-center font-manrope">
             <FaClock className="mr-2 text-white" />
@@ -846,6 +847,7 @@ export default function UserDashboard() {
             </div>
           </div>
         </section>
+        */}
       </div>
     </div>
   );

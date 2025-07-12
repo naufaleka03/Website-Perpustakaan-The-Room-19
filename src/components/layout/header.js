@@ -32,12 +32,12 @@ export default function Header({ isExpanded, setIsExpanded }) {
       </div>
 
       <div className="flex items-center gap-6 absolute right-6 top-1/2 -translate-y-1/2">
-        <button aria-label="Notifications">
+        {/* <button aria-label="Notifications">
           <IoNotificationsOutline className="w-6 h-7 text-black" />
         </button>
         <button aria-label="Dark Mode">
           <IoMoonOutline className="w-6 h-6 text-black" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

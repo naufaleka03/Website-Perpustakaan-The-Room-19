@@ -693,10 +693,10 @@ export default function MembershipForm({ application, memberStatus, showForm, se
   // Loading skeleton/animation
   if (isLoading) {
     return (
-      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20 animate-pulse">
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
         <div className="w-full h-[240px] bg-gray-300"></div>
         <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mt-8">
-          <div className="bg-white rounded-xl shadow-md p-8">
+          <div className="animate-pulse">
             <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
           </div>
@@ -784,21 +784,25 @@ export default function MembershipForm({ application, memberStatus, showForm, se
     <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
-        <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
-        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-          <div className="max-w-[1200px] mx-auto w-full">
-            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-              MEMBERSHIP
-            </h1>
-            <p className="text-[#fcfcfc]/80 max-w-xl font-light">
-              Join our membership program to access exclusive borrowing privileges, attend special events, and be part of The Room 19 community.
-            </p>
+        <div className="w-full h-[360px] relative">
+          <img src="/Data-collection.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope mb-4">
+                MEMBERSHIP
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
+                Join our membership program to access exclusive borrowing privileges, attend special events, and be part of The Room 19 community.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+      <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
           <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">Membership Application Form</h2>
           <p className="text-[#666666] mb-6 text-sm">
