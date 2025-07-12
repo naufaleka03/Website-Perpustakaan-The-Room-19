@@ -254,8 +254,8 @@ export default function Histories() {
   });
 
   return (
-    <div className="max-w-[1440px] mx-auto p-6 bg-white">
-      <div className="max-w-[932px] mx-auto">
+    <div className="max-w-[1440px] mx-auto p-6 bg-white min-h-[70vh] flex flex-col">
+      <div className="max-w-[932px] mx-auto flex-1 flex flex-col">
         <div className="flex gap-8 mb-4">
           <TabButton
             isActive={activeTab === "session"}
@@ -324,112 +324,116 @@ export default function Histories() {
           </div>
         </div>
 
-        {activeTab === "session" && (
-          <div className="space-y-4">
-            {loading && (
-              <>
-                <ReservationHistorySkeleton />
-                <ReservationHistorySkeleton />
-                <ReservationHistorySkeleton />
-              </>
-            )}
-            {error && <p className="text-red-500 text-center">{error}</p>}
-            {!loading && !error && filteredSessionHistory.length === 0 && (
-              <p className="text-center text-gray-500">
-                No history available at the moment
-              </p>
-            )}
-            {!loading &&
-              !error &&
-              filteredSessionHistory
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                .map((session) => {
-                  const arrival = new Date(session.arrival_date);
-                  const date = arrival.toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  });
-                  const time = session.shift_start
-                    .substring(0, 5)
-                    .replace(":", ".");
-                  const displayDate = `${date} ${time}`;
-                  const startTime = session.shift_start
-                    .substring(0, 5)
-                    .replace(":", ".");
-                  const endTime = session.shift_end
-                    .substring(0, 5)
-                    .replace(":", ".");
-                  const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
+        <div className="flex-1 flex flex-col justify-start">
+          {activeTab === "session" && (
+            <div className="space-y-4">
+              {loading && (
+                <>
+                  <ReservationHistorySkeleton />
+                  <ReservationHistorySkeleton />
+                  <ReservationHistorySkeleton />
+                </>
+              )}
+              {error && <p className="text-red-500 text-center">{error}</p>}
+              {!loading && !error && filteredSessionHistory.length === 0 && (
+                <p className="text-center text-gray-500">
+                  No history available at the moment
+                </p>
+              )}
+              {!loading &&
+                !error &&
+                filteredSessionHistory
+                  .sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                  )
+                  .map((session) => {
+                    const arrival = new Date(session.arrival_date);
+                    const date = arrival.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    });
+                    const time = session.shift_start
+                      .substring(0, 5)
+                      .replace(":", ".");
+                    const displayDate = `${date} ${time}`;
+                    const startTime = session.shift_start
+                      .substring(0, 5)
+                      .replace(":", ".");
+                    const endTime = session.shift_end
+                      .substring(0, 5)
+                      .replace(":", ".");
+                    const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
 
-                  const status = getStatus(
-                    session.status,
-                    session.payment_status
-                  );
+                    const status = getStatus(
+                      session.status,
+                      session.payment_status
+                    );
 
-                  return (
-                    <ReservationHistoryCard
-                      key={session.id}
-                      name={session.full_name}
-                      shift={shiftDisplay}
-                      transactionId={session.payment_id || "N/A"}
-                      amount={
-                        session.amount
-                          ? `Rp${session.amount.toLocaleString("id-ID")}`
-                          : "Free"
-                      }
-                      status={status}
-                      onDetailClick={() => openModal(session)}
-                    />
-                  );
-                })}
-          </div>
-        )}
+                    return (
+                      <ReservationHistoryCard
+                        key={session.id}
+                        name={session.full_name}
+                        shift={shiftDisplay}
+                        transactionId={session.payment_id || "N/A"}
+                        amount={
+                          session.amount
+                            ? `Rp${session.amount.toLocaleString("id-ID")}`
+                            : "Free"
+                        }
+                        status={status}
+                        onDetailClick={() => openModal(session)}
+                      />
+                    );
+                  })}
+            </div>
+          )}
 
-        {activeTab === "event" && (
-          <div className="space-y-4">
-            {loading && (
-              <>
-                <ReservationHistorySkeleton />
-                <ReservationHistorySkeleton />
-                <ReservationHistorySkeleton />
-              </>
-            )}
-            {error && <p className="text-red-500 text-center">{error}</p>}
-            {!loading && !error && filteredEventHistory.length === 0 && (
-              <p className="text-center text-gray-500">
-                No history available at the moment
-              </p>
-            )}
-            {!loading &&
-              !error &&
-              filteredEventHistory
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                .map((event) => {
-                  const startTime = event.shift_start
-                    .substring(0, 5)
-                    .replace(":", ".");
-                  const endTime = event.shift_end
-                    .substring(0, 5)
-                    .replace(":", ".");
-                  const shiftDisplay = `${event.shift_name} (${startTime} - ${endTime})`;
-
-                  const status = getStatus(event.status, event.payment_status);
-
-                  return (
-                    <ReservationHistoryCard
-                      key={event.id}
-                      name={event.event_name}
-                      shift={shiftDisplay}
-                      transactionId={event.payment_id || "N/A"}
-                      amount={`Rp${event.ticket_fee.toLocaleString("id-ID")}`}
-                      status={status}
-                      onDetailClick={() => openEventModal(event)}
-                    />
-                  );
-                })}
-          </div>
-        )}
+          {activeTab === "event" && (
+            <div className="space-y-4">
+              {loading && (
+                <>
+                  <ReservationHistorySkeleton />
+                  <ReservationHistorySkeleton />
+                  <ReservationHistorySkeleton />
+                </>
+              )}
+              {error && <p className="text-red-500 text-center">{error}</p>}
+              {!loading && !error && filteredEventHistory.length === 0 && (
+                <p className="text-center text-gray-500">
+                  No history available at the moment
+                </p>
+              )}
+              {!loading &&
+                !error &&
+                filteredEventHistory
+                  .sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                  )
+                  .map((event) => {
+                    const status = getStatus(
+                      event.status,
+                      event.payment_status
+                    );
+                    return (
+                      <ReservationHistoryCard
+                        key={event.id}
+                        name={event.full_name || event.event_name}
+                        shift={event.shift_name}
+                        transactionId={event.payment_id || "N/A"}
+                        amount={
+                          event.ticket_fee
+                            ? `Rp${event.ticket_fee.toLocaleString("id-ID")}`
+                            : "Free"
+                        }
+                        status={status}
+                        onDetailClick={() => openEventModal(event)}
+                      />
+                    );
+                  })}
+            </div>
+          )}
+        </div>
       </div>
       <DetailSessionModal
         isOpen={isModalOpen}
