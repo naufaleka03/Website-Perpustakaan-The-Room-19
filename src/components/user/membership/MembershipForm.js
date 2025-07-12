@@ -790,7 +790,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
           <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
             <div className="max-w-[1200px] mx-auto w-full">
-              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope mb-4">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
                 MEMBERSHIP
               </h1>
               <p className="text-[#fcfcfc]/80 max-w-xl font-light">
