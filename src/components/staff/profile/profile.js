@@ -113,15 +113,15 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             // Delete previous image if it exists
             if (currentData && currentData.profile_picture) {
               const previousImageName = currentData.profile_picture.split('/').pop(); // Extract the image name
-              await supabase.storage.from('profile-pictures').remove([`public/${previousImageName}`]); // Delete previous image
+              await supabase.storage.from('profile-pictures').remove([`${userId}/${previousImageName}`]); // Delete previous image
             }
 
             // Upload the new image
-            const { data, error: uploadError } = await supabase.storage.from('profile-pictures').upload(`public/${file.name}`, file);
+            const { data, error: uploadError } = await supabase.storage.from('profile-pictures').upload(`${userId}/${file.name}`, file);
             if (uploadError) throw uploadError;
 
             // Construct the public URL for the uploaded image
-            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${file.name}`;
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/${userId}/${file.name}`;
             console.log('Image URL being set in database:', imageUrl);
 
             // Update the profile picture in the database
@@ -207,7 +207,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
 
   // Profile Loading Skeleton
   const ProfileLoadingSkeleton = () => (
-    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c] p-8">
       <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mb-6 animate-pulse">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-300 rounded-full mb-4"></div>
