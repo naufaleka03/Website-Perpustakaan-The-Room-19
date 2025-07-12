@@ -87,13 +87,25 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
-      <div className="flex flex-col items-center w-full max-w-md shadow-lg rounded-xl bg-white/90 backdrop-blur-md p-6 md:p-8">
-        <h2 className="text-black text-lg font-semibold mb-3 text-center">Sign up</h2>
-        <form className="flex flex-col gap-3 w-full" onSubmit={handleSignUp}>
-          {/* Row: Full Name & Email (side by side on md+) */}
-          <div className="flex flex-col md:flex-row gap-3 w-full">
+      <div className="relative flex w-full max-w-md md:max-w-3xl shadow-lg rounded-xl bg-white/90 backdrop-blur-md">
+        {/* Left side image for md+ screens */}
+        <div className="hidden md:block flex-none md:w-1/2 h-full">
+          <div className="absolute left-0 top-0 h-full w-1/2 rounded-l-xl overflow-hidden">
+            <Image
+              src="/signup-image.png"
+              alt="Signup Illustration"
+              fill
+              className="object-cover w-full h-full"
+              priority
+            />
+          </div>
+        </div>
+        {/* Right side form */}
+        <div className="flex flex-col items-center w-full md:w-[60%] md:basis-3/5 p-6 md:p-8 z-10">
+          <h2 className="text-black text-lg font-semibold mb-3 text-center">Sign up</h2>
+          <form className="flex flex-col gap-3 w-full" onSubmit={handleSignUp}>
             {/* Full Name */}
-            <div className="w-full md:w-1/2">
+            <div className="w-full">
               <label className="block text-[#666666] text-xs font-medium mb-1">Full Name</label>
               <input
                 type="text"
@@ -109,7 +121,7 @@ export default function SignUp() {
               {errors.fullName && <p className="text-red-500 text-[10px] mt-0.5">{errors.fullName}</p>}
             </div>
             {/* Email */}
-            <div className="w-full md:w-1/2">
+            <div className="w-full">
               <label className="block text-[#666666] text-xs font-medium mb-1">Email</label>
               <input
                 type="email"
@@ -124,82 +136,82 @@ export default function SignUp() {
               <p className="text-[10px] text-[#666666]/80 mt-0.5">We'll send updates here</p>
               {errors.email && <p className="text-red-500 text-[10px] mt-0.5">{errors.email}</p>}
             </div>
-          </div>
-          {/* Phone Number */}
-          <div className="w-full">
-            <label className="block text-[#666666] text-xs font-medium mb-1">Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className={`w-full h-8 rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
-              placeholder="Phone number"
-              autoComplete="tel"
-              disabled={isLoading}
-            />
-            <p className="text-[10px] text-[#666666]/80 mt-0.5">For verification and updates</p>
-            {errors.phoneNumber && <p className="text-red-500 text-[10px] mt-0.5">{errors.phoneNumber}</p>}
-          </div>
-          {/* Password */}
-          <div className="w-full">
-            <div className="flex justify-between items-center">
-              <label className="block text-[#666666] text-xs font-medium mb-1">Password</label>
-              <button type="button" tabIndex={-1} className="mr-2 text-gray-500/80 text-xs flex items-center hover:text-[#2e3105]" onClick={() => setShowPassword(v => !v)}>
-                {showPassword ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />} {showPassword ? 'Hide' : 'Show'}
-              </button>
+            {/* Phone Number */}
+            <div className="w-full">
+              <label className="block text-[#666666] text-xs font-medium mb-1">Phone Number</label>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className={`w-full h-8 rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
+                placeholder="Phone number"
+                autoComplete="tel"
+                disabled={isLoading}
+              />
+              <p className="text-[10px] text-[#666666]/80 mt-0.5">For verification and updates</p>
+              {errors.phoneNumber && <p className="text-red-500 text-[10px] mt-0.5">{errors.phoneNumber}</p>}
             </div>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`w-full h-8 rounded-lg border ${errors.password ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
-              placeholder="Create a password"
-              autoComplete="new-password"
-              disabled={isLoading}
-            />
-            <p className="text-[10px] text-[#666666]/80 mt-0.5">8+ chars, letters, numbers & symbols</p>
-            {errors.password && <p className="text-red-500 text-[10px] mt-0.5">{errors.password}</p>}
-          </div>
-          {/* Confirm Password */}
-          <div className="w-full">
-            <div className="flex justify-between items-center">
-              <label className="block text-[#666666] text-xs font-medium mb-1">Confirm Password</label>
-              <button type="button" tabIndex={-1} className="mr-2 text-gray-500/80 text-xs flex items-center hover:text-[#2e3105]" onClick={() => setShowConfirmPassword(v => !v)}>
-                {showConfirmPassword ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />} {showConfirmPassword ? 'Hide' : 'Show'}
-              </button>
+            {/* Password */}
+            <div className="w-full">
+              <div className="flex justify-between items-center">
+                <label className="block text-[#666666] text-xs font-medium mb-1">Password</label>
+                <button type="button" tabIndex={-1} className="mr-2 text-gray-500/80 text-xs flex items-center hover:text-[#2e3105]" onClick={() => setShowPassword(v => !v)}>
+                  {showPassword ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />} {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full h-8 rounded-lg border ${errors.password ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
+                placeholder="Create a password"
+                autoComplete="new-password"
+                disabled={isLoading}
+              />
+              <p className="text-[10px] text-[#666666]/80 mt-0.5">8+ chars, letters, numbers & symbols</p>
+              {errors.password && <p className="text-red-500 text-[10px] mt-0.5">{errors.password}</p>}
             </div>
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={`w-full h-8 rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
-              placeholder="Re-enter password"
-              autoComplete="new-password"
+            {/* Confirm Password */}
+            <div className="w-full">
+              <div className="flex justify-between items-center">
+                <label className="block text-[#666666] text-xs font-medium mb-1">Confirm Password</label>
+                <button type="button" tabIndex={-1} className="mr-2 text-gray-500/80 text-xs flex items-center hover:text-[#2e3105]" onClick={() => setShowConfirmPassword(v => !v)}>
+                  {showConfirmPassword ? <FaEyeSlash className="mr-1" /> : <FaEye className="mr-1" />} {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`w-full h-8 rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-[#666666]/30'} text-[#666666] text-xs px-3 transition-all duration-200 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none hover:border-[#2e3105]/50`}
+                placeholder="Re-enter password"
+                autoComplete="new-password"
+                disabled={isLoading}
+              />
+              <p className="text-[10px] text-[#666666]/80 mt-0.5">Re-enter your password</p>
+              {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5">{errors.confirmPassword}</p>}
+            </div>
+            {/* Submit Button */}
+            <button
+              type="submit"
               disabled={isLoading}
-            />
-            <p className="text-[10px] text-[#666666]/80 mt-0.5">Re-enter your password</p>
-            {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5">{errors.confirmPassword}</p>}
+              className={`w-full h-9 mt-1 rounded-2xl transition-all duration-300 font-semibold text-white text-sm shadow-md ${isLoading ? 'bg-[#2e3105]/50 cursor-not-allowed' : 'bg-[#2e3105] hover:bg-[#3e4310] active:scale-95'}`}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg> Signing up...</span>
+              ) : (
+                <span>Sign up</span>
+              )}
+            </button>
+            {errors.submit && <p className="text-red-500 text-xs text-center mt-1">{errors.submit}</p>}
+          </form>
+          <div className="flex flex-col items-center gap-1 mt-2">
+            <p className="text-xs text-gray-500">Already have an account?</p>
+            <p className="text-xs text-gray-500"><Link href="/login" className="text-xs text-[#111111] underline hover:text-[#2e3105]">Log in</Link></p>
           </div>
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full h-9 mt-1 rounded-2xl transition-all duration-300 font-semibold text-white text-sm shadow-md ${isLoading ? 'bg-[#2e3105]/50 cursor-not-allowed' : 'bg-[#2e3105] hover:bg-[#3e4310] active:scale-95'}`}
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2"><svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg> Signing up...</span>
-            ) : (
-              <span>Sign up</span>
-            )}
-          </button>
-          {errors.submit && <p className="text-red-500 text-xs text-center mt-1">{errors.submit}</p>}
-        </form>
-        <div className="flex flex-col items-center gap-1 mt-2">
-          <p className="text-xs text-gray-500">Already have an account?</p>
-          <p className="text-xs text-gray-500"><Link href="/login" className="text-xs text-[#111111] underline hover:text-[#2e3105]">Log in</Link></p>
         </div>
       </div>
     </div>
