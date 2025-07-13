@@ -575,32 +575,33 @@ export default function MembershipForm({ application, memberStatus, showForm, se
   if (memberStatus === 'member') {
     return (
       <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section */}
         <div className="relative mb-8 mt-0">
-          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
-          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-            <div className="max-w-[1200px] mx-auto w-full">
-              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-                MEMBERSHIP
-              </h1>
-              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
-                Access exclusive borrowing privileges and be part of The Room 19 community.
-              </p>
+          <div className="w-full h-[360px] relative">
+            <img src="/navigation/membership.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                  MEMBERSHIP
+                </h1>
+                <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                  Access exclusive borrowing privileges and be part of The Room 19 community.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+
+        {/* Content Section */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
           <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="bg-green-100 p-3 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">Active Membership</h2>
-            </div>
-            <p className="text-[#666666] mb-6">
+            <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">Active Membership</h2>
+            <p className="text-[#666666] mb-6 text-sm">
               You are currently an active member of The Room 19 Library. As a member, you enjoy the following benefits:
             </p>
+            
             <div className="space-y-4 mb-8">
               <div className="flex items-start gap-3">
                 <div className="bg-[#2e3105] p-1 rounded-full mt-1">
@@ -625,6 +626,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
                 </div>
               </div>
             </div>
+            
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3">
               <FaInfoCircle className="text-blue-500 text-lg flex-shrink-0 mt-1" />
               <p className="text-sm text-blue-800">
@@ -642,30 +644,30 @@ export default function MembershipForm({ application, memberStatus, showForm, se
     const isRevision = application.status === 'revision';
     return (
       <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section */}
         <div className="relative mb-8 mt-0">
-          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
-          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-            <div className="max-w-[1200px] mx-auto w-full">
-              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-                MEMBERSHIP
-              </h1>
-              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
-                {isRevision ? 'Revision Required' : 'Application Rejected'}
-              </p>
+          <div className="w-full h-[360px] relative">
+            <img src="/navigation/Membership.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                  MEMBERSHIP
+                </h1>
+                <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                  {isRevision ? 'Revision Required' : 'Application Rejected'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+
+        {/* Content Section */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
           <div className={`bg-white rounded-xl shadow-md p-8 mb-8 flex flex-col items-center ${isRevision ? '' : 'border border-red-200'}`}> 
-            <div className="mb-6 flex items-center gap-3">
-              <div className={isRevision ? 'bg-red-100 p-3 rounded-full' : 'bg-red-200 p-3 rounded-full'}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRevision ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' : 'M6 18L18 6M6 6l12 12'} />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">{isRevision ? 'Revision Required' : 'Application Rejected'}</h2>
-            </div>
-            <p className="text-[#666666] mb-4 text-center max-w-xl">
+            <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">{isRevision ? 'Revision Required' : 'Application Rejected'}</h2>
+            <p className="text-[#666666] mb-4 text-center max-w-xl text-sm">
               {isRevision
                 ? 'Your application needs some revisions before it can be approved. Please submit a new application with the following changes:'
                 : "We're sorry, but your membership application has been rejected."}
@@ -680,7 +682,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
             )}
             <button
               onClick={() => setShowForm && setShowForm('revision')}
-              className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope"
+              className="px-6 py-2 bg-[#2e3105] text-white rounded-3xl text-sm hover:bg-[#404615] transition font-manrope"
             >
               Revise Application
             </button>
@@ -694,11 +696,23 @@ export default function MembershipForm({ application, memberStatus, showForm, se
   if (isLoading) {
     return (
       <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
-        <div className="w-full h-[240px] bg-gray-300"></div>
-        <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mt-8">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
+        {/* Hero Section Skeleton */}
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[360px] bg-gray-300 animate-pulse"></div>
+        </div>
+        
+        {/* Content Section Skeleton */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-6"></div>
+              <div className="space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -709,30 +723,30 @@ export default function MembershipForm({ application, memberStatus, showForm, se
   if (application && application.status === 'request') {
     return (
       <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section */}
         <div className="relative mb-8 mt-0">
-          <div className="w-full h-[240px] bg-gradient-to-r from-[#2e3105] to-[#4d4d4d] object-cover" />
-          <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-            <div className="max-w-[1200px] mx-auto w-full">
-              <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-                MEMBERSHIP
-              </h1>
-              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
-                Check your membership application status
-              </p>
+          <div className="w-full h-[360px] relative">
+            <img src="/navigation/Membership.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                  MEMBERSHIP
+                </h1>
+                <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                  Check your membership application status
+                </p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="max-w-[800px] mx-auto px-6 lg:px-8 mb-12">
+
+        {/* Content Section */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
           <div className="bg-white rounded-xl shadow-md p-8 mb-8 flex flex-col items-center">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-semibold text-[#111010] font-manrope">Application Pending Review</h2>
-            </div>
-            <p className="text-[#666666] mb-4 text-center max-w-xl">
+            <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">Application Pending Review</h2>
+            <p className="text-[#666666] mb-4 text-center max-w-xl text-sm">
               Your application has been submitted and is waiting for review by our staff. We usually process applications within 1-2 business days.
             </p>
             <div className="mb-4 text-yellow-700 text-sm">Application submitted: {new Date(application.created_at).toLocaleDateString()}</div>
@@ -749,7 +763,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
             </div>
             <button
               onClick={() => window.location.href = '/user/dashboard'}
-              className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope"
+              className="px-6 py-2 bg-[#2e3105] text-white rounded-3xl text-sm hover:bg-[#404615] transition font-manrope"
             >
               Go to Dashboard Now
             </button>
@@ -761,20 +775,42 @@ export default function MembershipForm({ application, memberStatus, showForm, se
 
   if (application && application.status === 'revoked') {
     return (
-      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-md p-8 max-w-lg mx-auto mt-20">
-          <h2 className="text-2xl font-semibold text-red-700 mb-4">Membership Revoked</h2>
-          <p className="text-[#666666] mb-4">
-            Your membership has been revoked by the staff. You can no longer borrow books or submit a new membership application.
-          </p>
-          {application.notes && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm mb-4">
-              <strong>Reason:</strong> {application.notes}
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section */}
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[360px] relative">
+            <img src="/navigation/Membership.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                  MEMBERSHIP
+                </h1>
+                <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                  Membership Revoked
+                </p>
+              </div>
             </div>
-          )}
-          <a href="/user/dashboard" className="px-6 py-2 bg-[#2e3105] text-white rounded text-sm hover:bg-[#404615] transition font-manrope">
-            Go to Dashboard
-          </a>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
+          <div className="bg-white rounded-xl shadow-md p-8 max-w-lg mx-auto">
+            <h2 className="text-xl font-semibold text-red-700 mb-4 font-manrope">Membership Revoked</h2>
+            <p className="text-[#666666] mb-4 text-sm">
+              Your membership has been revoked by the staff. You can no longer borrow books or submit a new membership application.
+            </p>
+            {application.notes && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm mb-4">
+                <strong>Reason:</strong> {application.notes}
+              </div>
+            )}
+            <a href="/user/dashboard" className="px-6 py-2 bg-[#2e3105] text-white rounded-3xl text-sm hover:bg-[#404615] transition font-manrope">
+              Go to Dashboard
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -785,7 +821,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
         <div className="w-full h-[360px] relative">
-          <img src="/Data-collection.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
+          <img src="/navigation/Membership.jpg" alt="Membership Hero" className="w-full h-full object-cover rounded-none" />
           <div className="absolute inset-0 bg-black/50"></div>
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
           <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
@@ -793,7 +829,7 @@ export default function MembershipForm({ application, memberStatus, showForm, se
               <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
                 MEMBERSHIP
               </h1>
-              <p className="text-[#fcfcfc]/80 max-w-xl font-light">
+              <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
                 Join our membership program to access exclusive borrowing privileges, attend special events, and be part of The Room 19 community.
               </p>
             </div>

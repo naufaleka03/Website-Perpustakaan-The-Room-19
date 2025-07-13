@@ -196,212 +196,124 @@ export default function EventReservation() {
     <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
-        <img
-          className="w-full h-[200px] object-cover"
-          src="https://via.placeholder.com/1402x272"
-          alt="Reservation banner"
-        />
-        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-          <div className="max-w-[1200px] mx-auto w-full">
-            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-              RESERVE <br />
-              AN EVENT
-            </h1>
+        <div className="w-full h-[360px] relative">
+          <img src="/navigation/event.jpg" alt="Event Reservation Hero" className="w-full h-full object-cover rounded-none" />
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                RESERVE AN EVENT
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                Book your spot for special events at The Room 19 Library and join our vibrant community.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+      <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-          {/* Reservation Type Selector */}
-          <div className="flex justify-center gap-4 mb-4">
-            <button
-              type="button"
-              onClick={() => handleReservationTypeChange("individual")}
-              className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
-                reservationType === "individual"
-                  ? "bg-[#2e3105] text-white border-[#2e3105]"
-                  : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
-              }`}
-            >
-              <FaUser size={14} />
-              <span>Individual</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleReservationTypeChange("group")}
-              className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
-                reservationType === "group"
-                  ? "bg-[#2e3105] text-white border-[#2e3105]"
-                  : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
-              }`}
-            >
-              <FaUsers size={14} />
-              <span>Group</span>
-            </button>
+          <div className="mb-6">
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => handleReservationTypeChange("individual")}
+                className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
+                  reservationType === "individual"
+                    ? "bg-[#2e3105] text-white border-[#2e3105]"
+                    : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
+                }`}
+              >
+                <FaUser size={14} />
+                <span>Individual</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleReservationTypeChange("group")}
+                className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
+                  reservationType === "group"
+                    ? "bg-[#2e3105] text-white border-[#2e3105]"
+                    : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
+                }`}
+              >
+                <FaUsers size={14} />
+                <span>Group</span>
+              </button>
+            </div>
+            <p className="text-xs text-[#666666]/80 text-center mt-2">
+              Select the reservation type that suits your needs. If you choose "Group," you can add members.
+            </p>
           </div>
-          <p className="text-xs text-gray-500 text-center mb-4">
-            Select the reservation type that suits your needs. If you choose
-            "Group," you can add members.
-          </p>
-
-          {/* Form Section */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Auto Generated Fields */}
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Event Name
-              </label>
-              <input
-                type="text"
-                value={eventDetails?.event_name || ""}
-                disabled
-                className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This field will be automatically filled based on your selection.
-              </p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Event Name */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Event Name</label>
+              <input type="text" value={eventDetails?.event_name || ""} disabled className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100" />
+              <p className="text-xs text-[#666666]/80 mt-1">This field will be automatically filled based on your selection.</p>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Description
-              </label>
-              <textarea
-                value={eventDetails?.description || ""}
-                disabled
-                className="w-full rounded-md border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-                rows="3"
-              ></textarea>
-              <p className="text-xs text-gray-500 mt-1">
-                This field will be automatically filled based on your selection.
-              </p>
+            {/* Description */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Description</label>
+              <textarea value={eventDetails?.description || ""} disabled className="w-full rounded-lg border border-[#666666]/30 px-4 py-2 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100" rows="3"></textarea>
+              <p className="text-xs text-[#666666]/80 mt-1">This field will be automatically filled based on your selection.</p>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Event Date
-              </label>
-              <input
-                type="text"
-                value={formatDate(eventDetails?.event_date) || ""}
-                disabled
-                className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                The event date is set automatically according to the chosen
-                schedule.
-              </p>
+            {/* Event Date */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Event Date</label>
+              <input type="text" value={formatDate(eventDetails?.event_date) || ""} disabled className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100" />
+              <p className="text-xs text-[#666666]/80 mt-1">The event date is set automatically according to the chosen schedule.</p>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Shift
-              </label>
-              <input
-                type="text"
-                value={eventDetails?.shift_name || ""}
-                disabled
-                className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Shift timing is set automatically according to the chosen
-                schedule.
-              </p>
+            {/* Shift */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Shift</label>
+              <input type="text" value={eventDetails?.shift_name || ""} disabled className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100" />
+              <p className="text-xs text-[#666666]/80 mt-1">Shift timing is set automatically according to the chosen schedule.</p>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Ticket Fee
-              </label>
-              <input
-                type="text"
-                value={formatRupiah(eventDetails?.ticket_fee) || ""}
-                disabled
-                className="h-[35px] w-full rounded-md border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Ticket price will be displayed automatically.
-              </p>
+            {/* Ticket Fee */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Ticket Fee</label>
+              <input type="text" value={formatRupiah(eventDetails?.ticket_fee) || ""} disabled className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] bg-gray-100" />
+              <p className="text-xs text-[#666666]/80 mt-1">Ticket price will be displayed automatically.</p>
             </div>
-
-            {/* Full Name Field */}
-            <div className="space-y-1">
-              <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-                placeholder="Enter your full name"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter your full name as stated on your official ID.
-              </p>
+            {/* Full Name */}
+            <div className="mb-4">
+              <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Full Name</label>
+              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]" placeholder="Enter your full name" />
+              <p className="text-xs text-[#666666]/80 mt-1">Enter your full name as stated on your official ID.</p>
             </div>
-
-            {/* Group Members Section */}
+            {/* Group Members */}
             {reservationType === "group" && (
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                    Group Members
-                  </label>
+              <div className="mb-6">
+                <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">Group Members</label>
+                <div className="space-y-3">
                   {members.map((member, index) => (
                     <div key={index} className="flex gap-3 items-center">
-                      <input
-                        type="text"
-                        value={member}
-                        onChange={(e) =>
-                          handleMemberChange(index, e.target.value)
-                        }
-                        className="h-[35px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
-                        placeholder={`Member ${index + 1} name`}
-                      />
+                      <input type="text" value={member} onChange={(e) => handleMemberChange(index, e.target.value)} className="h-[40px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']" placeholder={`Member ${index + 1} name`} />
                       {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removeMember(index)}
-                          className="h-[40px] w-[40px] flex items-center justify-center rounded-2xl border border-[#666666]/30 text-[#666666]"
-                        >
+                        <button type="button" onClick={() => removeMember(index)} className="h-[40px] w-[40px] flex items-center justify-center rounded-2xl border border-[#666666]/30 text-[#666666]">
                           <FaTrash size={16} />
                         </button>
                       )}
                     </div>
                   ))}
                   {members.length < 4 && (
-                    <button
-                      type="button"
-                      onClick={addMember}
-                      className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#666666]/30 text-[#666666]"
-                    >
+                    <button type="button" onClick={addMember} className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#666666]/30 text-[#666666] mt-2">
                       <FaPlus size={12} />
                       <span>Add Member</span>
                     </button>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Enter the names of group members if the reservation is for a
-                    group.
-                  </p>
+                  <p className="text-xs text-[#666666]/80 mt-1">Enter the names of group members if the reservation is for a group.</p>
                 </div>
               </div>
             )}
-
+            {/* Error Message */}
+            {error && <div className="text-red-500 text-center mb-4">{error}</div>}
             {/* Submit Button */}
-            {error && <div className="text-red-500 text-center">{error}</div>}
-            <button
-              type="submit"
-              className={`h-[40px] w-full bg-[#2e3105] rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope transition-colors duration-200 ${
-                isSubmitting
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-[#404615]"
-              }`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "SUBMIT"}
+            <button type="submit" className={`h-[45px] w-full bg-[#2e3105] text-white rounded-3xl text-base font-semibold font-manrope flex items-center justify-center gap-2 transition mt-6 ${isSubmitting ? 'opacity-75' : 'hover:bg-[#404615]'}`} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Reservation"}
             </button>
           </form>
         </div>

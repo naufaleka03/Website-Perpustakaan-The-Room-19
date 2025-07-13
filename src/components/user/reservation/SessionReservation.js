@@ -230,244 +230,251 @@ export default function SessionReservation() {
   };
 
   return (
-    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
+    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
-        <img
-          className="w-full h-[200px] object-cover"
-          src="https://via.placeholder.com/1402x272"
-          alt="Reservation banner"
-        />
-        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-          <div className="max-w-[1200px] mx-auto w-full">
-            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-              RESERVE <br />A SESSION
-            </h1>
+        <div className="w-full h-[360px] relative">
+          <img src="/navigation/session.jpg" alt="Session Reservation Hero" className="w-full h-full object-cover rounded-none" />
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                RESERVE A SESSION
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                Book your study session at The Room 19 Library and enjoy our comfortable reading spaces.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+      <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+          <h2 className="text-xl font-semibold text-[#111010] mb-2 font-manrope">Session Reservation Form</h2>
+          <p className="text-[#666666] mb-6 text-sm">
+            Please fill out the form below to reserve your study session at The Room 19 Library. Choose your preferred time slot and category.
+          </p>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Reservation Type Selector */}
-            <div className="flex justify-center gap-4 mb-4">
-              <button
-                type="button"
-                onClick={() => handleReservationTypeChange("individual")}
-                className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
-                  reservationType === "individual"
-                    ? "bg-[#2e3105] text-white border-[#2e3105]"
-                    : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
-                }`}
-              >
-                <FaUser />
-                Individual
-              </button>
-              <button
-                type="button"
-                onClick={() => handleReservationTypeChange("group")}
-                className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
-                  reservationType === "group"
-                    ? "bg-[#2e3105] text-white border-[#2e3105]"
-                    : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
-                }`}
-              >
-                <FaUsers />
-                Group
-              </button>
+            <div className="mb-6">
+              <div className="flex justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleReservationTypeChange("individual")}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
+                    reservationType === "individual"
+                      ? "bg-[#2e3105] text-white border-[#2e3105]"
+                      : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
+                  }`}
+                >
+                  <FaUser />
+                  Individual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleReservationTypeChange("group")}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-2xl transition-all text-sm font-manrope border ${
+                    reservationType === "group"
+                      ? "bg-[#2e3105] text-white border-[#2e3105]"
+                      : "bg-white text-[#2e3105] border-[#2e3105] hover:bg-[#f3f4e0]"
+                  }`}
+                >
+                  <FaUsers />
+                  Group
+                </button>
+              </div>
+              <p className="text-xs text-[#666666]/80 text-center mt-2">
+                Select the reservation type that suits your needs. If you choose "Group," you can add members.
+              </p>
             </div>
-            <p className="text-xs text-gray-500 text-center mb-4">
-              Select the reservation type that suits your needs. If you choose
-              "Group," you can add members.
-            </p>
 
-            {/* Form Fields */}
-            <div className="flex flex-col gap-4">
-              {/* Category Field */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="category"
-                  className="text-[#666666] text-sm font-medium font-['Poppins']"
-                >
-                  Category
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
-                >
-                  <option value="" className="text-[#666666]/40">
-                    Choose your category
-                  </option>
-                  <option value="Reguler">Reguler</option>
-                  <option value="Student">Student</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Select the category that matches your status.
-                </p>
-              </div>
-
-              {/* Arrival Date Field */}
-              <div className="space-y-1">
-                <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                  Arrival Date
-                </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    onChange={handleDateChange}
-                    className="absolute opacity-0 w-full h-full cursor-pointer"
-                  />
-                  <div className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
-                    <span
-                      className={`text-sm font-normal font-['Poppins'] ${
-                        date ? "text-[#666666]" : "text-[#A9A9A9]"
-                      }`}
-                    >
-                      {date || "Choose your arrival date"}
-                    </span>
-                    <IoCalendarOutline className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl" />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter the date of your visit to the library. Make sure to
-                  select the correct date.
-                </p>
-              </div>
-
-              {/* Shift Field */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="shiftName"
-                  className="text-[#666666] text-sm font-medium font-['Poppins']"
-                >
-                  Shift
-                </label>
-                <div className="relative">
+            {/* Session Details */}
+            <div className="mb-6">
+              <div>
+                {/* Category Field */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="category"
+                    className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1"
+                  >
+                    Category
+                  </label>
                   <select
-                    id="shiftName"
-                    name="shiftName"
-                    value={shiftName}
-                    onChange={(e) => setShiftName(e.target.value)}
-                    className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+                    id="category"
+                    name="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
                   >
                     <option value="" className="text-[#666666]/40">
-                      Choose your shift
+                      Choose your category
                     </option>
-                    <option value="Shift A">
-                      Shift A (10:00 - 14:00)
-                      {shiftAvailability["Shift A"] !== undefined
-                        ? ` - ${shiftAvailability["Shift A"]} slots left`
-                        : ""}
-                    </option>
-                    <option value="Shift B">
-                      Shift B (14:00 - 18:00)
-                      {shiftAvailability["Shift B"] !== undefined
-                        ? ` - ${shiftAvailability["Shift B"]} slots left`
-                        : ""}
-                    </option>
-                    <option value="Shift C">
-                      Shift C (18:00 - 22:00)
-                      {shiftAvailability["Shift C"] !== undefined
-                        ? ` - ${shiftAvailability["Shift C"]} slots left`
-                        : ""}
-                    </option>
+                    <option value="Reguler">Reguler</option>
+                    <option value="Student">Student</option>
                   </select>
-                  <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
+                  <p className="text-xs text-[#666666]/80 mt-1">
+                    Select the category that matches your status.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Choose your visit time slot according to the available
-                  schedule.
-                </p>
-              </div>
 
-              {/* Full Name Field */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="fullName"
-                  className="text-[#666666] text-sm font-medium font-['Poppins']"
-                >
-                  Full Name
-                </label>
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-[35px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
-                  placeholder="Enter your full name"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter your full name as stated on your official ID.
-                </p>
-              </div>
-
-              {/* Group Members Section */}
-              {reservationType === "group" && (
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[#666666] text-sm font-medium font-['Poppins']">
-                      Group Members
-                    </label>
-                    {members.map((member, index) => (
-                      <div key={index} className="flex gap-3 items-center">
-                        <input
-                          type="text"
-                          value={member}
-                          onChange={(e) =>
-                            handleMemberChange(index, e.target.value)
-                          }
-                          className="h-[35px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
-                          placeholder={`Member ${index + 1} name`}
-                        />
-                        {index > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => removeMember(index)}
-                            className="h-[40px] w-[40px] flex items-center justify-center rounded-2xl border border-[#666666]/30 text-[#666666]"
-                          >
-                            <FaTrash size={16} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={addMember}
-                      className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#666666]/30 text-[#666666]"
-                    >
-                      <FaPlus size={12} />
-                      <span>Add Member</span>
-                    </button>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter the names of group members if the reservation is for
-                      a group.
-                    </p>
+                {/* Arrival Date Field */}
+                <div className="mb-4">
+                  <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">
+                    Arrival Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      onChange={handleDateChange}
+                      className="absolute opacity-0 w-full h-full cursor-pointer"
+                    />
+                    <div className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 flex items-center">
+                      <span
+                        className={`text-sm font-normal font-['Poppins'] ${
+                          date ? "text-[#666666]" : "text-[#A9A9A9]"
+                        }`}
+                      >
+                        {date || "Choose your arrival date"}
+                      </span>
+                      <IoCalendarOutline className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl" />
+                    </div>
                   </div>
+                  <p className="text-xs text-[#666666]/80 mt-1">
+                    Enter the date of your visit to the library. Make sure to
+                    select the correct date.
+                  </p>
                 </div>
-              )}
 
-              {error && (
-                <div className="text-red-500 text-sm text-center">{error}</div>
-              )}
+                {/* Shift Field */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="shiftName"
+                    className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1"
+                  >
+                    Shift
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="shiftName"
+                      name="shiftName"
+                      value={shiftName}
+                      onChange={(e) => setShiftName(e.target.value)}
+                      className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666] appearance-none"
+                    >
+                      <option value="" className="text-[#666666]/40">
+                        Choose your shift
+                      </option>
+                      <option value="Shift A">
+                        Shift A (10:00 - 14:00)
+                        {shiftAvailability["Shift A"] !== undefined
+                          ? ` - ${shiftAvailability["Shift A"]} slots left`
+                          : ""}
+                      </option>
+                      <option value="Shift B">
+                        Shift B (14:00 - 18:00)
+                        {shiftAvailability["Shift B"] !== undefined
+                          ? ` - ${shiftAvailability["Shift B"]} slots left`
+                          : ""}
+                      </option>
+                      <option value="Shift C">
+                        Shift C (18:00 - 22:00)
+                        {shiftAvailability["Shift C"] !== undefined
+                          ? ` - ${shiftAvailability["Shift C"]} slots left`
+                          : ""}
+                      </option>
+                    </select>
+                    <GoTriangleDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#666666] text-2xl pointer-events-none" />
+                  </div>
+                  <p className="text-xs text-[#666666]/80 mt-1">
+                    Choose your visit time slot according to the available
+                    schedule.
+                  </p>
+                </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`h-[40px] w-full bg-[#2e3105] rounded-3xl text-white text-sm font-semibold mt-2 font-manrope transition-colors duration-200 ${
-                  isSubmitting
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-[#404615]"
-                }`}
-              >
-                {isSubmitting ? "Submitting..." : "Submit"}
-              </button>
+                {/* Full Name Field */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="fullName"
+                    className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-[40px] w-full rounded-lg border border-[#666666]/30 px-4 text-sm font-normal font-['Poppins'] text-[#666666]"
+                    placeholder="Enter your full name"
+                  />
+                  <p className="text-xs text-[#666666]/80 mt-1">
+                    Enter your full name as stated on your official ID.
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {/* Group Members Section */}
+            {reservationType === "group" && (
+              <div className="mb-6">
+                <label className="block text-[#666666] text-sm font-medium font-['Poppins'] mb-1">
+                  Group Members
+                </label>
+                <div className="space-y-3">
+                  {members.map((member, index) => (
+                    <div key={index} className="flex gap-3 items-center">
+                      <input
+                        type="text"
+                        value={member}
+                        onChange={(e) =>
+                          handleMemberChange(index, e.target.value)
+                        }
+                        className="h-[40px] flex-1 rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] font-normal font-['Poppins']"
+                        placeholder={`Member ${index + 1} name`}
+                      />
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMember(index)}
+                          className="h-[40px] w-[40px] flex items-center justify-center rounded-2xl border border-[#666666]/30 text-[#666666]"
+                        >
+                          <FaTrash size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addMember}
+                    className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-[#666666]/30 text-[#666666] mt-2"
+                  >
+                    <FaPlus size={12} />
+                    <span>Add Member</span>
+                  </button>
+                  <p className="text-xs text-[#666666]/80 mt-1">
+                    Enter the names of group members if the reservation is for a group.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="text-red-500 text-sm text-center mb-4">{error}</div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`h-[45px] w-full bg-[#2e3105] text-white rounded-3xl text-base font-semibold font-manrope flex items-center justify-center gap-2 transition mt-6 ${
+                isSubmitting ? 'opacity-75' : 'hover:bg-[#404615]'
+              }`}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Reservation"}
+            </button>
           </form>
         </div>
       </div>
