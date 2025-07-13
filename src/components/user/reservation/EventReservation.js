@@ -6,6 +6,7 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { FaUser, FaUsers, FaPlus, FaTrash } from "react-icons/fa";
 import { createClient } from "@/app/supabase/client";
 import PaymentSummaryEventsModal from "@/components/payment/payment-summary-events";
+import Image from "next/image";
 
 export default function EventReservation() {
   const router = useRouter();
@@ -21,6 +22,22 @@ export default function EventReservation() {
   const [reservationFormData, setReservationFormData] = useState(null);
   const [userId, setUserId] = useState(null);
   const supabase = createClient();
+
+  // Add carousel state
+  const eventImages = [
+    "/events/event(1).jpg",
+    "/events/event(2).jpg",
+    "/events/event(3).jpg",
+  ];
+  const [currentImage, setCurrentImage] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  const handlePrevImage = () => {
+    setCurrentImage((prev) => (prev === 0 ? eventImages.length - 1 : prev - 1));
+  };
+  const handleNextImage = () => {
+    setCurrentImage((prev) => (prev === eventImages.length - 1 ? 0 : prev + 1));
+  };
 
   useEffect(() => {
     if (!eventId) {
@@ -244,10 +261,52 @@ export default function EventReservation() {
     <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
-        <div className="w-full h-[360px] relative">
-          <img src="/navigation/event.jpg" alt="Event Reservation Hero" className="w-full h-full object-cover rounded-none" />
+        <div className="w-full h-[360px] relative overflow-hidden">
+          {imageError ? (
+            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+              <span className="text-gray-500">Image not found</span>
+            </div>
+          ) : (
+            <Image
+              src={eventImages[currentImage]}
+              alt={`Event Carousel ${currentImage + 1}`}
+              fill
+              className="object-cover rounded-none transition-all duration-500"
+              priority
+              onError={() => {
+                setImageError(true);
+                console.warn('Image not found:', eventImages[currentImage]);
+              }}
+            />
+          )}
           <div className="absolute inset-0 bg-black/50"></div>
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          {/* Carousel Controls */}
+          <button
+            type="button"
+            onClick={() => { setImageError(false); handlePrevImage(); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2e3105] rounded-full p-2 z-10"
+            aria-label="Previous image"
+          >
+            &#8592;
+          </button>
+          <button
+            type="button"
+            onClick={() => { setImageError(false); handleNextImage(); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2e3105] rounded-full p-2 z-10"
+            aria-label="Next image"
+          >
+            &#8594;
+          </button>
+          {/* Dots */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {eventImages.map((_, idx) => (
+              <span
+                key={idx}
+                className={`inline-block w-2 h-2 rounded-full ${idx === currentImage ? 'bg-white' : 'bg-white/50'}`}
+              />
+            ))}
+          </div>
           <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
             <div className="max-w-[1200px] mx-auto w-full">
               <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">

@@ -362,6 +362,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your full name"
                     />
+                    <small className="text-xs text-gray-500">Your legal name as it appears on your ID.</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Position</label>
@@ -372,6 +373,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your staff position"
                     />
+                    <small className="text-xs text-gray-500">Your current job position (e.g., Librarian).</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Gender</label>
@@ -383,6 +385,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
+                    <small className="text-xs text-gray-500">Select your gender.</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Phone</label>
@@ -393,6 +396,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your phone number"
                     />
+                    <small className="text-xs text-gray-500">A valid phone number for contact.</small>
                   </div>
                   <button
                     type="submit"

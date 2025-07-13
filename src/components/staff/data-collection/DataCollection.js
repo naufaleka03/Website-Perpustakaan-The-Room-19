@@ -1533,260 +1533,151 @@ export default function DataCollection() {
           ) : activeTab === "borrowing" ? (
             <>
               <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                        placeholder="Search by name"
-                    value={borrowingBookSearchQuery}
-                        onChange={(e) => handleSearch(e, setBorrowingBookSearchQuery)}
-                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
-                </div>
-                    <div className="relative sort-container">
-                      <button
-                        onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
-                      >
-                        <FaSort />
-                        Sort
-                      </button>
-                      {sortDropdownOpen && (
-                        <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
-                          <button
-                            onClick={() => handleSort("newest")}
-                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                              sortOrder === "newest"
-                                ? "text-[#111010] font-medium"
-                                : "text-[#666666]"
-                            }`}
-                          >
-                            Newest First
-                          </button>
-                          <button
-                            onClick={() => handleSort("oldest")}
-                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                              sortOrder === "oldest"
-                                ? "text-[#111010] font-medium"
-                                : "text-[#666666]"
-                            }`}
-                          >
-                            Oldest First
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={fetchBorrowing}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
-                    style={{ minWidth: 40 }}
-                    aria-label="Refresh"
-                    type="button"
-                    disabled={isRefreshingBorrowing}
-                  >
-                    <FaSyncAlt
-                      className={isRefreshingBorrowing ? "animate-spin" : ""}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by name or book title"
+                      value={borrowingBookSearchQuery}
+                      onChange={(e) => handleSearch(e, setBorrowingBookSearchQuery)}
+                      className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                     />
-                  </button>
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                  </div>
+                  {/* Refresh Button (all tabs) */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={fetchBorrowing}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                      style={{ minWidth: 40 }}
+                      aria-label="Refresh"
+                      type="button"
+                      disabled={isRefreshingBorrowing}
+                    >
+                      <FaSyncAlt className={isRefreshingBorrowing ? "animate-spin" : ""} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-                <div className="bg-white rounded-xl shadow overflow-x-auto">
+                <div className="min-w-[768px] overflow-x-auto">
+                  {getTableData(
+                    borrowingBookData,
+                    borrowingBookCurrentPage,
+                    entriesPerPage,
+                    borrowingBookSearchQuery
+                  ).length === 0 ? (
+                    <div className="w-full text-center py-12 text-[#666666] text-sm font-['Poppins']">
+                      No borrowing record available.
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-[#eaeaea]">
+                          <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">No</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Name</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Book</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Phone Number</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Borrowing Date</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Return Date</th>
+                          <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Status</th>
+                          <th className="last:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getTableData(
+                          borrowingBookData,
+                          borrowingBookCurrentPage,
+                          entriesPerPage,
+                          borrowingBookSearchQuery
+                        ).map((item, index) => {
+                          const status = getBorrowingStatus(item.loan_due, item.status);
+                          return (
+                            <tr
+                              key={item.id}
+                              className="border-b border-[#666666]/10 hover:bg-gray-100 transition-colors duration-200"
+                            >
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                                {(borrowingBookCurrentPage - 1) * entriesPerPage + index + 1}
+                              </td>
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">
+                                {item.full_name}
+                              </td>
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins'] relative">
+                                {item.book_title1}
+                                {item.book_title2 && (
+                                  <span
+                                    title="2 books total"
+                                    className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
+                                  >
+                                    +1
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{item.phone_number}</td>
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_start)}</td>
+                              <td className="py-4 px-4 text-xs text-[#666666] font-['Poppins']">{formatDate(item.loan_due)}</td>
+                              <td className="py-4 px-4 text-xs font-['Poppins'] text-center whitespace-nowrap min-w-[90px]">
+                                <span
+                                  className={`px-2 py-1 rounded-lg text-xs whitespace-nowrap ${
+                                    status === "returned"
+                                      ? "text-green-800 bg-green-100"
+                                      : status === "overdue"
+                                      ? "text-red-800 bg-red-100"
+                                      : "text-yellow-800 bg-yellow-100"
+                                  }`}
+                                >
+                                  {status === "returned"
+                                    ? "Returned"
+                                    : status === "overdue"
+                                    ? "Over Due"
+                                    : "On Going"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-xs font-['Poppins'] text-center relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                                  }}
+                                  className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                                >
+                                  <FaEllipsisV size={14} />
+                                </button>
+                                {activeDropdown === item.id && (
+                                  <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
+                                    <button
+                                      className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-lg"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDetailBorrowing(item.id);
+                                        setActiveDropdown(null);
+                                      }}
+                                    >
+                                      Detail
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
                 {getTableData(
                   borrowingBookData,
                   borrowingBookCurrentPage,
                   entriesPerPage,
                   borrowingBookSearchQuery
-                  ).length > 0 ? (
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-[#eaeaea]">
-                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          No
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Name
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Book
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                            Borrowed Date
-                        </th>
-                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Return Date
-                        </th>
-                          <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Status
-                        </th>
-                          <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {getTableData(
-                        borrowingBookData,
-                        borrowingBookCurrentPage,
-                        entriesPerPage,
-                        borrowingBookSearchQuery
-                        ).map((borrowingBook, index) => (
-                          <tr
-                            key={borrowingBook.id}
-                            className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
-                            onClick={() => setSelectedRow(borrowingBook.id)}
-                            onMouseLeave={() => setSelectedRow(null)}
-                          >
-                            <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {(borrowingBookCurrentPage - 1) * entriesPerPage +
-                                index +
-                                1}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {borrowingBook.full_name}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {borrowingBook.book_title1}
-                              {borrowingBook.book_title2 && (
-                                <span
-                                  title="2 books total"
-                                  className="ml-2 inline-block px-1.5 py-0.5 text-[9px] font-medium text-gray-700 bg-gray-200 rounded-full"
-                                >
-                                  +1
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {formatDate(borrowingBook.loan_start)}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                              {formatDate(borrowingBook.loan_due)}
-                            </td>
-                            <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                              {getBorrowingStatus(borrowingBook.return_date, borrowingBook.status) === "canceled" ? (
-                                <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
-                                  Canceled
-                                </span>
-                              ) : (
-                                <select
-                                  value={getBorrowingStatus(borrowingBook.return_date, borrowingBook.status) || "not_returned"}
-                                  onChange={(e) =>
-                                    handleBorrowingBookStatusChange(
-                                      borrowingBook.id,
-                                      e.target.value
-                                    )
-                                  }
-                                  className={`px-2 py-1 rounded-lg text-xs ${
-                                    getBorrowingStatus(borrowingBook.return_date, borrowingBook.status) === "returned"
-                                    ? "text-green-800 bg-green-100"
-                                      : "text-yellow-800 bg-yellow-100"
-                                }`}
-                              >
-                                  <option
-                                    value="not_returned"
-                                    className="text-yellow-800 bg-white"
-                                  >
-                                    Not Returned
-                                  </option>
-                                  <option
-                                    value="returned"
-                                    className="text-green-800 bg-white"
-                                  >
-                                    Returned
-                                  </option>
-                                </select>
-                              )}
-                            </td>
-                            <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveDropdown(
-                                    activeDropdown === borrowingBook.id
-                                      ? null
-                                      : borrowingBook.id
-                                  );
-                                }}
-                                className="text-[#666666] hover:text-[#111010] dropdown-trigger"
-                              >
-                                <FaEllipsisV size={14} />
-                              </button>
-                              {activeDropdown === borrowingBook.id && (
-                                <div
-                                  className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
-                                  style={{
-                                    top:
-                                      selectedRow === borrowingBook.id
-                                        ? "auto"
-                                        : "100%",
-                                    bottom:
-                                      selectedRow === borrowingBook.id
-                                        ? "100%"
-                                        : "auto",
-                                    transform:
-                                      selectedRow === borrowingBook.id
-                                        ? "translateY(0)"
-                                        : "translateY(-100%)",
-                                  }}
-                                >
-                                  <button
-                                    className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
-                                      getBorrowingStatus(borrowingBook.return_date, borrowingBook.status) === "canceled"
-                                        ? "rounded-lg"
-                                        : "rounded-t-lg"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDetailBorrowing(borrowingBook.id);
-                                      setActiveDropdown(null);
-                                    }}
-                                  >
-                                    Detail
-                                  </button>
-                                  {getBorrowingStatus(borrowingBook.return_date, borrowingBook.status) !== "canceled" && (
-                                    <button
-                                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleCancelClick(borrowingBook.id);
-                                        setActiveDropdown(null);
-                                      }}
-                                    >
-                                      Cancel Booking
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                  ) : (
-                    <div className="flex items-center justify-center h-40">
-                      <p className="text-[#666666] text-sm font-['Poppins']">
-                        No borrowing book data available.
-                      </p>
-                    </div>
+                ).length > 0 && (
+                  <PaginationControls
+                    currentPage={borrowingBookCurrentPage}
+                    setCurrentPage={setBorrowingBookCurrentPage}
+                    data={borrowingBookData}
+                    itemsPerPage={entriesPerPage}
+                  />
                 )}
-              </div>
-              {getTableData(
-                borrowingBookData,
-                borrowingBookCurrentPage,
-                entriesPerPage,
-                borrowingBookSearchQuery
-              ).length > 0 && (
-                <PaginationControls
-                  currentPage={borrowingBookCurrentPage}
-                  setCurrentPage={setBorrowingBookCurrentPage}
-                  data={borrowingBookData}
-                  itemsPerPage={entriesPerPage}
-                />
-              )}
-            </>
-          ) : null}
+              </>
+            ) : null}
         </div>
       </div>
       </div>

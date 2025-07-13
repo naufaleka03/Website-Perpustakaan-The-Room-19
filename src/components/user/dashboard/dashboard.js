@@ -19,9 +19,9 @@ import Image from "next/image";
 
 // Dummy images for the hero carousel
 const heroImages = [
-  "/tr19-dashboard.jpg",
-  "/tr19-dashboard(2).jpg",
-  "/tr19-dashboard(3).jpg",
+  "/dashboard/tr19-dashboard(1).jpg",
+  "/dashboard/tr19-dashboard(2).jpg",
+  "/dashboard/tr19-dashboard(3).jpg",
 ];
 
 // Recent activity data

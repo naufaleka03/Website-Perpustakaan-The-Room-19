@@ -396,6 +396,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your full name"
                     />
+                    <small className="text-xs text-gray-500">Your legal name as it appears on your ID.</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Gender</label>
@@ -407,6 +408,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
+                    <small className="text-xs text-gray-500">Select your gender.</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Phone</label>
@@ -417,6 +419,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your phone number"
                     />
+                    <small className="text-xs text-gray-500">A valid phone number for contact.</small>
                   </div>
                   <div>
                     <label className="text-sm text-[#666666] font-medium">Address</label>
@@ -427,6 +430,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your address"
                     />
+                    <small className="text-xs text-gray-500">Your current residential address.</small>
                   </div>
                   <div className="flex gap-4">
                     <div className="flex-1">
@@ -438,6 +442,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                         className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                         placeholder="Enter your state"
                       />
+                      <small className="text-xs text-gray-500">State or province of residence.</small>
                     </div>
                     <div className="flex-1">
                       <label className="text-sm text-[#666666] font-medium">City</label>
@@ -448,6 +453,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                         className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                         placeholder="Enter your city"
                       />
+                      <small className="text-xs text-gray-500">City where you live.</small>
                     </div>
                   </div>
                   <div>
@@ -456,9 +462,10 @@ export default function Profile({ profilePicture, setProfilePicture }) {
                       type="text"
                       value={personalInfo.postalCode}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, postalCode: e.target.value })}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 mb-2 px-4 text-sm text-[#111010] placeholder-[#444444]"
+                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#111010] placeholder-[#444444]"
                       placeholder="Enter your postal code"
                     />
+                    <small className="text-xs text-gray-500 mb-2">Your area postal/ZIP code.</small>
                   </div>
                   <button
                     type="submit"
