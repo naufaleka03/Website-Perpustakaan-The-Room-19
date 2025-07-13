@@ -102,8 +102,8 @@ export async function PATCH(request, { params }) {
         VALUES ('reduce', ${
           book.book_title + " (copy " + book.copy + ")"
         }, 1, 0, 'Retired (damaged and removed from inventory)', NOW(), ${
-        handle_by || null
-      })
+          handle_by || null
+        })
       `;
       // After retiring, update the main book stock
       await updateBookStock(book.book_id);
@@ -117,13 +117,23 @@ export async function PATCH(request, { params }) {
         { status: 400 }
       );
     }
-
-    const result = await sql`
-      UPDATE manage_books
-      SET condition = ${condition}, comment = ${comment || null}
-      WHERE id = ${id}
-      RETURNING *
-    `;
+    let updateQuery;
+    if (handle_by) {
+      updateQuery = sql`
+        UPDATE manage_books
+        SET condition = ${condition}, comment = ${comment || null}, handle_by = ${handle_by}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    } else {
+      updateQuery = sql`
+        UPDATE manage_books
+        SET condition = ${condition}, comment = ${comment || null}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+    }
+    const result = await updateQuery;
 
     if (result.length === 0) {
       return NextResponse.json(

@@ -444,8 +444,8 @@ const DetailStaff = () => {
                     ? isExpanded
                       ? book.description
                       : book.description.length > 200
-                      ? book.description.slice(0, 200) + "..."
-                      : book.description
+                        ? book.description.slice(0, 200) + "..."
+                        : book.description
                     : "No description available for this book."}
                 </p>
                 {book.description && book.description.length > 200 && (

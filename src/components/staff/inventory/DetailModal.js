@@ -74,6 +74,14 @@ const DetailModal = ({ isOpen, onClose, book }) => {
         </div>
         <div className="mb-4">
           <label className="text-[#666666] text-sm font-medium font-['Poppins']">
+            Handle By:
+          </label>
+          <p className="text-sm text-[#666666] font-normal font-['Poppins']">
+            {book.staff_name ? book.staff_name : book.handle_by || "-"}
+          </p>
+        </div>
+        <div className="mb-4">
+          <label className="text-[#666666] text-sm font-medium font-['Poppins']">
             Comment:
           </label>
           <p className="text-sm text-[#666666] font-normal font-['Poppins']">

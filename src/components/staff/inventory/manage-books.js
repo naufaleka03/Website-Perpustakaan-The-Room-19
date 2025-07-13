@@ -213,10 +213,16 @@ const ManageBooks = () => {
   const handleUpdateCopies = async ({ condition, comment }) => {
     if (!selectedBookAdjust) return;
     try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const staffId = session?.user?.id;
+      if (!staffId) throw new Error("Staff ID not found in session");
       const res = await fetch(`/api/manage-books/${selectedBookAdjust.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ condition, comment }),
+        body: JSON.stringify({ condition, comment, handle_by: staffId }),
       });
       const data = await res.json();
       if (data.success) {

@@ -36,7 +36,7 @@ export async function GET(request) {
     if (book_id) {
       // Return all copies for this book
       copies = await sql`
-        SELECT id, copy, condition, status, comment, updated_at, is_retired
+        SELECT id, copy, condition, status, comment, updated_at, is_retired, handle_by
         FROM manage_books
         WHERE book_id = ${book_id}
         ORDER BY copy ASC
@@ -44,9 +44,10 @@ export async function GET(request) {
     } else {
       // Return all copies for all books
       copies = await sql`
-        SELECT mb.id, mb.book_id, mb.copy, mb.condition, mb.status, mb.comment, mb.updated_at, mb.is_retired, b.book_title
+        SELECT mb.id, mb.book_id, mb.copy, mb.condition, mb.status, mb.comment, mb.updated_at, mb.is_retired, mb.handle_by, b.book_title, s.name as staff_name
         FROM manage_books mb
         JOIN books b ON mb.book_id = b.id
+        LEFT JOIN staffs s ON mb.handle_by = s.id
         ORDER BY b.book_title ASC, mb.copy ASC
       `;
     }
@@ -112,8 +113,8 @@ export async function POST(request) {
         sql`
           INSERT INTO manage_books (book_id, copy, condition, status)
           VALUES (${book_id}, ${nextCopy + i}, ${
-          condition || "Not Specified"
-        }, 'Available')
+            condition || "Not Specified"
+          }, 'Available')
           RETURNING *
         `
       );

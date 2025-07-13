@@ -21,6 +21,8 @@ export async function GET() {
 
 // POST: Submit session reservation
 export async function POST(request) {
+  const sql = postgres(process.env.POSTGRES_URL, { ssl: "require" });
+
   try {
     const body = await request.json();
     console.log("Received form data:", body);
@@ -54,22 +56,7 @@ export async function POST(request) {
       throw new Error("At least one group member is required");
     }
 
-    // Check existing reservations for the same date and shift
-    const existingReservations = await sql`
-      SELECT COUNT(*) as count 
-      FROM sessions 
-      WHERE arrival_date = ${dbFormData.arrival_date} 
-      AND shift_name = ${dbFormData.shift_name}
-      AND status != 'canceled'
-    `;
-
-    if (existingReservations[0].count >= 2) {
-      throw new Error(
-        "Sorry, this shift is already fully booked. Please choose another shift or date."
-      );
-    }
-
-    // Fetch shift details
+    // Fetch shift details first
     const [shift] = await sql`
       SELECT shift_start, shift_end FROM shifts
       WHERE shift_name = ${dbFormData.shift_name}
@@ -77,48 +64,70 @@ export async function POST(request) {
 
     if (!shift) throw new Error("Invalid shift selected");
 
-    console.log("Inserting data:", dbFormData);
+    // SOLUSI RACE CONDITION: Gunakan sql.begin() untuk transaction
+    const result = await sql.begin(async (sql) => {
+      // Lock existing reservations untuk mencegah race condition
+      const existingReservations = await sql`
+        SELECT id
+        FROM sessions 
+        WHERE arrival_date = ${dbFormData.arrival_date} 
+        AND shift_name = ${dbFormData.shift_name}
+        AND status != 'canceled'
+        FOR UPDATE
+      `;
 
-    // Insert reservation with payment details
-    const result = await sql`
-      INSERT INTO sessions (
-        user_id,
-        category, 
-        arrival_date,
-        shift_name,
-        shift_start,
-        shift_end,
-        full_name,
-        group_member1,
-        group_member2,
-        group_member3,
-        group_member4,
-        status,
-        payment_id,
-        payment_status,
-        payment_method,
-        amount
-      )
-      VALUES (
-        ${dbFormData.user_id},
-        ${dbFormData.category},
-        ${dbFormData.arrival_date},
-        ${dbFormData.shift_name},
-        ${shift.shift_start},
-        ${shift.shift_end},
-        ${dbFormData.full_name},
-        ${dbFormData.members[0] || null},
-        ${dbFormData.members[1] || null},
-        ${dbFormData.members[2] || null},
-        ${dbFormData.members[3] || null},
-        ${"not_attended"},
-        ${dbFormData.payment_id},
-        ${dbFormData.payment_status},
-        ${dbFormData.payment_method},
-        ${dbFormData.amount}
-      )
-      RETURNING *
-    `;
+      // Hitung jumlah reservasi yang sudah ada
+      const currentCount = existingReservations.length;
+
+      if (currentCount >= 2) {
+        throw new Error(
+          "Sorry, this shift is already fully booked. Please choose another shift or date."
+        );
+      }
+
+      // Insert reservation dengan confidence tidak ada race condition
+      const insertResult = await sql`
+        INSERT INTO sessions (
+          user_id,
+          category, 
+          arrival_date,
+          shift_name,
+          shift_start,
+          shift_end,
+          full_name,
+          group_member1,
+          group_member2,
+          group_member3,
+          group_member4,
+          status,
+          payment_id,
+          payment_status,
+          payment_method,
+          amount
+        )
+        VALUES (
+          ${dbFormData.user_id},
+          ${dbFormData.category},
+          ${dbFormData.arrival_date},
+          ${dbFormData.shift_name},
+          ${shift.shift_start},
+          ${shift.shift_end},
+          ${dbFormData.full_name},
+          ${dbFormData.members[0] || null},
+          ${dbFormData.members[1] || null},
+          ${dbFormData.members[2] || null},
+          ${dbFormData.members[3] || null},
+          ${"not_attended"},
+          ${dbFormData.payment_id},
+          ${dbFormData.payment_status},
+          ${dbFormData.payment_method},
+          ${dbFormData.amount}
+        )
+        RETURNING *
+      `;
+
+      return insertResult[0];
+    });
 
     // Revalidate API availability endpoint so slot langsung update
     revalidatePath("/api/sessions/check-availability");
@@ -127,7 +136,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: true,
-        data: result[0],
+        data: result,
       },
       { status: 201 }
     );

@@ -18,12 +18,11 @@ const links = [
     icon: GoHomeFill,
   },
   {
-    name: 'Reservation',
-    href: '/owner/dashboard/reservation',
+    name: 'Inventory',
+    href: '/owner/dashboard/inventory',
     icon: FaCalendarCheck,
     subLinks: [
-      { name: 'Sessions', href: '/owner/dashboard/reservation/session-reservation' },
-      { name: 'Events', href: '/owner/dashboard/reservation/event-list' }
+      { name: 'Inventory Monitoring', href: '/owner/dashboard/inventory/inventory-monitoring' }
     ]
   },
   {

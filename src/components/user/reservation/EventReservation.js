@@ -65,6 +65,15 @@ export default function EventReservation() {
       } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        // Ambil nama user dari tabel visitors
+        const { data: visitorData, error } = await supabase
+          .from("visitors")
+          .select("name")
+          .eq("id", user.id)
+          .single();
+        if (visitorData && visitorData.name) {
+          setFullName(visitorData.name);
+        }
       }
     };
 
