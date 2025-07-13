@@ -11,10 +11,10 @@ import CancelConfirmationModal from "./CancelConfirmationModal";
 import { useRouter } from "next/navigation";
 import DetailSessionModal from "./DetailSessionModal";
 import DetailMembershipModal from "./DetailMembershipModal";
-import DetailBorrowingModal from './DetailBorrowingModal';
-import RevokeConfirmationModal from './RevokeConfirmationModal';
+import DetailBorrowingModal from "./DetailBorrowingModal";
+import RevokeConfirmationModal from "./RevokeConfirmationModal";
 import DetailEventModal from "./DetailEventModal";
-import { createClient } from '@/app/supabase/client';
+import { createClient } from "@/app/supabase/client";
 const supabase = createClient();
 
 const formatDate = (dateString) => {
@@ -215,7 +215,7 @@ export default function DataCollection() {
         setSessionStatuses(
           sortedSessionsData.map((item) => ({
             id: item.id,
-            status: item.status || "not attended",
+            status: item.status || "not_attended",
             isCanceled: item.status === "canceled",
           }))
         );
@@ -234,7 +234,7 @@ export default function DataCollection() {
         setEventStatuses(
           sortedEventReservationsData.map((item) => ({
             id: item.id,
-            status: item.status || "not attended",
+            status: item.status || "not_attended",
             isCanceled: item.status === "canceled",
           }))
         );
@@ -620,7 +620,7 @@ export default function DataCollection() {
       setSessionStatuses(
         sortedSessionsData.map((item) => ({
           id: item.id,
-          status: item.status || "not attended",
+          status: item.status || "not_attended",
           isCanceled: item.status === "canceled",
         }))
       );
@@ -643,7 +643,7 @@ export default function DataCollection() {
       setEventStatuses(
         sortedEventReservationsData.map((item) => ({
           id: item.id,
-          status: item.status || "not attended",
+          status: item.status || "not_attended",
           isCanceled: item.status === "canceled",
         }))
       );
@@ -692,7 +692,9 @@ export default function DataCollection() {
   };
   useEffect(() => {
     const fetchStaffId = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) setStaffId(session.user.id);
     };
     fetchStaffId();
@@ -923,7 +925,7 @@ export default function DataCollection() {
                               value={
                                 sessionStatuses.find(
                                   (status) => status.id === session.id
-                                )?.status || "not attended"
+                                )?.status || "not_attended"
                               }
                               onChange={(e) =>
                                 handleSessionStatusChange(
@@ -940,7 +942,7 @@ export default function DataCollection() {
                               }`}
                             >
                               <option
-                                value="not attended"
+                                value="not_attended"
                                 className="text-yellow-800 bg-white"
                               >
                                 Not Attended
@@ -1400,27 +1402,41 @@ export default function DataCollection() {
                           {formatDate(item.created_at)}
                         </td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          <span className={`px-2 py-1 rounded-lg text-xs ${
-                            item.status === 'request' ? 'bg-yellow-100 text-yellow-800' :
-                            item.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                            item.status === 'verified' ? 'bg-green-100 text-green-800' :
-                            item.status === 'revision' ? 'bg-orange-100 text-orange-800' :
-                            item.status === 'revoked' ? 'bg-red-100 text-red-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {item.status === 'revoked' ? 'Revoked' :
-                             item.status === 'request' ? 'Pending Review' :
-                             item.status === 'processing' ? 'Under Review' :
-                             item.status === 'verified' ? 'Approved' :
-                             item.status === 'revision' ? 'Needs Revision' :
-                             'Rejected'}
+                          <span
+                            className={`px-2 py-1 rounded-lg text-xs ${
+                              item.status === "request"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : item.status === "processing"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : item.status === "verified"
+                                    ? "bg-green-100 text-green-800"
+                                    : item.status === "revision"
+                                      ? "bg-orange-100 text-orange-800"
+                                      : item.status === "revoked"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {item.status === "revoked"
+                              ? "Revoked"
+                              : item.status === "request"
+                                ? "Pending Review"
+                                : item.status === "processing"
+                                  ? "Under Review"
+                                  : item.status === "verified"
+                                    ? "Approved"
+                                    : item.status === "revision"
+                                      ? "Needs Revision"
+                                      : "Rejected"}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                              setActiveDropdown(
+                                activeDropdown === item.id ? null : item.id
+                              );
                             }}
                             className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
                           >
@@ -1438,7 +1454,7 @@ export default function DataCollection() {
                               >
                                 Detail
                               </button>
-                              {item.status === 'verified' && (
+                              {item.status === "verified" && (
                                 <button
                                   className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
                                   onClick={(e) => {
@@ -1712,12 +1728,16 @@ export default function DataCollection() {
           onClose={() => setShowRevokeModal(false)}
           onConfirm={async (id, reason) => {
             await fetch(`/api/memberships/${selectedMembershipId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'revoked', notes: reason, staff_id: staffId }),
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                status: "revoked",
+                notes: reason,
+                staff_id: staffId,
+              }),
             });
             setShowRevokeModal(false);
-            setRevokeReason('');
+            setRevokeReason("");
             fetchMembershipsTab();
           }}
           selectedBookingId={selectedMembershipId}
