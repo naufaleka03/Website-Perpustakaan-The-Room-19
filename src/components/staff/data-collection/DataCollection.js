@@ -701,770 +701,775 @@ export default function DataCollection() {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative mb-4">
-        <div className="bg-gradient-to-l from-[#4d4d4d] to-black w-full h-[200px] flex items-center">
-          <div className="max-w-[1440px] w-full mx-auto px-4 lg:px-8">
-            <h1
-              className={`text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope`}
-            >
-              DATA <br />
-              COLLECTION
-            </h1>
+      <div className="relative mb-8 mt-0">
+        <div className="w-full h-[300px] relative">
+          <img src="/navigation/monitoring.jpg" alt="Data Collection Hero" className="w-full h-full object-cover rounded-none" />
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                DATA COLLECTION
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                Manage and review all session, event, membership, and borrowing records for The Room 19 Library.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
       <div className="max-w-[1440px] w-full mx-auto px-8 lg:px-12 pb-16">
-        {/* Tab Navigation */}
-        <div className="flex border-b border-[#666666]/10 mb-8 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("session")}
-            className={`px-6 py-3 text-sm transition-all relative ${
-              activeTab === "session"
-                ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
-                : "text-[#666666]"
-            }`}
-          >
-            Session Reservation
-          </button>
-          <button
-            onClick={() => setActiveTab("event")}
-            className={`px-6 py-3 text-sm transition-all relative ${
-              activeTab === "event"
-                ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
-                : "text-[#666666]"
-            }`}
-          >
-            Event Reservation
-          </button>
-          <button
-            onClick={() => setActiveTab("membership")}
-            className={`px-6 py-3 text-sm transition-all relative ${
-              activeTab === "membership"
-                ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
-                : "text-[#666666]"
-            }`}
-          >
-            Membership
-          </button>
-          <button
-            onClick={() => setActiveTab("borrowing")}
-            className={`pl-6 py-3 text-sm transition-all relative ${
-              activeTab === "borrowing"
-                ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
-                : "text-[#666666]"
-            }`}
-          >
-            Borrowing Book
-          </button>
-        </div>
+          {/* Tab Navigation */}
+          <div className="flex border-b border-[#666666]/10 mb-8 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("session")}
+              className={`px-6 py-3 text-sm transition-all relative ${
+                activeTab === "session"
+                  ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
+                  : "text-[#666666]"
+              }`}
+            >
+              Session Reservation
+            </button>
+            <button
+              onClick={() => setActiveTab("event")}
+              className={`px-6 py-3 text-sm transition-all relative ${
+                activeTab === "event"
+                  ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
+                  : "text-[#666666]"
+              }`}
+            >
+              Event Reservation
+            </button>
+            <button
+              onClick={() => setActiveTab("membership")}
+              className={`px-6 py-3 text-sm transition-all relative ${
+                activeTab === "membership"
+                  ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
+                  : "text-[#666666]"
+              }`}
+            >
+              Membership
+            </button>
+            <button
+              onClick={() => setActiveTab("borrowing")}
+              className={`pl-6 py-3 text-sm transition-all relative ${
+                activeTab === "borrowing"
+                  ? "text-[#111010] font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#111010]"
+                  : "text-[#666666]"
+              }`}
+            >
+              Borrowing Book
+            </button>
+          </div>
 
-        {/* Tables Section */}
-        <div className="w-full overflow-x-auto">
-          {activeTab === "session" && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search by name"
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e, setSearchQuery)}
-                      className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                    />
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+          {/* Tables Section */}
+          <div className="w-full overflow-x-auto">
+            {activeTab === "session" && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search by name"
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e, setSearchQuery)}
+                        className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                      />
+                      <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                    </div>
+                    <div className="relative sort-container">
+                      <button
+                        onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
+                      >
+                        <FaSort />
+                        Sort
+                      </button>
+                      {sortDropdownOpen && (
+                        <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
+                          <button
+                            onClick={() => handleSort("newest")}
+                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                              sortOrder === "newest"
+                                ? "text-[#111010] font-medium"
+                                : "text-[#666666]"
+                            }`}
+                          >
+                            Newest First
+                          </button>
+                          <button
+                            onClick={() => handleSort("oldest")}
+                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                              sortOrder === "oldest"
+                                ? "text-[#111010] font-medium"
+                                : "text-[#666666]"
+                            }`}
+                          >
+                            Oldest First
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="relative sort-container">
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
+                      onClick={fetchSessions}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                      style={{ minWidth: 40 }}
+                      aria-label="Refresh"
+                      type="button"
+                      disabled={isRefreshingSession}
                     >
-                      <FaSort />
-                      Sort
+                      <FaSyncAlt
+                        className={isRefreshingSession ? "animate-spin" : ""}
+                      />
                     </button>
-                    {sortDropdownOpen && (
-                      <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
-                        <button
-                          onClick={() => handleSort("newest")}
-                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                            sortOrder === "newest"
-                              ? "text-[#111010] font-medium"
-                              : "text-[#666666]"
-                          }`}
-                        >
-                          Newest First
-                        </button>
-                        <button
-                          onClick={() => handleSort("oldest")}
-                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                            sortOrder === "oldest"
-                              ? "text-[#111010] font-medium"
-                              : "text-[#666666]"
-                          }`}
-                        >
-                          Oldest First
-                        </button>
-                      </div>
+                    {activeTab === "session" && (
+                      <button
+                        onClick={() =>
+                          router.push(
+                            "/staff/dashboard/data-collection/create-session"
+                          )
+                        }
+                        className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins'] transition-colors duration-200 hover:bg-[#232323]"
+                      >
+                        <FaPlus size={12} />
+                        Create
+                      </button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={fetchSessions}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
-                    style={{ minWidth: 40 }}
-                    aria-label="Refresh"
-                    type="button"
-                    disabled={isRefreshingSession}
-                  >
-                    <FaSyncAlt
-                      className={isRefreshingSession ? "animate-spin" : ""}
-                    />
-                  </button>
-                  {activeTab === "session" && (
-                    <button
-                      onClick={() =>
-                        router.push(
-                          "/staff/dashboard/data-collection/create-session"
-                        )
-                      }
-                      className="flex items-center gap-2 px-4 py-2 bg-[#111010] text-white rounded-xl text-xs font-['Poppins'] transition-colors duration-200 hover:bg-[#232323]"
-                    >
-                      <FaPlus size={12} />
-                      Create
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="min-w-[768px] overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        No
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Date
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Shift
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Category
-                      </th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Status
-                      </th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getTableData(
-                      sessionData,
-                      sessionCurrentPage,
-                      entriesPerPage,
-                      searchQuery
-                    ).map((session, index) => (
-                      <tr
-                        key={session.id}
-                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
-                        onClick={() => setSelectedRow(session.id)}
-                        onMouseLeave={() => setSelectedRow(null)}
-                      >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {(sessionCurrentPage - 1) * entriesPerPage +
-                            index +
-                            1}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {session.full_name}
-                          {(() => {
-                            const groupMembers = [
-                              session.group_member1,
-                              session.group_member2,
-                              session.group_member3,
-                              session.group_member4,
-                            ];
-                            const groupCount = groupMembers.filter(
-                              (m) => m && m.trim()
-                            ).length;
-                            return groupCount > 0 ? (
-                              <span className="ml-2 inline-block px-1.5 py-0.5 text-[10px] font-medium text-gray-700 bg-gray-200 rounded-full align-middle">
-                                +{groupCount}
+                <div className="min-w-[768px] overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#eaeaea]">
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          No
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Date
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Shift
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Category
+                        </th>
+                        <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getTableData(
+                        sessionData,
+                        sessionCurrentPage,
+                        entriesPerPage,
+                        searchQuery
+                      ).map((session, index) => (
+                        <tr
+                          key={session.id}
+                          className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                          onClick={() => setSelectedRow(session.id)}
+                          onMouseLeave={() => setSelectedRow(null)}
+                        >
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {(sessionCurrentPage - 1) * entriesPerPage +
+                              index +
+                              1}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {session.full_name}
+                            {(() => {
+                              const groupMembers = [
+                                session.group_member1,
+                                session.group_member2,
+                                session.group_member3,
+                                session.group_member4,
+                              ];
+                              const groupCount = groupMembers.filter(
+                                (m) => m && m.trim()
+                              ).length;
+                              return groupCount > 0 ? (
+                                <span className="ml-2 inline-block px-1.5 py-0.5 text-[10px] font-medium text-gray-700 bg-gray-200 rounded-full align-middle">
+                                  +{groupCount}
+                                </span>
+                              ) : null;
+                            })()}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {formatDate(session.arrival_date)}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {session.shift_name}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {session.category}
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
+                            {sessionStatuses.find(
+                              (status) => status.id === session.id
+                            )?.status === "canceled" ? (
+                              <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
+                                Canceled
                               </span>
-                            ) : null;
-                          })()}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {formatDate(session.arrival_date)}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {session.shift_name}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {session.category}
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          {sessionStatuses.find(
-                            (status) => status.id === session.id
-                          )?.status === "canceled" ? (
-                            <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
-                              Canceled
-                            </span>
-                          ) : (
-                            <select
-                              value={
-                                sessionStatuses.find(
-                                  (status) => status.id === session.id
-                                )?.status || "not attended"
-                              }
-                              onChange={(e) =>
-                                handleSessionStatusChange(
-                                  session.id,
-                                  e.target.value
-                                )
-                              }
-                              className={`px-2 py-1 rounded-lg text-xs ${
-                                sessionStatuses.find(
-                                  (status) => status.id === session.id
-                                )?.status === "attended"
-                                  ? "text-green-800 bg-green-100"
-                                  : "text-yellow-800 bg-yellow-100"
-                              }`}
-                            >
-                              <option
-                                value="not attended"
-                                className="text-yellow-800 bg-white"
-                              >
-                                Not Attended
-                              </option>
-                              <option
-                                value="attended"
-                                className="text-green-800 bg-white"
-                              >
-                                Attended
-                              </option>
-                            </select>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDropdown(
-                                activeDropdown === session.id
-                                  ? null
-                                  : session.id
-                              );
-                            }}
-                            className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
-                          >
-                            <FaEllipsisV className="text-[#666666]" />
-                          </button>
-
-                          {activeDropdown === session.id && (
-                            <div
-                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
-                              style={{
-                                top:
-                                  selectedRow === session.id ? "auto" : "100%",
-                                bottom:
-                                  selectedRow === session.id ? "100%" : "auto",
-                                transform:
-                                  selectedRow === session.id
-                                    ? "translateY(0)"
-                                    : "translateY(-100%)",
-                              }}
-                            >
-                              <button
-                                className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
+                            ) : (
+                              <select
+                                value={
                                   sessionStatuses.find(
                                     (status) => status.id === session.id
-                                  )?.status === "canceled"
-                                    ? "rounded-lg"
-                                    : "rounded-t-lg"
+                                  )?.status || "not attended"
+                                }
+                                onChange={(e) =>
+                                  handleSessionStatusChange(
+                                    session.id,
+                                    e.target.value
+                                  )
+                                }
+                                className={`px-2 py-1 rounded-lg text-xs ${
+                                  sessionStatuses.find(
+                                    (status) => status.id === session.id
+                                  )?.status === "attended"
+                                    ? "text-green-800 bg-green-100"
+                                    : "text-yellow-800 bg-yellow-100"
                                 }`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDetail(session.id);
-                                  setActiveDropdown(null);
+                              >
+                                <option
+                                  value="not attended"
+                                  className="text-yellow-800 bg-white"
+                                >
+                                  Not Attended
+                                </option>
+                                <option
+                                  value="attended"
+                                  className="text-green-800 bg-white"
+                                >
+                                  Attended
+                                </option>
+                              </select>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdown(
+                                  activeDropdown === session.id
+                                    ? null
+                                    : session.id
+                                );
+                              }}
+                              className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
+                            >
+                              <FaEllipsisV className="text-[#666666]" />
+                            </button>
+
+                            {activeDropdown === session.id && (
+                              <div
+                                className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
+                                style={{
+                                  top:
+                                    selectedRow === session.id ? "auto" : "100%",
+                                  bottom:
+                                    selectedRow === session.id ? "100%" : "auto",
+                                  transform:
+                                    selectedRow === session.id
+                                      ? "translateY(0)"
+                                      : "translateY(-100%)",
                                 }}
                               >
-                                Detail
-                              </button>
-                              {sessionStatuses.find(
-                                (status) => status.id === session.id
-                              )?.status !== "canceled" && (
                                 <button
-                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                  className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
+                                    sessionStatuses.find(
+                                      (status) => status.id === session.id
+                                    )?.status === "canceled"
+                                      ? "rounded-lg"
+                                      : "rounded-t-lg"
+                                  }`}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleCancelClick(session.id);
+                                    handleDetail(session.id);
                                     setActiveDropdown(null);
                                   }}
                                 >
-                                  Cancel Booking
+                                  Detail
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationControls
-                currentPage={sessionCurrentPage}
-                setCurrentPage={setSessionCurrentPage}
-                data={sessionData}
-                itemsPerPage={entriesPerPage}
-              />
-            </>
-          )}
+                                {sessionStatuses.find(
+                                  (status) => status.id === session.id
+                                )?.status !== "canceled" && (
+                                  <button
+                                    className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCancelClick(session.id);
+                                      setActiveDropdown(null);
+                                    }}
+                                  >
+                                    Cancel Booking
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginationControls
+                  currentPage={sessionCurrentPage}
+                  setCurrentPage={setSessionCurrentPage}
+                  data={sessionData}
+                  itemsPerPage={entriesPerPage}
+                />
+              </>
+            )}
 
-          {activeTab === "event" && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
+            {activeTab === "event" && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search by name"
+                        value={eventSearchQuery}
+                        onChange={(e) => handleSearch(e, setEventSearchQuery)}
+                        className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
+                      />
+                      <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+                    </div>
+                    <div className="relative sort-container">
+                      <button
+                        onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
+                      >
+                        <FaSort />
+                        Sort
+                      </button>
+                      {sortDropdownOpen && (
+                        <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
+                          <button
+                            onClick={() => handleSort("newest")}
+                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                              sortOrder === "newest"
+                                ? "text-[#111010] font-medium"
+                                : "text-[#666666]"
+                            }`}
+                          >
+                            Newest First
+                          </button>
+                          <button
+                            onClick={() => handleSort("oldest")}
+                            className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
+                              sortOrder === "oldest"
+                                ? "text-[#111010] font-medium"
+                                : "text-[#666666]"
+                            }`}
+                          >
+                            Oldest First
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={fetchEvents}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                      style={{ minWidth: 40 }}
+                      aria-label="Refresh"
+                      type="button"
+                      disabled={isRefreshingEvent}
+                    >
+                      <FaSyncAlt
+                        className={isRefreshingEvent ? "animate-spin" : ""}
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div className="min-w-[768px] overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#eaeaea]">
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          No
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Event
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Date
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Shift
+                        </th>
+                        <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getTableData(
+                        eventData,
+                        eventCurrentPage,
+                        entriesPerPage,
+                        eventSearchQuery
+                      ).map((event, index) => (
+                        <tr
+                          key={event.id}
+                          className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
+                          onClick={() => setSelectedRow(event.id)}
+                          onMouseLeave={() => setSelectedRow(null)}
+                        >
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {(eventCurrentPage - 1) * entriesPerPage + index + 1}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {event.full_name}
+                            {(() => {
+                              const groupMembers = [
+                                event.group_member1,
+                                event.group_member2,
+                                event.group_member3,
+                                event.group_member4,
+                              ];
+                              const groupCount = groupMembers.filter(
+                                (m) => m && m.trim()
+                              ).length;
+                              return groupCount > 0 ? (
+                                <span className="ml-2 inline-block px-1.5 py-0.5 text-[10px] font-medium text-gray-700 bg-gray-200 rounded-full align-middle">
+                                  +{groupCount}
+                                </span>
+                              ) : null;
+                            })()}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {event.event_is_deleted ? (
+                              <span className="line-through">
+                                {event.event_name}
+                              </span>
+                            ) : (
+                              event.event_name
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {formatDate(event.event_date)}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {event.shift_name}
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
+                            {eventStatuses.find(
+                              (status) => status.id === event.id
+                            )?.status === "canceled" ? (
+                              <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
+                                Canceled
+                              </span>
+                            ) : (
+                              <select
+                                value={
+                                  eventStatuses.find(
+                                    (status) => status.id === event.id
+                                  )?.status || "not_attended"
+                                }
+                                onChange={(e) =>
+                                  handleEventStatusChange(
+                                    event.id,
+                                    e.target.value
+                                  )
+                                }
+                                className={`px-2 py-1 rounded-lg text-xs ${
+                                  eventStatuses.find(
+                                    (status) => status.id === event.id
+                                  )?.status === "attended"
+                                    ? "text-green-800 bg-green-100"
+                                    : "text-yellow-800 bg-yellow-100"
+                                }`}
+                              >
+                                <option
+                                  value="not_attended"
+                                  className="text-yellow-800 bg-white"
+                                >
+                                  Not Attended
+                                </option>
+                                <option
+                                  value="attended"
+                                  className="text-green-800 bg-white"
+                                >
+                                  Attended
+                                </option>
+                              </select>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdown(
+                                  activeDropdown === event.id ? null : event.id
+                                );
+                              }}
+                              className="text-[#666666] hover:text-[#111010] dropdown-trigger"
+                            >
+                              <FaEllipsisV size={14} />
+                            </button>
+                            {activeDropdown === event.id && (
+                              <div
+                                className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
+                                style={{
+                                  top: selectedRow === event.id ? "auto" : "100%",
+                                  bottom:
+                                    selectedRow === event.id ? "100%" : "auto",
+                                  transform:
+                                    selectedRow === event.id
+                                      ? "translateY(0)"
+                                      : "translateY(-100%)",
+                                }}
+                              >
+                                <button
+                                  className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
+                                    eventStatuses.find(
+                                      (status) => status.id === event.id
+                                    )?.status === "canceled"
+                                      ? "rounded-lg"
+                                      : "rounded-t-lg"
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedSessionId(event.id);
+                                    setIsDetailModalOpen(true);
+                                    setActiveDropdown(null);
+                                  }}
+                                >
+                                  Detail
+                                </button>
+                                {eventStatuses.find(
+                                  (status) => status.id === event.id
+                                )?.status !== "canceled" && (
+                                  <button
+                                    className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCancelClick(event.id);
+                                      setActiveDropdown(null);
+                                    }}
+                                  >
+                                    Cancel Booking
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <PaginationControls
+                  currentPage={eventCurrentPage}
+                  setCurrentPage={setEventCurrentPage}
+                  data={eventData}
+                  itemsPerPage={entriesPerPage}
+                />
+              </>
+            )}
+
+            {activeTab === "membership" && (
+              <>
+                {/* Statistics Cards */}
+                <div className="flex justify-center gap-4 mb-6">
+                  <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                    <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
+                      Total Member
+                    </p>
+                    <p className="text-sm font-medium text-[#111010] font-['Poppins']">
+                      {membershipStats.totalMembers}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                    <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
+                      Total Request
+                    </p>
+                    <p className="text-sm font-medium text-[#111010] font-['Poppins']">
+                      {membershipStats.totalRequests}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
+                    <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
+                      Total Revision
+                    </p>
+                    <p className="text-sm font-medium text-[#111010] font-['Poppins']">
+                      {membershipStats.totalRevisions}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search and Create Section */}
+                <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                   <div className="relative">
                     <input
                       type="text"
                       placeholder="Search by name"
-                      value={eventSearchQuery}
-                      onChange={(e) => handleSearch(e, setEventSearchQuery)}
+                      value={membershipSearchQuery}
+                      onChange={(e) => handleSearch(e, setMembershipSearchQuery)}
                       className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
                     />
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
                   </div>
-                  <div className="relative sort-container">
+                  {/* Refresh Button (all tabs) */}
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#666666] transition-colors duration-200 hover:bg-gray-100 hover:text-[#111010]"
+                      onClick={fetchMembershipsTab}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
+                      style={{ minWidth: 40 }}
+                      aria-label="Refresh"
+                      type="button"
+                      disabled={isRefreshingMembership}
                     >
-                      <FaSort />
-                      Sort
+                      <FaSyncAlt
+                        className={isRefreshingMembership ? "animate-spin" : ""}
+                      />
                     </button>
-                    {sortDropdownOpen && (
-                      <div className="absolute top-full mt-1 left-0 bg-white rounded-lg shadow-lg border border-[#666666]/10 py-1 z-10 min-w-[150px]">
-                        <button
-                          onClick={() => handleSort("newest")}
-                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                            sortOrder === "newest"
-                              ? "text-[#111010] font-medium"
-                              : "text-[#666666]"
-                          }`}
-                        >
-                          Newest First
-                        </button>
-                        <button
-                          onClick={() => handleSort("oldest")}
-                          className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 transition-colors duration-200 ${
-                            sortOrder === "oldest"
-                              ? "text-[#111010] font-medium"
-                              : "text-[#666666]"
-                          }`}
-                        >
-                          Oldest First
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={fetchEvents}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
-                    style={{ minWidth: 40 }}
-                    aria-label="Refresh"
-                    type="button"
-                    disabled={isRefreshingEvent}
-                  >
-                    <FaSyncAlt
-                      className={isRefreshingEvent ? "animate-spin" : ""}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="min-w-[768px] overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        No
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Event
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Date
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Shift
-                      </th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Status
-                      </th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getTableData(
-                      eventData,
-                      eventCurrentPage,
-                      entriesPerPage,
-                      eventSearchQuery
-                    ).map((event, index) => (
-                      <tr
-                        key={event.id}
-                        className={`border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200`}
-                        onClick={() => setSelectedRow(event.id)}
-                        onMouseLeave={() => setSelectedRow(null)}
-                      >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {(eventCurrentPage - 1) * entriesPerPage + index + 1}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {event.full_name}
-                          {(() => {
-                            const groupMembers = [
-                              event.group_member1,
-                              event.group_member2,
-                              event.group_member3,
-                              event.group_member4,
-                            ];
-                            const groupCount = groupMembers.filter(
-                              (m) => m && m.trim()
-                            ).length;
-                            return groupCount > 0 ? (
-                              <span className="ml-2 inline-block px-1.5 py-0.5 text-[10px] font-medium text-gray-700 bg-gray-200 rounded-full align-middle">
-                                +{groupCount}
-                              </span>
-                            ) : null;
-                          })()}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {event.event_is_deleted ? (
-                            <span className="line-through">
-                              {event.event_name}
+                <div className="min-w-[768px] overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#eaeaea]">
+                        <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          No
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Email
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Phone
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Submitted At
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getTableData(
+                        membershipData,
+                        currentPage,
+                        entriesPerPage,
+                        membershipSearchQuery
+                      ).map((item, index) => (
+                        <tr
+                          key={item.id}
+                          className="border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
+                          onClick={() => setSelectedRow(item.id)}
+                          onMouseLeave={() => setSelectedRow(null)}
+                        >
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {(currentPage - 1) * entriesPerPage + index + 1}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {item.full_name}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {item.email}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {item.phone_number}
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
+                            {formatDate(item.created_at)}
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
+                            <span className={`px-2 py-1 rounded-lg text-xs ${
+                              item.status === 'request' ? 'bg-yellow-100 text-yellow-800' :
+                              item.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              item.status === 'verified' ? 'bg-green-100 text-green-800' :
+                              item.status === 'revision' ? 'bg-orange-100 text-orange-800' :
+                              item.status === 'revoked' ? 'bg-red-100 text-red-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {item.status === 'revoked' ? 'Revoked' :
+                               item.status === 'request' ? 'Pending Review' :
+                               item.status === 'processing' ? 'Under Review' :
+                               item.status === 'verified' ? 'Approved' :
+                               item.status === 'revision' ? 'Needs Revision' :
+                               'Rejected'}
                             </span>
-                          ) : (
-                            event.event_name
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {formatDate(event.event_date)}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {event.shift_name}
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          {eventStatuses.find(
-                            (status) => status.id === event.id
-                          )?.status === "canceled" ? (
-                            <span className="px-2 py-1 rounded-lg text-xs text-red-800 bg-red-100">
-                              Canceled
-                            </span>
-                          ) : (
-                            <select
-                              value={
-                                eventStatuses.find(
-                                  (status) => status.id === event.id
-                                )?.status || "not_attended"
-                              }
-                              onChange={(e) =>
-                                handleEventStatusChange(
-                                  event.id,
-                                  e.target.value
-                                )
-                              }
-                              className={`px-2 py-1 rounded-lg text-xs ${
-                                eventStatuses.find(
-                                  (status) => status.id === event.id
-                                )?.status === "attended"
-                                  ? "text-green-800 bg-green-100"
-                                  : "text-yellow-800 bg-yellow-100"
-                              }`}
-                            >
-                              <option
-                                value="not_attended"
-                                className="text-yellow-800 bg-white"
-                              >
-                                Not Attended
-                              </option>
-                              <option
-                                value="attended"
-                                className="text-green-800 bg-white"
-                              >
-                                Attended
-                              </option>
-                            </select>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] relative text-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDropdown(
-                                activeDropdown === event.id ? null : event.id
-                              );
-                            }}
-                            className="text-[#666666] hover:text-[#111010] dropdown-trigger"
-                          >
-                            <FaEllipsisV size={14} />
-                          </button>
-                          {activeDropdown === event.id && (
-                            <div
-                              className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu"
-                              style={{
-                                top: selectedRow === event.id ? "auto" : "100%",
-                                bottom:
-                                  selectedRow === event.id ? "100%" : "auto",
-                                transform:
-                                  selectedRow === event.id
-                                    ? "translateY(0)"
-                                    : "translateY(-100%)",
+                          </td>
+                          <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdown(activeDropdown === item.id ? null : item.id);
                               }}
+                              className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
                             >
-                              <button
-                                className={`w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 ${
-                                  eventStatuses.find(
-                                    (status) => status.id === event.id
-                                  )?.status === "canceled"
-                                    ? "rounded-lg"
-                                    : "rounded-t-lg"
-                                }`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedSessionId(event.id);
-                                  setIsDetailModalOpen(true);
-                                  setActiveDropdown(null);
-                                }}
-                              >
-                                Detail
-                              </button>
-                              {eventStatuses.find(
-                                (status) => status.id === event.id
-                              )?.status !== "canceled" && (
+                              <FaEllipsisV className="text-[#666666]" />
+                            </button>
+                            {activeDropdown === item.id && (
+                              <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
                                 <button
-                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                  className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleCancelClick(event.id);
+                                    handleMembershipDetail(item.id);
                                     setActiveDropdown(null);
                                   }}
                                 >
-                                  Cancel Booking
+                                  Detail
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationControls
-                currentPage={eventCurrentPage}
-                setCurrentPage={setEventCurrentPage}
-                data={eventData}
-                itemsPerPage={entriesPerPage}
-              />
-            </>
-          )}
-
-          {activeTab === "membership" && (
-            <>
-              {/* Statistics Cards */}
-              <div className="flex justify-center gap-4 mb-6">
-                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
-                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
-                    Total Member
-                  </p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">
-                    {membershipStats.totalMembers}
-                  </p>
+                                {item.status === 'verified' && (
+                                  <button
+                                    className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedMembershipId(item.id);
+                                      setShowRevokeModal(true);
+                                      setActiveDropdown(null);
+                                    }}
+                                  >
+                                    Revoke
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
-                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
-                    Total Request
-                  </p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">
-                    {membershipStats.totalRequests}
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-2 border border-[#666666]/50 w-[150px] text-center">
-                  <p className="text-xs text-[#666666] font-['Poppins'] mb-1">
-                    Total Revision
-                  </p>
-                  <p className="text-sm font-medium text-[#111010] font-['Poppins']">
-                    {membershipStats.totalRevisions}
-                  </p>
-                </div>
-              </div>
-
-              {/* Search and Create Section */}
-              <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by name"
-                    value={membershipSearchQuery}
-                    onChange={(e) => handleSearch(e, setMembershipSearchQuery)}
-                    className="w-[360px] h-[35px] rounded-2xl border border-[#666666]/30 pl-9 pr-4 text-xs font-normal font-['Poppins'] text-[#666666]"
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
-                </div>
-                {/* Refresh Button (all tabs) */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={fetchMembershipsTab}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#666666]/30 text-xs font-normal font-['Poppins'] text-[#2e3105] bg-white hover:bg-[#f2f2f2] transition-colors duration-200"
-                    style={{ minWidth: 40 }}
-                    aria-label="Refresh"
-                    type="button"
-                    disabled={isRefreshingMembership}
-                  >
-                    <FaSyncAlt
-                      className={isRefreshingMembership ? "animate-spin" : ""}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="min-w-[768px] overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#eaeaea]">
-                      <th className="first:rounded-tl-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        No
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Email
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Phone
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Submitted At
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Status
-                      </th>
-                      <th className="first:rounded-tr-xl text-center py-3 px-4 text-xs font-medium text-[#666666] font-['Poppins'] whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getTableData(
-                      membershipData,
-                      currentPage,
-                      entriesPerPage,
-                      membershipSearchQuery
-                    ).map((item, index) => (
-                      <tr
-                        key={item.id}
-                        className="border-b border-[#666666]/10 hover:bg-gray-100 cursor-pointer transition-colors duration-200"
-                        onClick={() => setSelectedRow(item.id)}
-                        onMouseLeave={() => setSelectedRow(null)}
-                      >
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {(currentPage - 1) * entriesPerPage + index + 1}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.full_name}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.email}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {item.phone_number}
-                        </td>
-                        <td className="py-3 px-4 text-xs text-[#666666] font-['Poppins']">
-                          {formatDate(item.created_at)}
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center">
-                          <span className={`px-2 py-1 rounded-lg text-xs ${
-                            item.status === 'request' ? 'bg-yellow-100 text-yellow-800' :
-                            item.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                            item.status === 'verified' ? 'bg-green-100 text-green-800' :
-                            item.status === 'revision' ? 'bg-orange-100 text-orange-800' :
-                            item.status === 'revoked' ? 'bg-red-100 text-red-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {item.status === 'revoked' ? 'Revoked' :
-                             item.status === 'request' ? 'Pending Review' :
-                             item.status === 'processing' ? 'Under Review' :
-                             item.status === 'verified' ? 'Approved' :
-                             item.status === 'revision' ? 'Needs Revision' :
-                             'Rejected'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-xs font-['Poppins'] text-center relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveDropdown(activeDropdown === item.id ? null : item.id);
-                            }}
-                            className="hover:bg-gray-100 p-2 rounded-full dropdown-trigger"
-                          >
-                            <FaEllipsisV className="text-[#666666]" />
-                          </button>
-                          {activeDropdown === item.id && (
-                            <div className="absolute right-0 w-36 bg-white rounded-lg shadow-lg border border-[#666666]/10 z-10 dropdown-menu">
-                              <button
-                                className="w-full text-left px-4 py-2 text-xs text-[#666666] hover:bg-gray-100 transition-colors duration-200 rounded-t-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMembershipDetail(item.id);
-                                  setActiveDropdown(null);
-                                }}
-                              >
-                                Detail
-                              </button>
-                              {item.status === 'verified' && (
-                                <button
-                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors duration-200 rounded-b-lg"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedMembershipId(item.id);
-                                    setShowRevokeModal(true);
-                                    setActiveDropdown(null);
-                                  }}
-                                >
-                                  Revoke
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationControls
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                data={membershipData}
-                itemsPerPage={entriesPerPage}
-              />
+                <PaginationControls
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  data={membershipData}
+                  itemsPerPage={entriesPerPage}
+                />
             </>
           )}
 
