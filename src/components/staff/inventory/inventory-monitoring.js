@@ -147,7 +147,7 @@ export default function InventoryMonitoring() {
           <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
             <div className="max-w-[1200px] mx-auto w-full">
               <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
-                INVENTORY MONITORING
+                INVENTORY TRANSACTIONS
               </h1>
               <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
                 Track and review all inventory changes and stock movements for The Room 19 Library.

@@ -38,10 +38,12 @@ export async function PUT(request, { params }) {
   try {
     const id = params.id;
     const body = await request.json();
-    const { status } = body;
+    let { status } = body;
+
+    if (status === "not attended") status = "not_attended";
 
     // Validate the status
-    if (!status || !["canceled", "attended", "not attended"].includes(status)) {
+    if (!status || !["canceled", "attended", "not_attended"].includes(status)) {
       return NextResponse.json(
         { error: "Invalid status provided" },
         { status: 400 }
@@ -97,10 +99,12 @@ export async function PATCH(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
-    const { status, cancellationReason } = body;
+    let { status, cancellationReason } = body;
+
+    if (status === "not attended") status = "not_attended";
 
     // Validate status
-    if (!status || !["canceled", "attended", "not attended"].includes(status)) {
+    if (!status || !["canceled", "attended", "not_attended"].includes(status)) {
       return NextResponse.json(
         { error: "Invalid status provided" },
         { status: 400 }
@@ -122,7 +126,7 @@ export async function PATCH(request, { params }) {
       SET 
         status = ${status},
         cancellation_reason = CASE 
-          WHEN ${status} = 'canceled' THEN ${cancellationReason}
+          WHEN ${status} = 'canceled' THEN ${cancellationReason ?? ""}
           ELSE cancellation_reason
         END
       WHERE id = ${id}

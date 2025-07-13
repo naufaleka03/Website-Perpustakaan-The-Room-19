@@ -217,7 +217,7 @@ export default function DataCollection() {
         setSessionStatuses(
           sortedSessionsData.map((item) => ({
             id: item.id,
-            status: item.status || "not attended",
+            status: item.status || "not_attended",
             isCanceled: item.status === "canceled",
           }))
         );
@@ -236,7 +236,7 @@ export default function DataCollection() {
         setEventStatuses(
           sortedEventReservationsData.map((item) => ({
             id: item.id,
-            status: item.status || "not attended",
+            status: item.status || "not_attended",
             isCanceled: item.status === "canceled",
           }))
         );
@@ -622,7 +622,7 @@ export default function DataCollection() {
       setSessionStatuses(
         sortedSessionsData.map((item) => ({
           id: item.id,
-          status: item.status || "not attended",
+          status: item.status || "not_attended",
           isCanceled: item.status === "canceled",
         }))
       );
@@ -645,7 +645,7 @@ export default function DataCollection() {
       setEventStatuses(
         sortedEventReservationsData.map((item) => ({
           id: item.id,
-          status: item.status || "not attended",
+          status: item.status || "not_attended",
           isCanceled: item.status === "canceled",
         }))
       );
@@ -931,7 +931,7 @@ export default function DataCollection() {
                               value={
                                 sessionStatuses.find(
                                   (status) => status.id === session.id
-                                )?.status || "not attended"
+                                )?.status || "not_attended"
                               }
                               onChange={(e) =>
                                 handleSessionStatusChange(
@@ -948,7 +948,7 @@ export default function DataCollection() {
                               }`}
                             >
                               <option
-                                value="not attended"
+                                value="not_attended"
                                 className="text-yellow-800 bg-white"
                               >
                                 Not Attended

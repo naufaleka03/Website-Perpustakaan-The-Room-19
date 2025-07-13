@@ -553,7 +553,26 @@ export default function UserDashboard() {
                 </div>
               ))
             ) : errorPersonalized ? (
-              <div className="text-red-500 text-sm">{errorPersonalized}</div>
+              errorPersonalized === "No preferences found" ? (
+                <div className="flex flex-col items-center justify-center bg-yellow-50 border border-yellow-200 rounded-2xl p-6 min-w-[320px] max-w-xs mx-auto shadow">
+                  <div className="mb-2 text-yellow-500">
+                    <FaRegCalendarAlt className="w-8 h-8" />
+                  </div>
+                  <div className="font-semibold text-yellow-800 text-base mb-1">No Preferences Found</div>
+                  <div className="text-yellow-700 text-sm mb-3 text-center">
+                    You haven't set your reading preferences yet.<br />
+                    Fill out the questionnaire to get personalized recommendations!
+                  </div>
+                  <button
+                    className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-semibold rounded-lg transition"
+                    onClick={() => router.push("/user/dashboard/profile/questionnaire")}
+                  >
+                    Fill Preferences Questionnaire
+                  </button>
+                </div>
+              ) : (
+                <div className="text-red-500 text-sm">{errorPersonalized}</div>
+              )
             ) : personalizedRekom.length === 0 ? (
               <div className="text-gray-500 text-sm">
                 No personalized recommendations available.

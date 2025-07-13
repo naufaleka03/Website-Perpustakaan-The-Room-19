@@ -291,7 +291,7 @@ const CategorizationInventory = () => {
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
         <div className="w-full h-[360px] relative bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
-          <img src="/navigation/categorization-inventory.jpg" alt="Categorization Hero" className="w-full h-full object-cover rounded-none" />
+          <img src="/navigation/inventory.jpg" alt="Categorization Hero" className="w-full h-full object-cover rounded-none" />
           <div className="absolute inset-0 bg-black/50"></div>
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
           <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">

@@ -15,6 +15,7 @@ export default function CreateItem() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch categories when component mounts
   useEffect(() => {
@@ -29,11 +30,56 @@ export default function CreateItem() {
         }
       } catch (error) {
         setError("Error loading categories");
+      } finally {
+        setIsLoading(false);
       }
     };
-
     fetchCategories();
   }, []);
+
+  // Skeleton loader
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section Skeleton */}
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[360px] relative bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <div className="h-10 w-2/3 bg-gray-300/60 rounded mb-4 animate-pulse"></div>
+                <div className="h-6 w-1/2 bg-gray-300/40 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Card Overlay Skeleton */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <div className="h-8 w-1/3 bg-gray-200 animate-pulse rounded mb-4"></div>
+            <div className="h-4 w-1/2 bg-gray-200 animate-pulse rounded mb-8"></div>
+            {/* Skeleton for form fields */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="mb-6">
+                <div className="h-4 w-1/4 bg-gray-200 animate-pulse rounded mb-2"></div>
+                <div className="h-10 w-full bg-gray-100 animate-pulse rounded mb-2"></div>
+                <div className="h-3 w-1/3 bg-gray-100 animate-pulse rounded"></div>
+              </div>
+            ))}
+            {/* Skeleton for image preview */}
+            <div className="mb-6">
+              <div className="h-4 w-1/4 bg-gray-200 animate-pulse rounded mb-2"></div>
+              <div className="h-32 w-32 bg-gray-100 animate-pulse rounded-lg mb-2"></div>
+              <div className="h-3 w-1/3 bg-gray-100 animate-pulse rounded"></div>
+            </div>
+            {/* Skeleton for submit button */}
+            <div className="h-12 w-full bg-gray-300 animate-pulse rounded-3xl mt-6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -163,26 +209,29 @@ export default function CreateItem() {
   };
 
   return (
-    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-8">
+    <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
       {/* Hero Section */}
       <div className="relative mb-8 mt-0">
-        <img
-          className="w-full h-[200px] object-cover"
-          src="https://via.placeholder.com/1402x272"
-        />
-        <div className="absolute inset-0 flex items-center bg-gradient-to-l from-[#4d4d4d]/80 to-black/90 w-full mx-auto px-4 lg:px-8">
-          <div className="max-w-[1200px] mx-auto w-full">
-            <h1 className="text-[#fcfcfc] text-5xl font-medium leading-[48px] font-manrope mb-2">
-              ADD NEW <br />
-              ITEM
-            </h1>
+        <div className="w-full h-[360px] relative">
+          <img src="/navigation/inventory.jpg" alt="Inventory Hero" className="w-full h-full object-cover rounded-none" />
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+          <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+            <div className="max-w-[1200px] mx-auto w-full">
+              <h1 className="text-[#fcfcfc] text-4xl font-medium leading-[44px] font-manrope">
+                ADD NEW ITEM
+              </h1>
+              <p className="text-[#fcfcfc]/80 max-w-xl font-manrope">
+                Add a new inventory item to The Room 19 Library collection.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-
       {/* Form Section */}
-      <div className="max-w-[1000px] mx-auto px-6 lg:px-8 mb-12">
+      <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
         <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+          {/* Keep the form content and logic unchanged */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Item Name */}
             <div className="space-y-1">
@@ -201,7 +250,6 @@ export default function CreateItem() {
                 Enter the name of the item.
               </p>
             </div>
-
             {/* Description */}
             <div className="space-y-1">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -217,7 +265,6 @@ export default function CreateItem() {
                 Provide a brief description of the item.
               </p>
             </div>
-
             {/* Category Dropdown */}
             <div className="space-y-1">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -240,7 +287,6 @@ export default function CreateItem() {
                 Select the category for this item.
               </p>
             </div>
-
             {/* Price */}
             <div className="space-y-1">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -258,7 +304,6 @@ export default function CreateItem() {
                 Enter the price of the item (in IDR).
               </p>
             </div>
-
             {/* Upload Item Image */}
             <div className="space-y-1">
               <label className="text-[#666666] text-sm font-medium font-['Poppins']">
@@ -294,22 +339,18 @@ export default function CreateItem() {
                 Upload an image of the item. Max size: 5MB.
               </p>
             </div>
-
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
                 {error}
               </div>
             )}
-
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`h-[40px] w-full rounded-3xl text-white text-base font-semibold mt-[20px] font-manrope transition-colors duration-200 ${
-                isSubmitting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#2e3105] hover:bg-[#404615]"
+              className={`h-[45px] w-full bg-[#2e3105] text-white rounded-3xl text-base font-semibold font-manrope flex items-center justify-center gap-2 transition mt-6 ${
+                isSubmitting ? 'opacity-75' : 'hover:bg-[#404615]'
               }`}
             >
               {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
