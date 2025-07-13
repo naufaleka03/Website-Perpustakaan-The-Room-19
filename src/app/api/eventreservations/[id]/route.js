@@ -186,7 +186,7 @@ export async function PATCH(request, { params }) {
       SET 
         status = ${status},
         cancellation_reason = CASE 
-          WHEN ${status} = 'canceled' THEN ${cancellationReason}
+          WHEN ${status} = 'canceled' THEN ${cancellationReason ?? ""}
           ELSE cancellation_reason
         END
       WHERE id = ${id}

@@ -597,6 +597,12 @@ export default function UserDashboard() {
                     <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-[#d9e67b] transition-colors min-h-[40px] max-h-[40px] overflow-hidden">
                       {rec.book_title}
                     </h3>
+                    <p className="text-slate-50 text-xs truncate mt-1">
+                      {rec.author}
+                    </p>
+                    <span className="mt-1 px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full w-fit">
+                      {rec.genre || rec.genre1 || "-"}
+                    </span>
                   </div>
                 </Link>
               ))

@@ -6,6 +6,7 @@ import { createClient } from '@/app/supabase/client';
 import { IoIosArrowDown } from 'react-icons/io';
 import { IoClose } from 'react-icons/io5';
 import { FaUser, FaBook, FaSmile, FaQuestionCircle } from 'react-icons/fa';
+import GenreModal from "@/components/staff/book-management/GenreModal";
 
 export default function Questionnaire() {
   const router = useRouter();
@@ -103,44 +104,7 @@ export default function Questionnaire() {
   ];
 
   // --- Genre Modal Component ---
-  const GenreModal = ({ isOpen, onClose, selected, onChange }) => {
-    const [localSelected, setLocalSelected] = useState(selected);
-    const [search, setSearch] = useState('');
-    useEffect(() => { setLocalSelected(selected); }, [selected]);
-    if (!isOpen) return null;
-    const filteredGenres = availableGenres.filter(g => g.toLowerCase().includes(search.toLowerCase()));
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50" onClick={onClose}>
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center justify-between border-b p-4">
-            <h3 className="text-lg font-medium text-gray-900">Select Favorite Genres</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500"><IoClose size={24} /></button>
-          </div>
-          <div className="p-4 border-b">
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search genres" className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] pl-4 pr-4 text-xs text-gray-400" />
-          </div>
-          <div className="p-4 max-h-64 overflow-y-auto">
-            {filteredGenres.map(genre => (
-              <label key={genre} className="flex items-center gap-3 mb-3">
-                <input
-                  type="checkbox"
-                  checked={localSelected.includes(genre)}
-                  onChange={() => setLocalSelected(localSelected.includes(genre) ? localSelected.filter(g => g !== genre) : [...localSelected, genre])}
-                  className="w-4 h-4 rounded-2xl border-[#cdcdcd]"
-                  style={{ accentColor: "#2e3105" }}
-                />
-                <span className="text-black text-xs font-medium">{genre}</span>
-              </label>
-            ))}
-          </div>
-          <div className="flex justify-end gap-2 p-4 border-t">
-            <button onClick={() => { setLocalSelected([]); }} className="text-xs text-gray-500 hover:underline">Clear All</button>
-            <button onClick={() => { onChange(localSelected); onClose(); }} className="bg-[#2e3105] text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-[#404615]">Apply</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Moved to src/components/common/GenreModal.js
 
   const bookTypes = [
     { value: 'fiction', label: 'Fiction' },
@@ -355,7 +319,7 @@ export default function Questionnaire() {
                     name="ageGroup"
                     value={formData.ageGroup}
                     onChange={(e) => handleSelectChange(e, 'ageGroup')}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.ageGroup ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
                   >
                     <option value="">Select age group</option>
                     <option value="<18">Under 18</option>
@@ -379,7 +343,7 @@ export default function Questionnaire() {
                   type="text"
                   value={formData.occupation}
                   onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-                  className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
+                  className={`w-full h-[35px] rounded-lg border ${formErrors.occupation ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 text-sm text-[#666666}`}
                   placeholder="Enter your occupation"
                 />
                 {formErrors.occupation && <p className="text-red-500 text-xs mt-1">{formErrors.occupation}</p>}
@@ -392,7 +356,7 @@ export default function Questionnaire() {
                   <select
                     value={formData.educationLevel}
                     onChange={(e) => handleSelectChange(e, 'educationLevel')}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.educationLevel ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
                   >
                     <option value="">Select education level</option>
                     <option value="high_school">High School</option>
@@ -416,7 +380,7 @@ export default function Questionnaire() {
                     type="text"
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.state ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 text-sm text-[#666666}`}
                     placeholder="Enter your state"
                   />
                   {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
@@ -428,7 +392,7 @@ export default function Questionnaire() {
                     type="text"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.city ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 text-sm text-[#666666}`}
                     placeholder="Enter your city"
                   />
                   {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
@@ -442,7 +406,7 @@ export default function Questionnaire() {
                   <select
                     value={formData.preferredLanguage}
                     onChange={(e) => handleSelectChange(e, 'preferredLanguage')}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.preferredLanguage ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
                   >
                     <option value="">Select language</option>
                     <option value="english">English</option>
@@ -511,7 +475,13 @@ export default function Questionnaire() {
                 </div>
                 <button type="button" onClick={() => setGenreModalOpen(true)} className="bg-[#2e3105] text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-[#404615]">Select Genres</button>
                 <p className="text-xs text-[#666666]/80 mt-1">Select your favorite genres to help us find books that match your interests.</p>
-                <GenreModal isOpen={genreModalOpen} onClose={() => setGenreModalOpen(false)} selected={formData.favoriteGenres} onChange={genres => setFormData({ ...formData, favoriteGenres: genres })} />
+                <GenreModal
+                  isOpen={genreModalOpen}
+                  onClose={() => setGenreModalOpen(false)}
+                  selected={formData.favoriteGenres}
+                  onChange={genres => setFormData({ ...formData, favoriteGenres: genres })}
+                  availableGenres={availableGenres}
+                />
               </div>
 
               <div>
@@ -520,7 +490,7 @@ export default function Questionnaire() {
                   <select
                     value={formData.readingFrequency}
                     onChange={(e) => handleSelectChange(e, 'readingFrequency')}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.readingFrequency ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
                   >
                     <option value="">Select frequency</option>
                     <option value="daily">Daily</option>
@@ -542,7 +512,7 @@ export default function Questionnaire() {
                   <select
                     value={formData.readingTimeAvailability}
                     onChange={(e) => handleSelectChange(e, 'readingTimeAvailability')}
-                    className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
+                    className={`w-full h-[35px] rounded-lg border ${formErrors.readingTimeAvailability ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
                   >
                     <option value="">Select time availability</option>
                     <option value="<15 mins">Less than 15 minutes</option>
@@ -584,7 +554,7 @@ export default function Questionnaire() {
                     <input
                       type="text"
                       onKeyDown={handleBookInput}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] placeholder:text-[#666666]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300"
+                      className={`w-full h-[35px] rounded-lg border ${formErrors.favoriteBooks ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 text-sm text-[#666666] placeholder:text-[#666666]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300`}
                       placeholder={`Type a book title and press Enter (${3 - formData.favoriteBooks.length} remaining)`}
                     />
                   )}
@@ -656,7 +626,7 @@ export default function Questionnaire() {
                 <textarea
                   value={formData.readingHabits}
                   onChange={(e) => setFormData({ ...formData, readingHabits: e.target.value })}
-                  className="w-full h-[100px] rounded-lg border border-[#666666]/30 px-4 py-2 text-sm text-[#666666]"
+                  className={`w-full h-[100px] rounded-lg border ${formErrors.readingHabits ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 py-2 text-sm text-[#666666}`}
                   placeholder="Tell us about your reading habits and preferences..."
                 />
                 {formErrors.readingHabits && <p className="text-red-500 text-xs mt-1">{formErrors.readingHabits}</p>}
@@ -675,7 +645,7 @@ export default function Questionnaire() {
                   type="number"
                   value={formData.readingGoals}
                   onChange={(e) => setFormData({ ...formData, readingGoals: e.target.value })}
-                  className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666] focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300"
+                  className={`w-full h-[35px] rounded-lg border ${formErrors.readingGoals ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-[#666666]/30 focus:border-[#2e3105] focus:ring-[#2e3105]/20'} px-4 text-sm text-[#666666] focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none transition-all duration-300`}
                   placeholder="Enter your reading goal"
                   min="0"
                 />
@@ -693,12 +663,23 @@ export default function Questionnaire() {
                 </div>
                 <button type="button" onClick={() => setDislikedGenreModalOpen(true)} className="bg-red-600 text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-red-700">Select Disliked Genres</button>
                 <p className="text-xs text-[#666666]/80 mt-1">Select genres you dislike to avoid recommending them to you.</p>
-                <GenreModal isOpen={dislikedGenreModalOpen} onClose={() => setDislikedGenreModalOpen(false)} selected={formData.dislikedGenres} onChange={genres => setFormData({ ...formData, dislikedGenres: genres })} />
+                <GenreModal
+                  isOpen={dislikedGenreModalOpen}
+                  onClose={() => setDislikedGenreModalOpen(false)}
+                  selected={formData.dislikedGenres}
+                  onChange={genres => setFormData({ ...formData, dislikedGenres: genres })}
+                  availableGenres={availableGenres}
+                />
               </div>
             </div>
           </div>
 
           {/* Submit Button */}
+          {submitStatus === 'error' && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-800 font-medium text-sm text-center">
+              Please fix the highlighted errors and try again.
+            </div>
+          )}
           <div className="flex justify-end">
             <button
               type="submit"
@@ -709,9 +690,6 @@ export default function Questionnaire() {
           </div>
           {submitStatus === 'success' && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded text-green-800">Preferences saved successfully!</div>
-          )}
-          {submitStatus === 'error' && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded text-red-800">Please fix the highlighted errors and try again.</div>
           )}
         </form>
       </div>

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 
-export default function EmailConfirmationCallback() {
+export default function ConfirmEmail({ status = "success", message = "Your email address has been successfully verified. You can now log in and start using your account." }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
       <div className="flex flex-col items-center w-full max-w-md shadow-lg rounded-xl bg-white/90 backdrop-blur-md p-8 md:p-10">
@@ -13,12 +12,11 @@ export default function EmailConfirmationCallback() {
             </svg>
           </div>
           <h2 className="text-2xl font-semibold text-[#111010] font-manrope text-center">
-            Email Confirmed!
+            {status === "success" ? "Email Confirmed!" : "Email Confirmation Failed"}
           </h2>
         </div>
         <p className="text-[#666666] mb-4 text-center max-w-xl">
-          Your email address has been successfully verified.<br />
-          You can now log in and start using your account.
+          {message}
         </p>
         <Link
           href="/login"

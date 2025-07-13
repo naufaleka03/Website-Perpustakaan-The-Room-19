@@ -5,6 +5,7 @@ import { FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/app/supabase/client";
 import { IoIosArrowDown } from "react-icons/io";
+import GenreModal from "@/components/common/GenreModal";
 
 const bookTypes = ["Local Books", "International Books"];
 const contentTypes = ["Fiction", "Nonfiction"];
@@ -140,6 +141,7 @@ const CreateBook = () => {
 
   const [themes, setThemes] = useState([]);
   const [themeInput, setThemeInput] = useState('');
+  const [genreModalOpen, setGenreModalOpen] = useState(false);
 
   // Fetch genres from database
   useEffect(() => {
@@ -543,23 +545,31 @@ const CreateBook = () => {
                       <label className="block text-sm font-medium text-[#666666] mb-1">
                         Genre/Category
                       </label>
-                      <div className="relative group">
-                        <select 
-                          name="genre"
-                          value={formData.genre}
-                          onChange={handleInputChange}
-                          className={`w-full h-[35px] rounded-lg border ${formErrors.genre ? 'border-red-500' : 'border-[#666666]/30'} px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none`}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setGenreModalOpen(true)}
+                          className="w-full h-[35px] rounded-lg border px-4 text-sm text-[#666666] bg-white border-[#666666]/30 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none flex items-center justify-between"
                         >
-                          <option value="">Select a genre</option>
-                          {genres.map((genre) => (
-                            <option key={genre} value={genre}>{genre}</option>
-                          ))}
-                        </select>
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#666666] transition-transform duration-300 group-hover:text-[#2e3105] group-focus-within:rotate-180">
-                          <IoIosArrowDown size={16} />
-                        </div>
+                          {formData.genre ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span className="bg-[#2e3105] text-white rounded-2xl px-3 py-1 text-xs">{formData.genre}</span>
+                              <span className="text-xs text-gray-400">(Change)</span>
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">Select a genre</span>
+                          )}
+                        </button>
+                        <GenreModal
+                          isOpen={genreModalOpen}
+                          onClose={() => setGenreModalOpen(false)}
+                          selected={formData.genre ? [formData.genre] : []}
+                          onChange={genres => setFormData(prev => ({ ...prev, genre: genres[0] || "" }))}
+                          availableGenres={genres}
+                        />
+                        {formErrors.genre && <p className="text-red-500 text-xs mt-1">{formErrors.genre}</p>}
+                        <p className="text-xs text-gray-500 mt-1">Select the book's specific genre or category.</p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Select the book's specific genre or category.</p>
                     </div>
 
                     <div>

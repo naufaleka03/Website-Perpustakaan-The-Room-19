@@ -40,6 +40,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     let { status } = body;
 
+    // Normalize status value
     if (status === "not attended") status = "not_attended";
 
     // Validate the status
@@ -101,6 +102,7 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
     let { status, cancellationReason } = body;
 
+    // Normalize status value
     if (status === "not attended") status = "not_attended";
 
     // Validate status
