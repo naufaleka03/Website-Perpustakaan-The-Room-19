@@ -6,6 +6,7 @@ import { FaCamera } from 'react-icons/fa'; // Import camera icon
 import { createClient } from '@/app/supabase/client'; // Updated import path
 import { useRouter } from 'next/navigation'; // Import useRouter
 import Link from 'next/link';
+import { FaUser, FaBook, FaSmile, FaQuestionCircle, FaHeart, FaBan, FaLightbulb, FaChartBar } from 'react-icons/fa';
 
 export default function Profile({ profilePicture, setProfilePicture }) {
   const [activeTab, setActiveTab] = useState('profile');
@@ -32,6 +33,9 @@ export default function Profile({ profilePicture, setProfilePicture }) {
 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Add state for user preferences (questionnaire)
+  const [userPreferences, setUserPreferences] = useState(null);
 
   const supabase = createClient(); // Create Supabase client instance
   const router = useRouter(); // Initialize router
@@ -103,6 +107,16 @@ export default function Profile({ profilePicture, setProfilePicture }) {
     fetchPersonalInfo();
   }, [userId]); // Run when userId changes
 
+  useEffect(() => {
+    // Fetch user preferences from API or localStorage (for demo, use localStorage)
+    const saved = localStorage.getItem('userProfileQuestionnaireData');
+    if (saved) {
+      try {
+        setUserPreferences(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
+
   const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -120,15 +134,15 @@ export default function Profile({ profilePicture, setProfilePicture }) {
             // Delete previous image if it exists
             if (currentData && currentData.profile_picture) {
               const previousImageName = currentData.profile_picture.split('/').pop(); // Extract the image name
-              await supabase.storage.from('profile-pictures').remove([`public/${previousImageName}`]); // Delete previous image
+              await supabase.storage.from('profile-pictures').remove([`${userId}/${previousImageName}`]); // Delete previous image
             }
 
             // Upload the new image
-            const { data, error: uploadError } = await supabase.storage.from('profile-pictures').upload(`public/${file.name}`, file);
+            const { data, error: uploadError } = await supabase.storage.from('profile-pictures').upload(`${userId}/${file.name}`, file);
             if (uploadError) throw uploadError;
 
             // Construct the public URL for the uploaded image
-            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${file.name}`;
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/${userId}/${file.name}`;
             console.log('Image URL being set in database:', imageUrl);
 
             // Update the profile picture in the database
@@ -217,7 +231,7 @@ export default function Profile({ profilePicture, setProfilePicture }) {
 
   // Profile Loading Skeleton
   const ProfileLoadingSkeleton = () => (
-    <div className="w-full min-h-screen bg-[#7b7c3a] p-8">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#232310] to-[#5f5f2c] p-8">
       <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mb-6 animate-pulse">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-300 rounded-full mb-4"></div>
@@ -518,14 +532,100 @@ export default function Profile({ profilePicture, setProfilePicture }) {
 
       {/* Preferences Card */}
       <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-md p-6 mt-6">
-        <Link href="/user/dashboard/profile/questionnaire" className="block">
-          <div className="flex flex-col items-center text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors duration-200">
-            <h3 className="text-lg font-semibold text-[#111010] mb-2">User Preferences</h3>
-            <p className="text-sm text-[#666666] max-w-md">
-              Want to know more about your interest? Help us tailor a recommendation for you!
-            </p>
+        <h2 className="text-lg font-semibold text-[#111010] mb-4 flex items-center gap-2"><FaChartBar className="text-[#2e3105]" /> User Preferences</h2>
+        {userPreferences && userPreferences.favoriteGenres && userPreferences.favoriteGenres.length > 0 ? (
+          <div className="space-y-8">
+            {/* Genres Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-2"><FaBook className="text-[#2e3105]" /><span className="font-medium text-[#111010] text-base">Genres</span></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs font-semibold text-[#111010] mb-1">Favorite Genres</div>
+                  <div className="flex flex-wrap gap-2">
+                    {userPreferences.favoriteGenres.map(genre => (
+                      <span key={genre} className="bg-[#2e3105] text-[#fff] rounded-2xl px-3 py-1 text-xs">{genre}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-[#111010] mb-1">Disliked Genres</div>
+                  <div className="flex flex-wrap gap-2">
+                    {userPreferences.dislikedGenres && userPreferences.dislikedGenres.length > 0 ? userPreferences.dislikedGenres.map(genre => (
+                      <span key={genre} className="bg-red-200 text-[#111010] rounded-2xl px-3 py-1 text-xs">{genre}</span>
+                    )) : <span className="text-xs text-gray-400">None</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr className="my-2 border-[#e5e7eb]" />
+            {/* Motivation & Vibe Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaLightbulb className="text-yellow-500" /><span className="font-medium text-[#111010]">Reading Motivation</span></div>
+                <div className="flex flex-wrap gap-2">
+                  {userPreferences.readingMotivation && userPreferences.readingMotivation.length > 0 ? userPreferences.readingMotivation.map(motivation => (
+                    <span key={motivation} className="bg-yellow-100 text-[#111010] rounded-2xl px-3 py-1 text-xs">{motivation}</span>
+                  )) : <span className="text-xs text-gray-400">None</span>}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaSmile className="text-[#2e3105]" /><span className="font-medium text-[#111010]">Preferred Book Vibe</span></div>
+                <div className="flex flex-wrap gap-2">
+                  {userPreferences.bookVibe && userPreferences.bookVibe.length > 0 ? userPreferences.bookVibe.map(vibe => (
+                    <span key={vibe} className="bg-green-100 text-[#111010] rounded-2xl px-3 py-1 text-xs">{vibe}</span>
+                  )) : <span className="text-xs text-gray-400">None</span>}
+                </div>
+              </div>
+            </div>
+            <hr className="my-2 border-[#e5e7eb]" />
+            {/* Reading Profile Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaChartBar className="text-[#2e3105]" /><span className="font-medium text-[#111010]">Reading Frequency</span></div>
+                <span className="bg-[#f2f2f2] text-[#111010] rounded-2xl px-3 py-1 text-xs">{userPreferences.readingFrequency || <span className="text-xs text-gray-400">-</span>}</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaChartBar className="text-[#2e3105]" /><span className="font-medium text-[#111010]">Reading Time Availability</span></div>
+                <span className="bg-[#f2f2f2] text-[#111010] rounded-2xl px-3 py-1 text-xs">{userPreferences.readingTimeAvailability || <span className="text-xs text-gray-400">-</span>}</span>
+              </div>
+            </div>
+            <hr className="my-2 border-[#e5e7eb]" />
+            {/* Demographics Section */}
+            {(userPreferences.educationLevel || userPreferences.occupation || userPreferences.state || userPreferences.city) && (
+              <div>
+                <div className="flex items-center gap-2 mb-2"><FaUser className="text-[#2e3105]" /><span className="font-medium text-[#111010] text-base">Demographics</span></div>
+                <div className="flex flex-wrap gap-2">
+                  {userPreferences.educationLevel && <span className="bg-[#f2f2f2] text-[#111010] rounded-2xl px-3 py-1 text-xs">Education: {userPreferences.educationLevel}</span>}
+                  {userPreferences.occupation && <span className="bg-[#f2f2f2] text-[#111010] rounded-2xl px-3 py-1 text-xs">Occupation: {userPreferences.occupation}</span>}
+                  {(userPreferences.state || userPreferences.city) && <span className="bg-[#f2f2f2] text-[#111010] rounded-2xl px-3 py-1 text-xs">Location: {userPreferences.city}{userPreferences.city && userPreferences.state ? ', ' : ''}{userPreferences.state}</span>}
+                </div>
+              </div>
+            )}
+            {/* Reading Habits Section */}
+            {userPreferences.readingHabits && (
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaQuestionCircle className="text-[#2e3105]" /><span className="font-medium text-[#111010]">Reading Habits</span></div>
+                <div className="bg-[#f2f2f2] text-[#111010] rounded-xl px-4 py-2 text-xs max-w-xl">{userPreferences.readingHabits}</div>
+              </div>
+            )}
+            {/* Favorite Books Section */}
+            {userPreferences.favoriteBooks && userPreferences.favoriteBooks.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-1"><FaHeart className="text-pink-500" /><span className="font-medium text-[#111010]">Favorite Books</span></div>
+                <ul className="list-disc list-inside text-xs text-[#111010]">
+                  {userPreferences.favoriteBooks.map(book => (
+                    <li key={book}>{book}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        </Link>
+        ) : (
+          <div className="flex flex-col items-center text-center p-4">
+            <p className="text-sm text-[#666666] mb-2">You haven't filled your user preferences questionnaire yet.</p>
+            <button onClick={() => router.push('/user/dashboard/profile/questionnaire')} className="bg-[#2e3105] text-white rounded-2xl px-6 py-2 text-sm font-medium hover:bg-[#404615]">Fill User Preferences</button>
+          </div>
+        )}
       </div>
     </div>
   );

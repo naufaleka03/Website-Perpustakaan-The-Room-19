@@ -83,13 +83,12 @@ export default function SideNav({ isExpanded, profilePicture }) {
           <>
             <Link href="/user/dashboard/profile">
               <div className="flex items-center gap-3 mb-4 mt-2 cursor-pointer">
-                <div className="w-12 h-12 flex-shrink-0">
+                <div className="w-12 h-12 flex-shrink-0 relative overflow-hidden">
                   {profilePicture ? (
                     <Image
                       src={profilePicture}
                       alt="Profile"
-                      width={48}
-                      height={48}
+                      fill
                       className="rounded-full object-cover"
                     />
                   ) : (

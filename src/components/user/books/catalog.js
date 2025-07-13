@@ -7,6 +7,22 @@ import { BsCart3 } from "react-icons/bs";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+// Move LoadingSkeleton to top level
+const LoadingSkeleton = () => (
+  <>
+    {[...Array(8)].map((_, index) => (
+      <div key={index} className="animate-pulse">
+        <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] bg-gray-200"></div>
+        <div className="h-3 bg-gray-200 rounded mt-2 w-3/4 mx-auto"></div>
+        <div className="h-2 bg-gray-200 rounded mt-2 w-1/2 mx-auto"></div>
+        <div className="flex justify-center items-center mt-2">
+          <div className="h-3 bg-gray-200 rounded w-12"></div>
+        </div>
+      </div>
+    ))}
+  </>
+);
+
 const Catalog = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,22 +136,6 @@ const Catalog = () => {
       .toUpperCase();
   };
   
-  // Load skeleton component
-  const LoadingSkeleton = () => (
-    <>
-      {[...Array(8)].map((_, index) => (
-        <div key={index} className="animate-pulse">
-          <div className="aspect-[180/250] rounded-2xl border border-[#cdcdcd] bg-gray-200"></div>
-          <div className="h-3 bg-gray-200 rounded mt-2 w-3/4 mx-auto"></div>
-          <div className="h-2 bg-gray-200 rounded mt-2 w-1/2 mx-auto"></div>
-          <div className="flex justify-center items-center mt-2">
-            <div className="h-3 bg-gray-200 rounded w-12"></div>
-          </div>
-        </div>
-      ))}
-    </>
-  );
-
   // Simpler GenreSelectModal without external dependencies
   const GenreSelectModal = ({ isOpen, onClose, genres = [], selectedGenres = [], onChange, title = "Select Genres" }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -608,4 +608,5 @@ const Catalog = () => {
   );
 };
 
-export default Catalog; 
+export default Catalog;
+export { LoadingSkeleton }; 

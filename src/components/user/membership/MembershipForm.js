@@ -429,6 +429,13 @@ export default function MembershipForm({ application, memberStatus, showForm, se
       newErrors.emergencyContactNumber = 'Emergency contact number is required';
     }
     
+    if (formData.emergencyContactName && formData.emergencyContactName.trim().toLowerCase() === formData.fullName.trim().toLowerCase()) {
+      newErrors.emergencyContactName = 'Emergency contact name cannot be the same as your name.';
+    }
+    if (formData.emergencyContactNumber && formData.emergencyContactNumber.trim() === formData.phone.trim()) {
+      newErrors.emergencyContactNumber = 'Emergency contact number cannot be the same as your phone number.';
+    }
+    
     if (!file && !application?.id_card_url) {
       newErrors.idCard = 'Please upload your ID card';
     }
@@ -460,10 +467,16 @@ export default function MembershipForm({ application, memberStatus, showForm, se
         throw new Error('You must be logged in to apply for membership');
       }
       let filePath = application?.id_card_url || null;
-      // 1a. Delete previous ID card image if exists and a new file is uploaded
       if (file) {
-        if (application?.id_card_url) {
-          await supabase.storage.from('verification-ids').remove([application.id_card_url]);
+        // Always delete all previous images in the user's folder before uploading a new one
+        if (userId) {
+          // List all files in the user's folder
+          const { data: listData, error: listError } = await supabase.storage.from('verification-ids').list(`${userId}`);
+          if (!listError && listData && listData.length > 0) {
+            // Delete all files in the user's folder
+            const filesToDelete = listData.map(item => `${userId}/${item.name}`);
+            await supabase.storage.from('verification-ids').remove(filesToDelete);
+          }
         }
         // 2. Upload ID card
         if (!file.name) throw new Error('File name is missing');

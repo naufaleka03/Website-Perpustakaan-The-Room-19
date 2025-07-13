@@ -448,3 +448,5 @@ export default function Histories() {
     </div>
   );
 }
+
+export { ReservationHistorySkeleton };

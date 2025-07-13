@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiEdit2, FiTrash2, FiPlus } from "react-icons/fi";
 import { FaPlus } from 'react-icons/fa';
-import { createGenre, updateGenre, deleteGenre } from "@/app/lib/actions";
 import { useRouter } from 'next/navigation';
 
 const GenreSettings = () => {
@@ -66,26 +65,38 @@ const GenreSettings = () => {
     setGenreToDelete(null);
   };
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = { genre_name: genreName };
     try {
-      let result;
+      let result, data;
       if (editingGenre) {
-        result = await updateGenre(editingGenre.id, formData);
-        if (result.success) {
+        result = await fetch(`/api/genres/${editingGenre.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        data = await result.json();
+        if (data.success) {
           handleCloseModal();
           await fetchGenres();
           router.refresh();
         } else {
-          setError(result.error);
+          setError(data.error);
         }
       } else {
-        result = await createGenre(formData);
-        if (result.success) {
+        result = await fetch('/api/genres', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        data = await result.json();
+        if (data.success) {
           handleCloseModal();
           await fetchGenres();
           router.refresh();
         } else {
-          setError(result.error);
+          setError(data.error);
         }
       }
     } catch (error) {
@@ -96,10 +107,17 @@ const GenreSettings = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteGenre(id);
-      handleCloseDeleteModal();
-      await fetchGenres();
-      router.refresh();
+      const result = await fetch(`/api/genres/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await result.json();
+      if (data.success) {
+        handleCloseDeleteModal();
+        await fetchGenres();
+        router.refresh();
+      } else {
+        setError(data.error);
+      }
     } catch (error) {
       console.error('Error:', error);
       setError(error.message);
@@ -270,7 +288,7 @@ const GenreSettings = () => {
                 <h2 className="text-xl font-semibold mb-4 text-gray-500">
                   {editingGenre ? "Edit Genre" : "Add New Genre"}
                 </h2>
-                <form action={handleSubmit}>
+                <form onSubmit={handleSubmit}>
                   <input
                     type="text"
                     name="genre_name"

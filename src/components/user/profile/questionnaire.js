@@ -4,45 +4,143 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/app/supabase/client';
 import { IoIosArrowDown } from 'react-icons/io';
+import { IoClose } from 'react-icons/io5';
+import { FaUser, FaBook, FaSmile, FaQuestionCircle } from 'react-icons/fa';
 
 export default function Questionnaire() {
   const router = useRouter();
   const supabase = createClient();
 
+  // 1. Ensure all formData fields are initialized to empty string/array/defaults
   const [formData, setFormData] = useState({
-    // Demographic Info
     ageGroup: '',
     occupation: '',
     educationLevel: '',
     state: '',
     city: '',
     preferredLanguage: '',
-
-    // Reading Behavior & Preferences
     favoriteGenres: [],
     preferredBookTypes: [],
     preferredFormats: [],
     readingFrequency: '',
     readingTimeAvailability: '',
     favoriteBooks: [],
-
-    // Personality & Mood-based Inputs
-    readerType: '',
-    desiredFeelings: [],
+    readingMotivation: [],
+    bookVibe: [],
     readingHabits: '',
-
-    // Optional Add-ons
     readingGoals: '',
     dislikedGenres: [],
   });
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState({});
-  const [submitStatus, setSubmitStatus] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
+
+  // --- Genre Modal State and Fetch ---
+  const [genreModalOpen, setGenreModalOpen] = useState(false);
+  const [availableGenres, setAvailableGenres] = useState([]);
+  const [genreSearch, setGenreSearch] = useState('');
+
+  // Add state for disliked genre modal
+  const [dislikedGenreModalOpen, setDislikedGenreModalOpen] = useState(false);
+
+  // Add localStorage persistence for formData
+  const LOCAL_STORAGE_KEY = 'userProfileQuestionnaireData';
+
+  // On mount, load from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        setFormData(prev => ({ ...prev, ...JSON.parse(saved) }));
+      } catch {}
+    }
+  }, []);
+
+  // On formData change, save to localStorage
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+  }, [formData]);
 
   useEffect(() => {
     // Simulate loading user data (replace with real fetch if needed)
     setTimeout(() => setLoading(false), 800);
   }, []);
+
+  useEffect(() => {
+    // Fetch genres from API
+    const fetchGenres = async () => {
+      try {
+        const response = await fetch('/api/genres');
+        const data = await response.json();
+        if (data.success && data.data) {
+          setAvailableGenres(data.data.map(g => g.genre_name));
+        } else {
+          setAvailableGenres([]);
+        }
+      } catch (error) {
+        setAvailableGenres([]);
+      }
+    };
+    fetchGenres();
+  }, []);
+
+  // --- Reading Motivation and Book Vibe Options ---
+  const readingMotivations = [
+    { value: 'learn', label: 'To learn new things', desc: '(I read to gain knowledge or skills.)' },
+    { value: 'relax', label: 'To relax and unwind', desc: '(I read to de-stress and enjoy quiet time.)' },
+    { value: 'entertain', label: 'To be entertained', desc: '(I read for fun, excitement, or adventure.)' },
+    { value: 'inspire', label: 'To be inspired', desc: '(I read to find motivation or new perspectives.)' },
+    { value: 'connect', label: 'To connect with others', desc: '(I read to discuss books or join communities.)' },
+  ];
+  const bookVibes = [
+    { value: 'feelgood', label: 'Feel Good', desc: '(Books that make me happy or leave me with a positive feeling.)' },
+    { value: 'funny', label: 'Funny', desc: '(Stories that are humorous, light-hearted, or easy to read.)' },
+    { value: 'adventurous', label: 'Adventurous', desc: '(Books full of action, adventure, or thrilling moments.)' },
+    { value: 'mysterious', label: 'Mysterious', desc: '(Stories with mysteries, puzzles, or lots of suspense.)' },
+    { value: 'romantic', label: 'Romantic', desc: '(Books that focus on love stories or relationships.)' },
+    { value: 'emotional', label: 'Emotional', desc: '(Stories that move me or make me feel deeply.)' },
+    { value: 'serious', label: 'Serious', desc: '(Books that make me think or reflect on life.)' },
+  ];
+
+  // --- Genre Modal Component ---
+  const GenreModal = ({ isOpen, onClose, selected, onChange }) => {
+    const [localSelected, setLocalSelected] = useState(selected);
+    const [search, setSearch] = useState('');
+    useEffect(() => { setLocalSelected(selected); }, [selected]);
+    if (!isOpen) return null;
+    const filteredGenres = availableGenres.filter(g => g.toLowerCase().includes(search.toLowerCase()));
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50" onClick={onClose}>
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between border-b p-4">
+            <h3 className="text-lg font-medium text-gray-900">Select Favorite Genres</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-500"><IoClose size={24} /></button>
+          </div>
+          <div className="p-4 border-b">
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search genres" className="w-full h-[38px] bg-[#f2f2f2] rounded-2xl border border-[#cdcdcd] pl-4 pr-4 text-xs text-gray-400" />
+          </div>
+          <div className="p-4 max-h-64 overflow-y-auto">
+            {filteredGenres.map(genre => (
+              <label key={genre} className="flex items-center gap-3 mb-3">
+                <input
+                  type="checkbox"
+                  checked={localSelected.includes(genre)}
+                  onChange={() => setLocalSelected(localSelected.includes(genre) ? localSelected.filter(g => g !== genre) : [...localSelected, genre])}
+                  className="w-4 h-4 rounded-2xl border-[#cdcdcd]"
+                  style={{ accentColor: "#2e3105" }}
+                />
+                <span className="text-black text-xs font-medium">{genre}</span>
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2 p-4 border-t">
+            <button onClick={() => { setLocalSelected([]); }} className="text-xs text-gray-500 hover:underline">Clear All</button>
+            <button onClick={() => { onChange(localSelected); onClose(); }} className="bg-[#2e3105] text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-[#404615]">Apply</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const bookTypes = [
     { value: 'fiction', label: 'Fiction' },
@@ -160,37 +258,32 @@ export default function Questionnaire() {
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.ageGroup) newErrors.ageGroup = 'Age group is required';
-    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
-    if (!formData.educationLevel) newErrors.educationLevel = 'Education level is required';
-    if (!formData.state.trim()) newErrors.state = 'State is required';
-    if (!formData.city.trim()) newErrors.city = 'City is required';
-    if (!formData.preferredLanguage) newErrors.preferredLanguage = 'Preferred language is required';
-    if (formData.favoriteGenres.length === 0) newErrors.favoriteGenres = 'Select at least one favorite genre';
-    if (formData.preferredBookTypes.length === 0) newErrors.preferredBookTypes = 'Select at least one book type';
-    if (formData.preferredFormats.length === 0) newErrors.preferredFormats = 'Select at least one format';
-    if (!formData.readingFrequency) newErrors.readingFrequency = 'Reading frequency is required';
-    if (!formData.readingTimeAvailability) newErrors.readingTimeAvailability = 'Reading time availability is required';
-    if (formData.favoriteBooks.length === 0) newErrors.favoriteBooks = 'Add at least one favorite book';
-    if (!formData.readerType) newErrors.readerType = 'Select your reader type';
-    if (formData.desiredFeelings.length === 0) newErrors.desiredFeelings = 'Select at least one desired feeling';
-    if (!formData.readingHabits.trim()) newErrors.readingHabits = 'Describe your reading habits';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errors = {};
+    if (!formData.ageGroup) errors.ageGroup = 'Age group is required.';
+    if (!formData.occupation) errors.occupation = 'Occupation is required.';
+    if (!formData.educationLevel) errors.educationLevel = 'Education level is required.';
+    if (!formData.state) errors.state = 'State is required.';
+    if (!formData.city) errors.city = 'City is required.';
+    if (!formData.preferredLanguage) errors.preferredLanguage = 'Preferred language is required.';
+    if (!formData.favoriteGenres.length) errors.favoriteGenres = 'Select at least one favorite genre.';
+    if (!formData.preferredBookTypes.length) errors.preferredBookTypes = 'Select at least one book type.';
+    if (!formData.preferredFormats.length) errors.preferredFormats = 'Select at least one format.';
+    if (!formData.readingFrequency) errors.readingFrequency = 'Reading frequency is required.';
+    if (!formData.readingTimeAvailability) errors.readingTimeAvailability = 'Reading time availability is required.';
+    if (!formData.readingMotivation.length) errors.readingMotivation = 'Select at least one reading motivation.';
+    if (!formData.bookVibe.length) errors.bookVibe = 'Select at least one book vibe.';
+    // favoriteBooks, readingHabits, readingGoals, dislikedGenres are optional
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitStatus(null);
     if (!validateForm()) {
-      const firstErrorField = Object.keys(errors)[0];
-      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setSubmitStatus('error');
       return;
     }
-    setSubmitStatus(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
@@ -224,6 +317,7 @@ export default function Questionnaire() {
       });
       if (!res.ok) throw new Error('Failed to save preferences');
       setSubmitStatus('success');
+      setFormErrors({});
       setTimeout(() => router.push('/user/dashboard/profile'), 2000);
     } catch (error) {
       setSubmitStatus('error');
@@ -252,7 +346,7 @@ export default function Questionnaire() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Demographic Info Section */}
           <div className="bg-white rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#111010] mb-4">🧑 Demographic Info</h2>
+            <h2 className="text-lg font-semibold text-[#111010] mb-4 flex items-center gap-2"><FaUser className="text-[#2e3105]" /> Demographic Info</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#666666] mb-1">Age Group</label>
@@ -275,7 +369,7 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
-                {errors.ageGroup && <p className="text-red-500 text-xs mt-1">{errors.ageGroup}</p>}
+                {formErrors.ageGroup && <p className="text-red-500 text-xs mt-1">{formErrors.ageGroup}</p>}
                 <p className="text-xs text-[#666666]/80 mt-1">Select your age group for demographic insights.</p>
               </div>
 
@@ -288,7 +382,8 @@ export default function Questionnaire() {
                   className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                   placeholder="Enter your occupation"
                 />
-                {errors.occupation && <p className="text-red-500 text-xs mt-1">{errors.occupation}</p>}
+                {formErrors.occupation && <p className="text-red-500 text-xs mt-1">{formErrors.occupation}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Your occupation helps us tailor recommendations to your field.</p>
               </div>
 
               <div>
@@ -310,7 +405,8 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
-                {errors.educationLevel && <p className="text-red-500 text-xs mt-1">{errors.educationLevel}</p>}
+                {formErrors.educationLevel && <p className="text-red-500 text-xs mt-1">{formErrors.educationLevel}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Your education level influences your reading preferences.</p>
               </div>
 
               <div className="flex gap-4">
@@ -323,7 +419,8 @@ export default function Questionnaire() {
                     className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                     placeholder="Enter your state"
                   />
-                  {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+                  {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
+                  <p className="text-xs text-[#666666]/80 mt-1">Your state helps us find local bookstores and events.</p>
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm text-[#666666] mb-1">City</label>
@@ -334,7 +431,8 @@ export default function Questionnaire() {
                     className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 text-sm text-[#666666]"
                     placeholder="Enter your city"
                   />
-                  {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                  <p className="text-xs text-[#666666]/80 mt-1">Your city helps us find local bookstores and events.</p>
                 </div>
               </div>
 
@@ -355,14 +453,15 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
-                {errors.preferredLanguage && <p className="text-red-500 text-xs mt-1">{errors.preferredLanguage}</p>}
+                {formErrors.preferredLanguage && <p className="text-red-500 text-xs mt-1">{formErrors.preferredLanguage}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Your preferred language helps us find books in your language.</p>
               </div>
             </div>
           </div>
 
           {/* Reading Behavior & Preferences Section */}
           <div className="bg-white rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#111010] mb-4">📚 Reading Behavior & Preferences</h2>
+            <h2 className="text-lg font-semibold text-[#111010] mb-4 flex items-center gap-2"><FaBook className="text-[#2e3105]" /> Reading Behavior & Preferences</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#666666] mb-1">Preferred Book Types</label>
@@ -379,7 +478,8 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
-                {errors.preferredBookTypes && <p className="text-red-500 text-xs mt-1">{errors.preferredBookTypes}</p>}
+                {formErrors.preferredBookTypes && <p className="text-red-500 text-xs mt-1">{formErrors.preferredBookTypes}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select the types of books you prefer to read.</p>
               </div>
 
               <div>
@@ -397,54 +497,21 @@ export default function Questionnaire() {
                     </label>
                   ))}
                 </div>
-                {errors.preferredFormats && <p className="text-red-500 text-xs mt-1">{errors.preferredFormats}</p>}
+                {formErrors.preferredFormats && <p className="text-red-500 text-xs mt-1">{formErrors.preferredFormats}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select the formats you prefer for your reading experience.</p>
               </div>
                 
-              <div>
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-[#666666] mb-1">Favorite Genres</label>
-                <div className="relative group">
-                  {formData.favoriteGenres.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formData.favoriteGenres.map((genre) => {
-                        const genreLabel = genres.find(g => g.value === genre)?.label;
-                        return (
-                          <div
-                            key={genre}
-                            className="flex items-center gap-1 bg-[#2e3105]/10 px-2 py-1 rounded-full text-sm text-[#666666]"
-                          >
-                            <span>{genreLabel}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeGenre(genre, 'favoriteGenres')}
-                              className="text-[#666666] hover:text-[#2e3105]"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="relative group">
-                    <select
-                      onChange={(e) => handleGenreSelect(e, 'favoriteGenres')}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
-                    >
-                      <option value="">Select a genre to add</option>
-                      {genres
-                        .filter(genre => !formData.favoriteGenres.includes(genre.value))
-                        .map(({ value, label }) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#666666] transition-transform duration-300 group-hover:text-[#2e3105] group-focus-within:rotate-180">
-                      <IoIosArrowDown size={16} />
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.favoriteGenres.length === 0 && <span className="text-xs text-gray-400">No genres selected.</span>}
+                  {formData.favoriteGenres.map(genre => (
+                    <span key={genre} className="bg-[#2e3105] text-white rounded-2xl px-3 py-1 text-xs flex items-center gap-1">{genre} <button onClick={() => setFormData({ ...formData, favoriteGenres: formData.favoriteGenres.filter(g => g !== genre) })}><IoClose size={14} /></button></span>
+                  ))}
                 </div>
-                {errors.favoriteGenres && <p className="text-red-500 text-xs mt-1">{errors.favoriteGenres}</p>}
+                <button type="button" onClick={() => setGenreModalOpen(true)} className="bg-[#2e3105] text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-[#404615]">Select Genres</button>
+                <p className="text-xs text-[#666666]/80 mt-1">Select your favorite genres to help us find books that match your interests.</p>
+                <GenreModal isOpen={genreModalOpen} onClose={() => setGenreModalOpen(false)} selected={formData.favoriteGenres} onChange={genres => setFormData({ ...formData, favoriteGenres: genres })} />
               </div>
 
               <div>
@@ -465,11 +532,12 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
-                {errors.readingFrequency && <p className="text-red-500 text-xs mt-1">{errors.readingFrequency}</p>}
+                {formErrors.readingFrequency && <p className="text-red-500 text-xs mt-1">{formErrors.readingFrequency}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select how often you read books.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#666666] mb-1">How much time can you dedicate to reading?</label>
+                <label className="block text-sm font-medium text-[#666666] mb-1">Reading Time Availability</label>
                 <div className="relative group">
                   <select
                     value={formData.readingTimeAvailability}
@@ -486,7 +554,8 @@ export default function Questionnaire() {
                     <IoIosArrowDown size={16} />
                   </div>
                 </div>
-                {errors.readingTimeAvailability && <p className="text-red-500 text-xs mt-1">{errors.readingTimeAvailability}</p>}
+                {formErrors.readingTimeAvailability && <p className="text-red-500 text-xs mt-1">{formErrors.readingTimeAvailability}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select how much time you can dedicate to reading each day.</p>
               </div>
 
               <div>
@@ -520,51 +589,66 @@ export default function Questionnaire() {
                     />
                   )}
                 </div>
-                {errors.favoriteBooks && <p className="text-red-500 text-xs mt-1">{errors.favoriteBooks}</p>}
+                {formErrors.favoriteBooks && <p className="text-red-500 text-xs mt-1">{formErrors.favoriteBooks}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Add your top 3 favorite books to help us recommend them to you.</p>
               </div>
             </div>
           </div>
 
           {/* Personality & Mood-based Inputs Section */}
           <div className="bg-white rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#111010] mb-4">🧠 Personality & Mood-based Inputs</h2>
+            <h2 className="text-lg font-semibold text-[#111010] mb-4 flex items-center gap-2"><FaSmile className="text-[#2e3105]" /> Personality & Mood-based Inputs</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#666666] mb-1">What kind of reader are you?</label>
-                <div className="space-y-2">
-                  {['Explorer', 'Escapist', 'Knowledge Seeker', 'Casual Reader', 'Avid Reader'].map((type) => (
-                    <label key={type} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        name="readerType"
-                        value={type.toLowerCase()}
-                        checked={formData.readerType === type.toLowerCase()}
-                        onChange={(e) => setFormData({ ...formData, readerType: e.target.value })}
-                        className="rounded"
-                      />
-                      <span className="text-sm text-[#666666]">{type}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.readerType && <p className="text-red-500 text-xs mt-1">{errors.readerType}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#666666] mb-1">How do you want to feel after reading a book?</label>
-                <div className="space-y-0.5 text-sm text-[#666666]">
-                  {feelings.map(({ value, label }) => (
-                    <label key={value} className="flex items-center p-1.5 rounded-lg hover:bg-[#2e3105]/5 transition-colors duration-200 cursor-pointer">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#666666] mb-1">Reading Motivation</label>
+                <div className="flex flex-col gap-2">
+                  {readingMotivations.map(opt => (
+                    <label key={opt.value} className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={formData.desiredFeelings.includes(value)}
-                        onChange={() => handleCheckboxChange(value, 'desiredFeelings')}
-                        className="mr-2 w-4 h-4 rounded border-[#666666]/30 text-[#2e3105] focus:ring-[#2e3105]/20"
+                        checked={formData.readingMotivation?.includes(opt.value)}
+                        onChange={() => {
+                          const newVal = formData.readingMotivation?.includes(opt.value)
+                            ? formData.readingMotivation.filter(v => v !== opt.value)
+                            : [...(formData.readingMotivation || []), opt.value];
+                          setFormData({ ...formData, readingMotivation: newVal });
+                        }}
+                        className="w-4 h-4 rounded border-[#cdcdcd]"
+                        style={{ accentColor: "#2e3105" }}
                       />
-                      {label}
+                      <span className="text-sm text-[#111010] font-medium">{opt.label}</span>
+                      <span className="text-xs text-[#666666]">{opt.desc}</span>
                     </label>
                   ))}
                 </div>
-                {errors.desiredFeelings && <p className="text-red-500 text-xs mt-1">{errors.desiredFeelings}</p>}
+                {formErrors.readingMotivation && <p className="text-red-500 text-xs mt-1">{formErrors.readingMotivation}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Select all that apply. This helps us understand why you read.</p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#666666] mb-1">Preferred Book Vibe</label>
+                <div className="flex flex-col gap-2">
+                  {bookVibes.map(opt => (
+                    <label key={opt.value} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.bookVibe?.includes(opt.value)}
+                        onChange={() => {
+                          const newVal = formData.bookVibe?.includes(opt.value)
+                            ? formData.bookVibe.filter(v => v !== opt.value)
+                            : [...(formData.bookVibe || []), opt.value];
+                          setFormData({ ...formData, bookVibe: newVal });
+                        }}
+                        className="w-4 h-4 rounded border-[#cdcdcd]"
+                        style={{ accentColor: "#2e3105" }}
+                      />
+                      <span className="text-sm text-[#111010] font-medium">{opt.label}</span>
+                      <span className="text-xs text-[#666666]">{opt.desc}</span>
+                    </label>
+                  ))}
+                </div>
+                {formErrors.bookVibe && <p className="text-red-500 text-xs mt-1">{formErrors.bookVibe}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Pick the vibes you enjoy most in books. This helps us match your mood.</p>
               </div>
 
               <div>
@@ -575,14 +659,15 @@ export default function Questionnaire() {
                   className="w-full h-[100px] rounded-lg border border-[#666666]/30 px-4 py-2 text-sm text-[#666666]"
                   placeholder="Tell us about your reading habits and preferences..."
                 />
-                {errors.readingHabits && <p className="text-red-500 text-xs mt-1">{errors.readingHabits}</p>}
+                {formErrors.readingHabits && <p className="text-red-500 text-xs mt-1">{formErrors.readingHabits}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Tell us about your reading habits and preferences to help us tailor recommendations.</p>
               </div>
             </div>
           </div>
 
           {/* Optional Add-ons Section */}
           <div className="bg-white rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#111010] mb-4">💡 Optional Add-ons</h2>
+            <h2 className="text-lg font-semibold text-[#111010] mb-4 flex items-center gap-2"><FaQuestionCircle className="text-[#2e3105]" /> Optional Add-ons</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-[#666666] mb-1">Reading Goals (books/month)</label>
@@ -594,54 +679,21 @@ export default function Questionnaire() {
                   placeholder="Enter your reading goal"
                   min="0"
                 />
-                {errors.readingGoals && <p className="text-red-500 text-xs mt-1">{errors.readingGoals}</p>}
+                {formErrors.readingGoals && <p className="text-red-500 text-xs mt-1">{formErrors.readingGoals}</p>}
+                <p className="text-xs text-[#666666]/80 mt-1">Set a reading goal to help us recommend books that are challenging and engaging.</p>
               </div>
 
-              <div>
-                <label className="block text-sm text-[#666666] mb-1">Genres you dislike</label>
-                <div className="space-y-2">
-                  {formData.dislikedGenres.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {formData.dislikedGenres.map((genre) => {
-                        const genreLabel = genres.find(g => g.value === genre)?.label;
-                        return (
-                          <div
-                            key={genre}
-                            className="flex items-center gap-1 bg-[#2e3105]/10 px-2 py-1 rounded-full text-sm text-[#666666]"
-                          >
-                            <span>{genreLabel}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeGenre(genre, 'dislikedGenres')}
-                              className="text-[#666666] hover:text-[#2e3105]"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="relative group">
-                    <select
-                      onChange={(e) => handleGenreSelect(e, 'dislikedGenres')}
-                      className="w-full h-[35px] rounded-lg border border-[#666666]/30 px-4 pr-8 text-sm text-[#666666] appearance-none bg-white transition-all duration-300 hover:border-[#2e3105]/50 focus:border-[#2e3105] focus:ring-1 focus:ring-[#2e3105]/20 outline-none"
-                    >
-                      <option value="">Select a genre to add</option>
-                      {genres
-                        .filter(genre => !formData.dislikedGenres.includes(genre.value))
-                        .map(({ value, label }) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#666666] transition-transform duration-300 group-hover:text-[#2e3105] group-focus-within:rotate-180">
-                      <IoIosArrowDown size={16} />
-                    </div>
-                  </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#666666] mb-1">Disliked Genres</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.dislikedGenres.length === 0 && <span className="text-xs text-gray-400">No genres selected.</span>}
+                  {formData.dislikedGenres.map(genre => (
+                    <span key={genre} className="bg-red-200 text-red-800 rounded-2xl px-3 py-1 text-xs flex items-center gap-1">{genre} <button onClick={() => setFormData({ ...formData, dislikedGenres: formData.dislikedGenres.filter(g => g !== genre) })}><IoClose size={14} /></button></span>
+                  ))}
                 </div>
-                {errors.dislikedGenres && <p className="text-red-500 text-xs mt-1">{errors.dislikedGenres}</p>}
+                <button type="button" onClick={() => setDislikedGenreModalOpen(true)} className="bg-red-600 text-white rounded-2xl px-4 py-1 text-xs font-medium hover:bg-red-700">Select Disliked Genres</button>
+                <p className="text-xs text-[#666666]/80 mt-1">Select genres you dislike to avoid recommending them to you.</p>
+                <GenreModal isOpen={dislikedGenreModalOpen} onClose={() => setDislikedGenreModalOpen(false)} selected={formData.dislikedGenres} onChange={genres => setFormData({ ...formData, dislikedGenres: genres })} />
               </div>
             </div>
           </div>
@@ -659,7 +711,7 @@ export default function Questionnaire() {
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded text-green-800">Preferences saved successfully!</div>
           )}
           {submitStatus === 'error' && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded text-red-800">Failed to save preferences. Please try again.</div>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded text-red-800">Please fix the highlighted errors and try again.</div>
           )}
         </form>
       </div>
