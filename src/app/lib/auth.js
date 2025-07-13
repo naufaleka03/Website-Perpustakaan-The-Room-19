@@ -17,7 +17,7 @@ export async function signUpVisitor(email, password, fullName, phoneNumber) {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/confirm-email`,
         data: {
           full_name: fullName,
           phone_number: phoneNumber

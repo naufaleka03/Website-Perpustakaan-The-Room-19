@@ -173,6 +173,9 @@ export default function LogIn() {
                 <div className="flex flex-col items-center gap-1 mt-4">
                     <p className="text-sm text-gray-500">Don't have an account?</p>
                     <p className="text-sm text-gray-500"><Link href="/signup" className="text-sm text-[#111111] underline hover:text-[#2e3105]">Sign up</Link> here</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                        <Link href="/login/forgot-password" className="text-sm text-[#111111] underline hover:text-[#2e3105]">Forgot Password?</Link>
+                    </p>
                 </div>
             </div>
         </div>

@@ -1,4 +1,3 @@
-// src/app/auth/callback/page.js
 import Link from "next/link";
 import Image from "next/image";
 
