@@ -11,6 +11,10 @@ export async function PUT(request, context) {
     const body = await request.json();
     console.log('PUT /api/loans/[id] - Request body:', body);
     console.log('PUT /api/loans/[id] - Loan ID:', id);
+    console.log('PUT /api/loans/[id] - Body keys:', Object.keys(body));
+    console.log('PUT /api/loans/[id] - Body.loan_due:', body.loan_due);
+    console.log('PUT /api/loans/[id] - Body.status:', body.status);
+    console.log('PUT /api/loans/[id] - Body.fine:', body.fine);
     
     let result;
     
@@ -56,6 +60,7 @@ export async function PUT(request, context) {
       // Update loan_due, status ke 'On Going', dan increment extend_count
       console.log('PUT /api/loans/[id] - Extending loan, new loan_due:', body.loan_due);
       console.log('PUT /api/loans/[id] - Current extend_count:', existingLoan[0].extend_count);
+      console.log('PUT /api/loans/[id] - Entering loan_due update condition');
       
       // Validasi format tanggal
       if (!/^\d{4}-\d{2}-\d{2}$/.test(body.loan_due)) {
@@ -63,6 +68,9 @@ export async function PUT(request, context) {
         return NextResponse.json({ error: 'Invalid date format. Expected YYYY-MM-DD' }, { status: 400 });
       }
       
+      console.log('PUT /api/loans/[id] - Date format is valid, proceeding with update');
+      
+      // Update dengan transaction untuk memastikan konsistensi
       result = await sql`
         UPDATE loans
         SET loan_due = ${body.loan_due}, status = 'On Going', extend_count = extend_count + 1
@@ -71,6 +79,18 @@ export async function PUT(request, context) {
       `;
       
       console.log('PUT /api/loans/[id] - Extend result:', result);
+      
+      // Verifikasi update berhasil
+      if (result && result.length > 0) {
+        console.log('PUT /api/loans/[id] - Loan successfully extended:', {
+          id: result[0].id,
+          new_loan_due: result[0].loan_due,
+          new_status: result[0].status,
+          new_extend_count: result[0].extend_count
+        });
+      } else {
+        console.error('PUT /api/loans/[id] - Update failed, no rows returned');
+      }
     } else if (body.status) {
       // Ambil data loan sebelum update untuk dapatkan book_id1
       const loanBefore = await sql`
@@ -95,6 +115,8 @@ export async function PUT(request, context) {
       }
     } else {
       console.error('PUT /api/loans/[id] - No valid field to update');
+      console.error('PUT /api/loans/[id] - Available fields in body:', Object.keys(body));
+      console.error('PUT /api/loans/[id] - Body content:', body);
       return NextResponse.json({ error: 'No valid field to update' }, { status: 400 });
     }
 

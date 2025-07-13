@@ -104,7 +104,7 @@ export async function POST(request) {
           'full_name', 'email', 'phone_number', 'loan_start', 'loan_due', 'status', 'extend_count', 'fine', 'copies', 'copies_id'
         )}
         RETURNING *
-      `;
+      `; 
       let transactionRow = null;
       if (insertedLoan && insertedLoan.length > 0 && (requestData.payment_id || requestData.payment_status || requestData.payment_method)) {
         // Insert ke tabel transaction jika ada data payment

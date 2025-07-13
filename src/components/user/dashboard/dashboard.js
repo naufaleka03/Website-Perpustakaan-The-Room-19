@@ -250,6 +250,23 @@ export default function UserDashboard() {
       }
     };
     fetchLoans();
+    
+    // Listen untuk custom event loanUpdated
+    const loanUpdatedHandler = (event) => {
+      console.log('loanUpdated event received in dashboard:', event.detail);
+      // Immediately refetch loans when loan is updated
+      fetchLoans();
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('loanUpdated', loanUpdatedHandler);
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('loanUpdated', loanUpdatedHandler);
+      }
+    };
   }, []);
 
   useEffect(() => {
