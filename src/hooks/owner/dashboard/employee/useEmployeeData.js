@@ -96,12 +96,45 @@ export function useEmployeeData() {
     setAllEmployees(prevEmployees => [...prevEmployees, newEmployee]);
   };
 
-  const updateEmployeeStatus = (employeeNo, newStatus) => {
-    setAllEmployees(prevEmployees => 
-      prevEmployees.map(emp => 
-        emp.no === employeeNo ? { ...emp, status: newStatus } : emp
-      )
-    );
+  const updateEmployeeStatus = async (employeeNo, newStatus) => {
+    try {
+      // Find the employee by no
+      const employee = allEmployees.find(emp => emp.no === employeeNo);
+      if (!employee) {
+        console.error('Employee not found for status update');
+        return false;
+      }
+
+      // Make API call to update status
+      const response = await fetch('/api/employees', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: employee.id,
+          status: newStatus,
+          reason: `Status changed to ${newStatus}`
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update employee status');
+      }
+
+      // Update local state
+      setAllEmployees(prevEmployees => 
+        prevEmployees.map(emp => 
+          emp.no === employeeNo ? { ...emp, status: newStatus } : emp
+        )
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error updating employee status:', error);
+      return false;
+    }
   };
 
   const updateEmployee = (updatedEmployee) => {

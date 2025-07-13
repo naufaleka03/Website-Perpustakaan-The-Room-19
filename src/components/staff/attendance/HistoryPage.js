@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IoSearch } from "react-icons/io5";
 import { IoCalendarOutline } from "react-icons/io5";
-import { STATUS_MAP } from './utils';
+import { STATUS_MAP, formatShiftTime } from './utils';
 
 const HistoryPage = () => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
@@ -263,6 +263,9 @@ const HistoryPage = () => {
                     Department
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Shift
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -295,6 +298,11 @@ const HistoryPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
                           {getStaffDepartment(record.staff_id)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {formatShiftTime(record.shift)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

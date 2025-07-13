@@ -6,11 +6,11 @@ import { BsGridFill, BsList } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import Notification from './Notification';
 import AttendanceModal from './AttendanceModal';
-import EarlyCheckoutModal from './EarlyCheckoutModal';
+
 import StatusButtonGroup from './StatusButtonGroup';
 import AttendanceNavigation from './AttendanceNavigation';
 import HistoryPage from './HistoryPage';
-import { STATUS_MAP, getActiveShift, canEarlyCheckout } from './utils';
+import { STATUS_MAP, getActiveShift, canEarlyCheckout, getActiveStaffForCurrentShift, isStaffInShift, formatShiftTime, SHIFT_SCHEDULES } from './utils';
 
 const StaffAttendancePage = () => {
   const [activeTab, setActiveTab] = useState('attendance');
@@ -23,9 +23,9 @@ const StaffAttendancePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(null);
-  const [isEarlyCheckoutModalOpen, setIsEarlyCheckoutModalOpen] = useState(false);
-  const [selectedStaffForCheckout, setSelectedStaffForCheckout] = useState(null);
+
   const [currentTime, setCurrentTime] = useState('');
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [debugData, setDebugData] = useState({});
   const [showDebug, setShowDebug] = useState(false);
 
@@ -44,6 +44,7 @@ const StaffAttendancePage = () => {
         second: '2-digit'
       });
       setCurrentTime(timeString);
+      setCurrentDateTime(now);
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -55,6 +56,12 @@ const StaffAttendancePage = () => {
         const response = await fetch('/api/staff/attendance');
         if (!response.ok) throw new Error('Failed to fetch staff data');
         const data = await response.json();
+        console.log('Fetched staff data:', data.staff);
+        // Log any Non-Active staff for debugging
+        const nonActiveStaff = data.staff.filter(s => s.status !== 'Active');
+        if (nonActiveStaff.length > 0) {
+          console.warn('Non-Active staff found in API response:', nonActiveStaff);
+        }
         setStaff(data.staff);
       } catch (error) {
         setError('Failed to load staff data');
@@ -149,10 +156,6 @@ const StaffAttendancePage = () => {
     }
   };
 
-  const filteredStaff = staff.filter(staff =>
-    staff.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleOpenModal = (staff, status, actionLabel = null) => {
     setSelectedAttendance({ staff, status, actionLabel });
     setIsModalOpen(true);
@@ -211,20 +214,11 @@ const StaffAttendancePage = () => {
   };
 
   // Clock-out handlers
-  const handleClockOutClick = (staff, isEarly = false) => {
-    handleOpenModal(staff, isEarly ? 'ECO' : 'CO', isEarly ? 'Early Clock-Out' : 'Clock-out');
-  };
-  
-  const handleCloseEarlyCheckoutModal = () => {
-    setIsEarlyCheckoutModalOpen(false);
-    setSelectedStaffForCheckout(null);
-  };
-  
-  const handleConfirmEarlyCheckout = async () => {
+  const handleClockOut = async (staffId, isEarly = false) => {
     try {
       const formData = new FormData();
-      formData.append('staffNo', selectedStaffForCheckout.id);
-      formData.append('status', 'ECO');
+      formData.append('staffNo', staffId);
+      formData.append('status', isEarly ? 'ECO' : 'CO');
       formData.append('timestamp', currentTime);
       const apiResponse = await fetch('/api/staff/attendance', {
         method: 'POST',
@@ -236,11 +230,11 @@ const StaffAttendancePage = () => {
       // Refetch attendance records from backend to ensure UI is up to date
       await fetchAttendanceRecords();
       
+      const actionType = isEarly ? 'Early Clock-out' : 'Clock-out';
       setNotification({
-        message: `Clock-out recorded for ${selectedStaffForCheckout.name} at ${currentTime}!`,
+        message: `${actionType} recorded successfully!`,
         type: 'success'
       });
-      handleCloseEarlyCheckoutModal();
     } catch (error) {
       setNotification({ message: 'Failed to submit clock-out. Please try again.', type: 'error' });
     }
@@ -267,6 +261,15 @@ const StaffAttendancePage = () => {
   // Shift logic
   const hour = useMockHour ? MOCK_HOUR : new Date().getHours();
   const activeShift = getActiveShift(hour);
+  
+  // Get staff for current shift
+  const currentShiftStaff = getActiveStaffForCurrentShift(staff, hour);
+  
+  // Filter staff - only show Active staff and apply search filter
+  const filteredStaff = staff.filter(staff =>
+    staff.status === 'Active' && 
+    staff.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -299,7 +302,25 @@ const StaffAttendancePage = () => {
       <AttendanceNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Attendance</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Attendance</h1>
+          {activeShift && (
+            <div className="mt-2 flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">
+                  Current Shift: {formatShiftTime(activeShift)}
+                </span>
+              </div>
+              <span className="text-sm text-gray-500">
+                ({currentShiftStaff.length} staff active)
+              </span>
+            </div>
+          )}
+          <div className="mt-1 text-sm text-gray-500">
+            Total Active Staff: {filteredStaff.length}
+          </div>
+        </div>
         <div className="flex items-center space-x-4">
           <button onClick={forceRefresh} className="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded text-sm transition-colors duration-200">Force Refresh</button>
           <div className="relative max-w-sm">
@@ -351,6 +372,7 @@ const StaffAttendancePage = () => {
               <div className="flex-grow mb-4">
                 <h3 className="font-semibold text-lg">{staff.name}</h3>
                 <p className="text-sm text-gray-500">{staff.department}</p>
+                <p className="text-xs text-gray-400 mt-1">{formatShiftTime(staff.shift)}</p>
                 {attendanceRecords[staff.id] && attendanceRecords[staff.id].status && (
                   <p className="text-xs text-gray-500 mt-1">
                     Marked at: {attendanceRecords[staff.id][attendanceRecords[staff.id].status]}
@@ -368,16 +390,8 @@ const StaffAttendancePage = () => {
                   attendanceRecords={attendanceRecords}
                   handleOpenModal={handleOpenModal}
                   getButtonClass={getButtonClass}
+                  currentDateTime={currentDateTime}
                 />
-                {/* Show Early Clock-Out button only if checked in (P, L, or A) and not already checked out early or clocked out */}
-                {attendanceRecords[staff.id] && ["P", "L", "A"].includes(attendanceRecords[staff.id].status) && !attendanceRecords[staff.id]?.earlyCheckout ? (
-                  <button
-                    onClick={() => handleClockOutClick(staff, true)}
-                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded text-sm transition-colors duration-200 mt-2"
-                  >
-                    Early Clock-Out
-                  </button>
-                ) : null}
               </div>
             </div>
           ) : (
@@ -394,6 +408,7 @@ const StaffAttendancePage = () => {
               <div className="flex-grow">
                 <h3 className="font-semibold">{staff.name}</h3>
                 <p className="text-sm text-gray-500">{staff.department}</p>
+                <p className="text-xs text-gray-400">{formatShiftTime(staff.shift)}</p>
                 {attendanceRecords[staff.id] && (
                   <p className="text-xs text-gray-500">
                     Marked at: {attendanceRecords[staff.id].timestamp}
@@ -411,16 +426,8 @@ const StaffAttendancePage = () => {
                   attendanceRecords={attendanceRecords}
                   handleOpenModal={handleOpenModal}
                   getButtonClass={getButtonClass}
+                  currentDateTime={currentDateTime}
                 />
-                {/* Show Early Clock-Out button only if checked in (P, L, or A) and not already checked out early or clocked out */}
-                {attendanceRecords[staff.id] && ["P", "L", "A"].includes(attendanceRecords[staff.id].status) && !attendanceRecords[staff.id]?.earlyCheckout ? (
-                  <button
-                    onClick={() => handleClockOutClick(staff, true)}
-                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded text-sm transition-colors duration-200 mt-2"
-                  >
-                    Early Clock-Out
-                  </button>
-                ) : null}
               </div>
             </div>
           )
@@ -434,15 +441,7 @@ const StaffAttendancePage = () => {
           attendanceInfo={selectedAttendance}
         />
       )}
-      {selectedStaffForCheckout && (
-        <EarlyCheckoutModal
-          isOpen={isEarlyCheckoutModalOpen}
-          onClose={handleCloseEarlyCheckoutModal}
-          onConfirm={handleConfirmEarlyCheckout}
-          staff={selectedStaffForCheckout}
-          currentTime={currentTime}
-        />
-      )}
+
       {notification && (
         <Notification
           message={notification.message}

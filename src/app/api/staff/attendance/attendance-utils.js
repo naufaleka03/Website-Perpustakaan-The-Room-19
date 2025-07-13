@@ -1,5 +1,9 @@
-// Utility constants and functions for staff attendance
+/**
+ * Business logic utilities for attendance system
+ * Moved from frontend utils.js to API layer
+ */
 
+// Utility constants and functions for staff attendance
 export const STATUS_MAP = {
   P: 'Present',
   A: 'Absent',

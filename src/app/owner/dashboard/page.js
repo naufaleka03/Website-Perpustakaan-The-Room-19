@@ -617,6 +617,7 @@ export default function DashboardPage() {
       <AnimatePresence>
         {selectedDate && (
           <EventAssignmentModal
+            key="event-assignment-modal"
             selectedDate={selectedDate}
             assignedEvents={assignedEvents}
             onClose={() => setSelectedDate(null)}
@@ -625,11 +626,14 @@ export default function DashboardPage() {
           />
         )}
         
-        <BorrowingModal
-          isOpen={borrowingModalOpen}
-          type={borrowingModalType}
-          onClose={() => setBorrowingModalOpen(false)}
-        />
+        {borrowingModalOpen && (
+          <BorrowingModal
+            key="borrowing-modal"
+            isOpen={borrowingModalOpen}
+            type={borrowingModalType}
+            onClose={() => setBorrowingModalOpen(false)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Evidence Modal for StaffCard */}

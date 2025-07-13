@@ -4,7 +4,7 @@ import { createClient } from '@/app/supabase/server';
 // GET /api/employees - Fetch all employees
 export async function GET() {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     const { data: employees, error } = await supabase
       .from('staffs')
@@ -31,7 +31,7 @@ export async function GET() {
 // POST /api/employees - Add new employee
 export async function POST(request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const body = await request.json();
     
     const {
@@ -122,10 +122,68 @@ export async function POST(request) {
   }
 }
 
+// PATCH /api/employees - Update employee status
+export async function PATCH(request) {
+  try {
+    const supabase = await createClient();
+    const body = await request.json();
+    
+    const { id, status, reason, terminationLetter } = body;
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { error: 'Missing required fields: id and status' },
+        { status: 400 }
+      );
+    }
+
+    // Validate status values
+    const validStatuses = ['Active', 'Non-Active'];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status. Must be either "Active" or "Non-Active"' },
+        { status: 400 }
+      );
+    }
+
+    // Update employee status
+    const { data: updatedEmployee, error: updateError } = await supabase
+      .from('staffs')
+      .update({ 
+        status: status
+        // Note: Additional tracking fields like status_change_reason and termination_letter
+        // would need to be added to the database schema first
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating employee status:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update employee status', details: updateError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      message: `Employee status updated to ${status} successfully`,
+      employee: updatedEmployee
+    });
+
+  } catch (error) {
+    console.error('Error in PATCH /api/employees:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/employees?id=... - Delete employee by id
 export async function DELETE(request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) {

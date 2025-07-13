@@ -95,7 +95,7 @@ export async function middleware(request) {
         .eq('id', userId)
         .single();
       
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.log(`Middleware: Error querying table ${table}:`, error);
       }
 

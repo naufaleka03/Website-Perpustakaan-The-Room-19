@@ -13,22 +13,71 @@ export const createNewEmployee = (formData, employeeCount) => {
   };
 };
 
-export const handleWarning = (employee, reason) => {
-  // This would typically make an API call
-  console.log(`Warning for ${employee.name}: ${reason}`);
-  return true;
-};
-
-export const handleRevokeAccess = (employee, terminationLetter) => {
-  // This would typically make an API call
-  if (terminationLetter) {
-    console.log(`Termination letter for ${employee.name}:`, terminationLetter);
+export const handleWarning = async (employee, reason) => {
+  try {
+    // Store warning in database (you can create a separate warnings table)
+    console.log(`Warning for ${employee.name}: ${reason}`);
+    // TODO: Implement warning storage in database
+    return true;
+  } catch (error) {
+    console.error('Error handling warning:', error);
+    return false;
   }
-  return true;
 };
 
-export const handleReinstate = (employee) => {
-  // This would typically make an API call
-  console.log(`Reinstating ${employee.name}`);
-  return true;
+export const handleRevokeAccess = async (employee, terminationLetter) => {
+  try {
+    const response = await fetch('/api/employees', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: employee.id,
+        status: 'Non-Active',
+        reason: 'Access revoked by owner',
+        terminationLetter: terminationLetter
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to revoke access');
+    }
+
+    const result = await response.json();
+    console.log('Access revoked successfully:', result);
+    return true;
+  } catch (error) {
+    console.error('Error revoking access:', error);
+    return false;
+  }
+};
+
+export const handleReinstate = async (employee) => {
+  try {
+    const response = await fetch('/api/employees', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: employee.id,
+        status: 'Active',
+        reason: 'Access reinstated by owner'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to reinstate access');
+    }
+
+    const result = await response.json();
+    console.log('Access reinstated successfully:', result);
+    return true;
+  } catch (error) {
+    console.error('Error reinstating access:', error);
+    return false;
+  }
 }; 

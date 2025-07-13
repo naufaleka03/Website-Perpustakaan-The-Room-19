@@ -53,12 +53,15 @@ export function useEmployeeForm() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/employees', {
+      const response = await fetch('/api/staff-management/employee-operations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          operation: 'create',
+          data: formData
+        }),
       });
 
       const data = await response.json();
