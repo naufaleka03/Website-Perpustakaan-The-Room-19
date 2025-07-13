@@ -15,6 +15,13 @@ export default function CreateSession() {
   const [fullName, setFullName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading for visual consistency
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
@@ -80,6 +87,54 @@ export default function CreateSession() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen mx-auto bg-gradient-to-br from-[#232310] to-[#5f5f2c] px-0 pb-20">
+        {/* Hero Section Skeleton */}
+        <div className="relative mb-8 mt-0">
+          <div className="w-full h-[360px] relative bg-gradient-to-br from-[#232310] to-[#5f5f2c]">
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
+            <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
+              <div className="max-w-[1200px] mx-auto w-full">
+                <div className="h-10 w-2/3 bg-gray-300/60 rounded mb-4 animate-pulse"></div>
+                <div className="h-6 w-1/2 bg-gray-300/40 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Card Overlay Skeleton */}
+        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <div className="h-8 w-1/3 bg-gray-200 animate-pulse rounded mb-4"></div>
+            <div className="h-4 w-1/2 bg-gray-200 animate-pulse rounded mb-8"></div>
+            {/* Skeleton for form fields */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="mb-6">
+                <div className="h-4 w-1/4 bg-gray-200 animate-pulse rounded mb-2"></div>
+                <div className="h-10 w-full bg-gray-100 animate-pulse rounded mb-2"></div>
+                <div className="h-3 w-1/3 bg-gray-100 animate-pulse rounded"></div>
+              </div>
+            ))}
+            {/* Skeleton for group members section */}
+            <div className="mb-6">
+              <div className="h-4 w-1/4 bg-gray-200 animate-pulse rounded mb-2"></div>
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="flex gap-3 items-center mb-2">
+                  <div className="h-10 flex-1 bg-gray-100 animate-pulse rounded"></div>
+                  <div className="h-10 w-10 bg-gray-100 animate-pulse rounded-2xl"></div>
+                </div>
+              ))}
+              <div className="h-3 w-1/3 bg-gray-100 animate-pulse rounded"></div>
+            </div>
+            {/* Skeleton for submit button */}
+            <div className="h-12 w-full bg-gray-300 animate-pulse rounded-3xl mt-6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form
