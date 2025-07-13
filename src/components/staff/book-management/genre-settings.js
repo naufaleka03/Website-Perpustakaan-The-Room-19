@@ -137,7 +137,7 @@ const GenreSettings = () => {
             <div className="absolute inset-0 bg-black/50"></div>
             <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#232310] pointer-events-none"></div>
             <div className="absolute inset-x-0 top-0 flex items-start w-full mx-auto px-4 lg:px-8 pt-16">
-              <div className="max-w-[1000px] mx-auto w-full">
+              <div className="max-w-[1200px] mx-auto w-full">
                 <div className="h-10 w-2/3 bg-gray-300/60 rounded mb-4 animate-pulse"></div>
                 <div className="h-6 w-1/2 bg-gray-300/40 rounded animate-pulse"></div>
               </div>
@@ -145,14 +145,14 @@ const GenreSettings = () => {
           </div>
         </div>
         {/* Card Overlay Skeleton */}
-        <div className="relative z-10 max-w-[1000px] mx-auto px-6 lg:px-8 mb-12" style={{ marginTop: '-180px' }}>
+        <div className="relative z-10 max-w-[1200px] mx-auto px-2 lg:px-6 pb-24" style={{ marginTop: '-180px' }}>
           <div className="bg-white rounded-xl shadow-md p-8">
             {/* Search and Add Button Skeleton */}
             <div className="flex flex-wrap justify-between items-center mb-6">
               <div className="w-[300px] sm:w-[400px] h-10 bg-gray-200 animate-pulse rounded-2xl"></div>
               <div className="w-32 h-10 bg-gray-200 animate-pulse rounded-lg mt-4 sm:mt-0"></div>
             </div>
-            {/* Table Skeleton */}
+            {/* Table Skeleton (6 columns for consistency) */}
             <div className="bg-white rounded-xl border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
@@ -162,6 +162,8 @@ const GenreSettings = () => {
                       <th className="py-3 px-4"><div className="h-6 w-32 bg-gray-300 animate-pulse rounded"></div></th>
                       <th className="py-3 px-4"><div className="h-6 w-24 bg-gray-300 animate-pulse rounded"></div></th>
                       <th className="py-3 px-4"><div className="h-6 w-20 bg-gray-300 animate-pulse rounded"></div></th>
+                      <th className="py-3 px-4"><div className="h-6 w-20 bg-gray-300 animate-pulse rounded"></div></th>
+                      <th className="py-3 px-4"><div className="h-6 w-20 bg-gray-300 animate-pulse rounded"></div></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -170,6 +172,8 @@ const GenreSettings = () => {
                         <td className="py-4 px-4"><div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div></td>
                         <td className="py-4 px-4"><div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div></td>
                         <td className="py-4 px-4"><div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div></td>
+                        <td className="py-4 px-4"><div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div></td>
+                        <td className="py-4 px-4"><div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div></td>
                         <td className="py-4 px-4"><div className="flex justify-center gap-3"><div className="h-4 w-4 bg-gray-200 animate-pulse rounded"></div><div className="h-4 w-4 bg-gray-200 animate-pulse rounded"></div></div></td>
                       </tr>
                     ))}
