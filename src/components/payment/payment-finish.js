@@ -80,32 +80,85 @@ export default function PaymentFinishPage() {
             let retry = 0;
             let success = false;
             let lastError = null;
-            while (retry < 3 && !success) {
+            console.log('Starting extend update process:', { loanId, newReturnDate });
+            
+            // Validasi data sebelum update
+            if (!loanId) {
+              console.error('loanId is missing');
+              setTransactionError('Loan ID tidak ditemukan');
+              return;
+            }
+            
+            if (!newReturnDate) {
+              console.error('newReturnDate is missing');
+              setTransactionError('Tanggal perpanjangan tidak ditemukan');
+              return;
+            }
+            
+            // Validasi format tanggal
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(newReturnDate)) {
+              console.error('Invalid date format:', newReturnDate);
+              setTransactionError('Format tanggal tidak valid');
+              return;
+            }
+            
+            while (retry < 5 && !success) { // Increase retry attempts
               try {
+                console.log(`Attempting to update loan ${loanId} with new return date: ${newReturnDate}, attempt ${retry + 1}`);
+                const updatePayload = { loan_due: newReturnDate, status: 'On Going' };
+                console.log('Update payload:', updatePayload);
+                
                 const putRes = await fetch(`/api/loans/${loanId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ loan_due: newReturnDate, status: 'On Going' })
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updatePayload)
                 });
+                
+                console.log('PUT response status:', putRes.status);
                 const putData = await putRes.json();
+                console.log('PUT response data:', putData);
+                
                 if (putRes.ok && putData.success) {
+                  console.log('Loan update successful:', putData.loan);
                   localStorage.removeItem('extendNewReturnDate');
                   localStorage.removeItem('extendAmount');
                   localStorage.setItem('extendSuccess', '1');
+                  // Trigger immediate refresh by dispatching custom event
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('loanUpdated', { 
+                      detail: { loanId, newReturnDate } 
+                    }));
+                  }
                   success = true;
+                  // Add small delay to ensure data is properly updated before redirect
+                  setTimeout(() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/user/dashboard/books/history?refresh=1';
+                    }
+                  }, 1000);
                 } else {
                   lastError = putData.error || 'Gagal update data extend';
+                  console.error(`Update attempt ${retry + 1} failed:`, lastError);
                   retry++;
-                  await new Promise(r => setTimeout(r, 500));
+                  await new Promise(r => setTimeout(r, 1000)); // Increase delay between retries
                 }
               } catch (err) {
                 lastError = err.message || 'Gagal update data extend';
+                console.error(`Update attempt ${retry + 1} error:`, err);
                 retry++;
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, 1000));
               }
             }
             if (!success) {
+              console.error('All update attempts failed:', lastError);
               setTransactionError(lastError || 'Gagal update data extend');
+              // Fallback: redirect ke history page dengan pesan error
+              setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                  alert('Pembayaran berhasil tetapi ada masalah dengan update data. Silakan refresh halaman untuk melihat perubahan.');
+                  window.location.href = '/user/dashboard/books/history?refresh=1';
+                }
+              }, 2000);
             }
           } else if (loanId && !newReturnDate) {
             // FINE: update loan_due ke hari ini, status ke 'Due Date', fine ke false

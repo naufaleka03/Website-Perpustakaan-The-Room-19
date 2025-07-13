@@ -143,11 +143,17 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
         return;
       }
 
+      console.log('Refetching loan data for ID:', borrowingData.id);
       const res = await fetch(`/api/loans?user_id=${user.id}`);
       const data = await res.json();
       if (res.ok && data.loans) {
         const updated = data.loans.find(l => l.id === borrowingData.id);
-        if (updated) setLoanData(updated);
+        if (updated) {
+          console.log('Updated loan data:', updated);
+          setLoanData(updated);
+        } else {
+          console.log('Loan not found in updated data');
+        }
       }
     } catch (error) {
       console.error('Error refetching loan:', error);
@@ -157,27 +163,45 @@ const DetailBorrowingModal = ({ isOpen, onClose, borrowingData, onReturnBook }) 
   // Tambahkan efek untuk listen perubahan extend dari PaymentFinishPage
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    
     const handler = () => {
       // Jika ada flag extendSuccess di localStorage, refetch data
       if (localStorage.getItem('extendSuccess') === '1') {
+        console.log('extendSuccess flag detected, refetching loan data');
         refetchLoan();
         localStorage.removeItem('extendSuccess');
       }
     };
+    
+    // Listen untuk custom event loanUpdated
+    const loanUpdatedHandler = (event) => {
+      console.log('loanUpdated event received:', event.detail);
+      if (event.detail && event.detail.loanId === borrowingData?.id) {
+        console.log('Matching loan ID, refetching data immediately');
+        refetchLoan();
+      }
+    };
+    
     window.addEventListener('storage', handler);
+    window.addEventListener('loanUpdated', loanUpdatedHandler);
+    
     // Cek juga saat mount
     handler();
-    return () => window.removeEventListener('storage', handler);
-  }, [loanData]);
+    
+    return () => {
+      window.removeEventListener('storage', handler);
+      window.removeEventListener('loanUpdated', loanUpdatedHandler);
+    };
+  }, [loanData, borrowingData?.id]);
 
   // Tambahkan polling untuk refetch data saat modal terbuka
   useEffect(() => {
     if (!isOpen || !borrowingData?.id) return;
     
-    // Refetch data setiap 2 detik saat modal terbuka
+    // Refetch data setiap 1 detik saat modal terbuka (lebih cepat)
     const interval = setInterval(() => {
       refetchLoan();
-    }, 2000);
+    }, 1000);
     
     return () => clearInterval(interval);
   }, [isOpen, borrowingData?.id]);

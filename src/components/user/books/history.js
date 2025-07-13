@@ -93,7 +93,7 @@ const History = () => {
   // Tambahkan polling untuk refetch data saat halaman history terbuka
   useEffect(() => {
     const interval = setInterval(async () => {
-      // Refetch data setiap 3 detik
+      // Refetch data setiap 2 detik (lebih cepat dari sebelumnya)
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -111,9 +111,45 @@ const History = () => {
       } catch (err) {
         console.error('Error fetching loans:', err);
       }
-    }, 3000);
+    }, 2000); // Reduced from 3000ms to 2000ms
     
-    return () => clearInterval(interval);
+    // Listen untuk custom event loanUpdated
+    const loanUpdatedHandler = (event) => {
+      console.log('loanUpdated event received in history:', event.detail);
+      // Immediately refetch data when loan is updated
+      const fetchLoans = async () => {
+        try {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+
+          if (!user || !user.id) {
+            return;
+          }
+
+          const response = await fetch(`/api/loans?user_id=${user.id}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            console.log('History data updated after loan update');
+            setLoans(data.loans);
+          }
+        } catch (err) {
+          console.error('Error fetching loans after update:', err);
+        }
+      };
+      fetchLoans();
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('loanUpdated', loanUpdatedHandler);
+    }
+    
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('loanUpdated', loanUpdatedHandler);
+      }
+    };
   }, [router]);
 
   const handleSelectOption = (option) => {
