@@ -254,197 +254,198 @@ export default function Histories() {
   });
 
   return (
-    <div className="max-w-[1440px] mx-auto p-6 bg-white min-h-[70vh] flex flex-col">
-      <div className="max-w-[932px] mx-auto flex-1 flex flex-col">
-        <div className="flex gap-8 mb-4">
-          <TabButton
-            isActive={activeTab === "session"}
-            onClick={() => setActiveTab("session")}
-          >
-            Session Reservation
-          </TabButton>
-          <TabButton
-            isActive={activeTab === "event"}
-            onClick={() => setActiveTab("event")}
-          >
-            Event Reservation
-          </TabButton>
-        </div>
-
-        <div className="relative border-b border-neutral-500/60 mb-6">
-          <div
-            className={`absolute bottom-0 h-0.5 bg-lime-950 transition-transform duration-300 ${
-              activeTab === "event"
-                ? "w-[140px] translate-x-[128px]"
-                : "w-[130px] translate-x-0"
-            }`}
-          />
-        </div>
-
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1 relative">
-            <BiSearch
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666] text-xs font-normal font-manrope"
-            />
-          </div>
-
-          <div className="w-[383px] relative">
-            <div
-              className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] px-4 flex items-center justify-between cursor-pointer"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              <span className="text-black text-xs font-normal font-manrope">
-                {selectedOption}
-              </span>
-              <IoIosArrowDown className="text-gray-400" size={18} />
+    <div className="flex-1 min-h-[calc(100vh-72px)] bg-white">
+      <div className="w-full h-full relative bg-white">
+        <div className="w-full mx-auto px-12 py-8">
+          <div className="max-w-[932px] mx-auto flex-1 flex flex-col">
+            <div className="flex gap-8 mb-4">
+              <TabButton
+                isActive={activeTab === "session"}
+                onClick={() => setActiveTab("session")}
+              >
+                Session Reservation
+              </TabButton>
+              <TabButton
+                isActive={activeTab === "event"}
+                onClick={() => setActiveTab("event")}
+              >
+                Event Reservation
+              </TabButton>
             </div>
-            {isDropdownOpen && (
-              <div className="absolute w-full mt-2 bg-white rounded-xl border border-[#cdcdcd] shadow-lg overflow-hidden z-10">
-                <div className="py-2">
-                  {["All Status", "Paid", "Cancelled"].map((opt) => (
-                    <button
-                      key={opt}
-                      className="w-full px-4 py-2 text-left text-xs text-[#666666] font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
-                      onClick={() => handleSelectOption(opt)}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
+            <div className="relative border-b border-neutral-500/60 mb-6">
+              <div
+                className={`absolute bottom-0 h-0.5 bg-lime-950 transition-transform duration-300 ${
+                  activeTab === "event"
+                    ? "w-[140px] translate-x-[128px]"
+                    : "w-[130px] translate-x-0"
+                }`}
+              />
+            </div>
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1 relative">
+                <BiSearch
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] pl-10 text-[#666666] text-xs font-normal font-manrope"
+                />
               </div>
-            )}
+              <div className="w-[383px] relative">
+                <div
+                  className="w-full h-[40px] bg-neutral-50 rounded-2xl border border-[#cdcdcd] px-4 flex items-center justify-between cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <span className="text-black text-xs font-normal font-manrope">
+                    {selectedOption}
+                  </span>
+                  <IoIosArrowDown className="text-gray-400" size={18} />
+                </div>
+                {isDropdownOpen && (
+                  <div className="absolute w-full mt-2 bg-white rounded-xl border border-[#cdcdcd] shadow-lg overflow-hidden z-10">
+                    <div className="py-2">
+                      {["All Status", "Paid", "Cancelled"].map((opt) => (
+                        <button
+                          key={opt}
+                          className="w-full px-4 py-2 text-left text-xs text-[#666666] font-normal hover:bg-[#eff0c3] hover:text-[#52570d]"
+                          onClick={() => handleSelectOption(opt)}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-start">
+              {activeTab === "session" && (
+                <div className="space-y-4">
+                  {loading && (
+                    <>
+                      <ReservationHistorySkeleton />
+                      <ReservationHistorySkeleton />
+                      <ReservationHistorySkeleton />
+                    </>
+                  )}
+                  {error && <p className="text-red-500 text-center">{error}</p>}
+                  {!loading &&
+                    !error &&
+                    filteredSessionHistory.length === 0 && (
+                      <p className="text-center text-gray-500">
+                        No history available at the moment
+                      </p>
+                    )}
+                  {!loading &&
+                    !error &&
+                    filteredSessionHistory
+                      .sort(
+                        (a, b) =>
+                          new Date(b.created_at) - new Date(a.created_at)
+                      )
+                      .map((session) => {
+                        const arrival = new Date(session.arrival_date);
+                        const date = arrival.toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        });
+                        const time = session.shift_start
+                          .substring(0, 5)
+                          .replace(":", ".");
+                        const displayDate = `${date} ${time}`;
+                        const startTime = session.shift_start
+                          .substring(0, 5)
+                          .replace(":", ".");
+                        const endTime = session.shift_end
+                          .substring(0, 5)
+                          .replace(":", ".");
+                        const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
+                        const status = getStatus(
+                          session.status,
+                          session.payment_status
+                        );
+                        return (
+                          <ReservationHistoryCard
+                            key={session.id}
+                            name={session.full_name}
+                            shift={shiftDisplay}
+                            transactionId={session.payment_id || "N/A"}
+                            amount={
+                              session.amount
+                                ? `Rp${session.amount.toLocaleString("id-ID")}`
+                                : "Free"
+                            }
+                            status={status}
+                            onDetailClick={() => openModal(session)}
+                          />
+                        );
+                      })}
+                </div>
+              )}
+              {activeTab === "event" && (
+                <div className="space-y-4">
+                  {loading && (
+                    <>
+                      <ReservationHistorySkeleton />
+                      <ReservationHistorySkeleton />
+                      <ReservationHistorySkeleton />
+                    </>
+                  )}
+                  {error && <p className="text-red-500 text-center">{error}</p>}
+                  {!loading && !error && filteredEventHistory.length === 0 && (
+                    <p className="text-center text-gray-500">
+                      No history available at the moment
+                    </p>
+                  )}
+                  {!loading &&
+                    !error &&
+                    filteredEventHistory
+                      .sort(
+                        (a, b) =>
+                          new Date(b.created_at) - new Date(a.created_at)
+                      )
+                      .map((event) => {
+                        const status = getStatus(
+                          event.status,
+                          event.payment_status
+                        );
+                        return (
+                          <ReservationHistoryCard
+                            key={event.id}
+                            name={event.full_name || event.event_name}
+                            shift={event.shift_name}
+                            transactionId={event.payment_id || "N/A"}
+                            amount={
+                              event.ticket_fee
+                                ? `Rp${event.ticket_fee.toLocaleString("id-ID")}`
+                                : "Free"
+                            }
+                            status={status}
+                            onDetailClick={() => openEventModal(event)}
+                          />
+                        );
+                      })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        <div className="flex-1 flex flex-col justify-start">
-          {activeTab === "session" && (
-            <div className="space-y-4">
-              {loading && (
-                <>
-                  <ReservationHistorySkeleton />
-                  <ReservationHistorySkeleton />
-                  <ReservationHistorySkeleton />
-                </>
-              )}
-              {error && <p className="text-red-500 text-center">{error}</p>}
-              {!loading && !error && filteredSessionHistory.length === 0 && (
-                <p className="text-center text-gray-500">
-                  No history available at the moment
-                </p>
-              )}
-              {!loading &&
-                !error &&
-                filteredSessionHistory
-                  .sort(
-                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                  )
-                  .map((session) => {
-                    const arrival = new Date(session.arrival_date);
-                    const date = arrival.toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    });
-                    const time = session.shift_start
-                      .substring(0, 5)
-                      .replace(":", ".");
-                    const displayDate = `${date} ${time}`;
-                    const startTime = session.shift_start
-                      .substring(0, 5)
-                      .replace(":", ".");
-                    const endTime = session.shift_end
-                      .substring(0, 5)
-                      .replace(":", ".");
-                    const shiftDisplay = `${session.shift_name} (${startTime} - ${endTime})`;
-
-                    const status = getStatus(
-                      session.status,
-                      session.payment_status
-                    );
-
-                    return (
-                      <ReservationHistoryCard
-                        key={session.id}
-                        name={session.full_name}
-                        shift={shiftDisplay}
-                        transactionId={session.payment_id || "N/A"}
-                        amount={
-                          session.amount
-                            ? `Rp${session.amount.toLocaleString("id-ID")}`
-                            : "Free"
-                        }
-                        status={status}
-                        onDetailClick={() => openModal(session)}
-                      />
-                    );
-                  })}
-            </div>
-          )}
-
-          {activeTab === "event" && (
-            <div className="space-y-4">
-              {loading && (
-                <>
-                  <ReservationHistorySkeleton />
-                  <ReservationHistorySkeleton />
-                  <ReservationHistorySkeleton />
-                </>
-              )}
-              {error && <p className="text-red-500 text-center">{error}</p>}
-              {!loading && !error && filteredEventHistory.length === 0 && (
-                <p className="text-center text-gray-500">
-                  No history available at the moment
-                </p>
-              )}
-              {!loading &&
-                !error &&
-                filteredEventHistory
-                  .sort(
-                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                  )
-                  .map((event) => {
-                    const status = getStatus(
-                      event.status,
-                      event.payment_status
-                    );
-                    return (
-                      <ReservationHistoryCard
-                        key={event.id}
-                        name={event.full_name || event.event_name}
-                        shift={event.shift_name}
-                        transactionId={event.payment_id || "N/A"}
-                        amount={
-                          event.ticket_fee
-                            ? `Rp${event.ticket_fee.toLocaleString("id-ID")}`
-                            : "Free"
-                        }
-                        status={status}
-                        onDetailClick={() => openEventModal(event)}
-                      />
-                    );
-                  })}
-            </div>
-          )}
-        </div>
+        <DetailSessionModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          session={selectedSession}
+        />
+        <DetailEventModal
+          isOpen={isEventModalOpen}
+          onClose={closeEventModal}
+          event={selectedEvent}
+        />
       </div>
-      <DetailSessionModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        session={selectedSession}
-      />
-      <DetailEventModal
-        isOpen={isEventModalOpen}
-        onClose={closeEventModal}
-        event={selectedEvent}
-      />
     </div>
   );
 }
